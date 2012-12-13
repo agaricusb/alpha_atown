@@ -1,0 +1,145 @@
+package ee.lutsu.alpha.mc.mytown.commands;
+
+import com.google.common.base.Joiner;
+
+import ee.lutsu.alpha.mc.mytown.ChatChannel;
+import ee.lutsu.alpha.mc.mytown.Formatter;
+import ee.lutsu.alpha.mc.mytown.Log;
+import ee.lutsu.alpha.mc.mytown.MyTownDatasource;
+import ee.lutsu.alpha.mc.mytown.Permissions;
+import ee.lutsu.alpha.mc.mytown.Term;
+import ee.lutsu.alpha.mc.mytown.Entities.Resident;
+import net.minecraft.server.MinecraftServer;
+import net.minecraft.src.CommandBase;
+import net.minecraft.src.EntityPlayer;
+import net.minecraft.src.ICommandSender;
+
+public class CmdChat extends CommandBase
+{
+	public ChatChannel channel;
+	
+	public CmdChat(ChatChannel ch)
+	{
+		channel = ch;
+	}
+	
+	@Override
+	public String getCommandName() 
+	{
+		return channel.abbrevation.toLowerCase();
+	}
+	
+	@Override
+	public boolean canCommandSenderUseCommand(ICommandSender par1ICommandSender)
+	{
+		return par1ICommandSender instanceof EntityPlayer;
+	}
+	
+	@Override
+    public String getCommandUsage(ICommandSender par1ICommandSender)
+    {
+		return "/" + getCommandName() + " message";
+    }
+	
+	public static String sendTownChat(Resident res, String msg)
+	{
+		String formatted = Formatter.formatChat(res, msg, null, ChatChannel.Town);
+		
+		int sentTo = 0;
+		if (res.town() == null)
+		{
+			sentTo++;
+			res.onlinePlayer.sendChatToPlayer(Term.ChatErrNotInTown.toString());
+		}
+		else
+		{
+			for(Resident r : res.town().residents())
+			{
+				if (r.isOnline()) // also sends to self
+				{
+					r.onlinePlayer.sendChatToPlayer(formatted);
+					
+					if (r != res)
+						sentTo++;
+				}
+			}
+		}
+		
+		if (sentTo < 1)
+			res.onlinePlayer.sendChatToPlayer(Term.ChatAloneInChannel.toString());
+		
+		return Term.ChatTownLogFormat.toString(res.town().name(), formatted);
+	}
+	
+	public static String sendGlobalChat(Resident res, String msg)
+	{
+		return sendGlobalChat(res, msg, ChatChannel.Global);
+	}
+	
+	public static String sendGlobalChat(Resident res, String msg, ChatChannel ch)
+	{
+		if (!Permissions.canAccess(res, "mytown.chat.allowcaps"))
+			msg = msg.toLowerCase();
+
+		String formatted = Formatter.formatChat(res, msg, null, ch);
+		
+		int sentTo = 0;
+		for(Object obj : MinecraftServer.getServer().getConfigurationManager().playerEntityList)
+		{
+			((EntityPlayer)obj).sendChatToPlayer(formatted);
+			if (obj != res.onlinePlayer)
+				sentTo++;
+		}
+		
+		if (sentTo < 1)
+			res.onlinePlayer.sendChatToPlayer(Term.ChatAloneInChannel.toString());
+		
+		return formatted;
+	}
+	
+	public static String sendLocalChat(Resident res, String msg)
+	{
+		String formatted = Formatter.formatChat(res, msg, null, ChatChannel.Local);
+		
+		int sentTo = 0;
+		int dsqr = ChatChannel.localChatDistance * ChatChannel.localChatDistance;
+		for(Object obj : MinecraftServer.getServer().getConfigurationManager().playerEntityList)
+		{
+			EntityPlayer pl = (EntityPlayer)obj;
+			if (pl.dimension == res.onlinePlayer.dimension && pl.getDistanceSqToEntity(res.onlinePlayer) <= dsqr)
+			{
+				pl.sendChatToPlayer(formatted);
+				if (obj != res.onlinePlayer)
+					sentTo++;
+			}
+		}
+		
+		if (sentTo < 1)
+			res.onlinePlayer.sendChatToPlayer(Term.ChatAloneInChannel.toString());
+		
+		return formatted;
+	}
+
+	public static void sendToChannel(Resident sender, String msg, ChatChannel channel)
+	{
+		String s;
+		if (channel == ChatChannel.Local)
+			s = sendLocalChat(sender, msg);
+		else if (channel == ChatChannel.Town)
+			s = sendTownChat(sender, msg);
+		else
+			s = sendGlobalChat(sender, msg, channel); // trade, help, global
+		
+		Log.log(s);
+	}
+
+	@Override
+	public void processCommand(ICommandSender var1, String[] var2) 
+	{
+		String msg = Joiner.on(' ').join(var2);
+		Resident res = MyTownDatasource.instance.getOrMakeResident((EntityPlayer)var1);
+		
+		sendToChannel(res, msg, channel);
+	}
+
+}

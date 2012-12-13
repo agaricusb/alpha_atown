@@ -1,0 +1,22 @@
+[
+{
+  "modid": "MyTown",
+  "name": "My Town",
+  "description": "Adds the possibility to create towns in Minecraft server that protect the players
+  and the player builds.",
+  "version": "1.0.0",
+  "mcversion": "1.4.2",
+  "url": "-",
+  "updateUrl": "",
+  "authors": [
+    "AlphAest"
+  ],
+  "credits": "By AlphAest, inspired by the Bukkit plugin Towny",
+  "logoFile": "",
+  "screenshots": [
+  ],
+  "parent":"",
+  "requiredMods": [ "Forge" ],
+  "useDependencyInformation": "true"
+}
+]
