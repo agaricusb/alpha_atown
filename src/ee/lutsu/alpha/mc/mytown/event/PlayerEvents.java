@@ -196,7 +196,7 @@ public class PlayerEvents implements IPlayerTracker
 			// entered town or another town
 			if (block.town() != res.town())
 			{
-				if (block.town().bounceNonMembers && !res.isOp())
+				if (Town.bouncingOn && block.town().bounceNonMembers && !res.isOp())
 				{
 					res.beingBounced = true;
 					try

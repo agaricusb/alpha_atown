@@ -40,6 +40,7 @@ public class Town
 	public void setExtraBlocks(int val) { extraBlocks = val; save(); }
 	public long minecraftNotificationTime = 0;
 	public boolean bounceNonMembers = false;
+	public static boolean bouncingOn = true;
 	public void setBounce(boolean val) { bounceNonMembers = val; save(); }
 
 	public Town(String pName, Resident creator, TownBlock home) throws CommandException
@@ -309,7 +310,7 @@ public class Town
 		
 		pl.sendChatToPlayer(Term.TownStatusName.toString(townColor, t.name()));
 		
-		pl.sendChatToPlayer(Term.TownStatusGeneral.toString(t.blocks().size(), String.valueOf(t.allowedBlocksWOExtra()) + extraBlocks, t.bounceNonMembers ? Term.TownBouncing.toString() : Term.TownNotBouncing.toString()));
+		pl.sendChatToPlayer(Term.TownStatusGeneral.toString(t.blocks().size(), String.valueOf(t.allowedBlocksWOExtra()) + extraBlocks, !Town.bouncingOn ? "§6Disabled" : t.bounceNonMembers ? Term.TownBouncing.toString() : Term.TownNotBouncing.toString()));
 		if (blocks_list.length() > 0)
 			pl.sendChatToPlayer(blocks_list.toString());
 		

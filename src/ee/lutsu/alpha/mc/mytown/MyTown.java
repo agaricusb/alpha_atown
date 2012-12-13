@@ -174,6 +174,10 @@ public class MyTown
         prop = config.get("General", "AllowMemberKillNonMember", "true");
         prop.comment = "Third check. Can a member of the town kill someone who doesn't belong to his town?";
         Town.allowMemberToForeignPvp = prop.getBoolean(true);
+        
+        prop = config.get("General", "BouncingOn", "true");
+        prop.comment = "Allow town bouncing?";
+        Town.bouncingOn = prop.getBoolean(true);
     }
     
     private void loadDatabaseConfigs(Configuration config)
