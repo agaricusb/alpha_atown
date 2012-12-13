@@ -67,7 +67,7 @@ public class ProtectionEvents implements ITickHandler
 				{
 					if (lastOwner != null)
 					{
-						Log.log(String.format("§4Player %s tried to bypass at dim %d, %d,%d,%d using %s - %s", lastOwner.name(), lastOwner.onlinePlayer.dimension, (int)lastOwner.onlinePlayer.posX, (int)lastOwner.onlinePlayer.posY, (int)lastOwner.onlinePlayer.posZ, e.toString(), kill));
+						Log.severe(String.format("Player %s tried to bypass at dim %d, %d,%d,%d using %s - %s", lastOwner.name(), lastOwner.onlinePlayer.dimension, (int)lastOwner.onlinePlayer.posX, (int)lastOwner.onlinePlayer.posY, (int)lastOwner.onlinePlayer.posZ, e.toString(), kill));
 						
 						if (lastOwner.isOnline())
 							lastOwner.onlinePlayer.sendChatToPlayer("§4You cannot use that here - " + kill);

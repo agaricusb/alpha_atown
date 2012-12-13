@@ -264,7 +264,7 @@ public abstract class Database {
      * @param str The string to log
      */
     public void log(String str) {
-        Log.log(str);
+        Log.info(str);
     }
 
     /**

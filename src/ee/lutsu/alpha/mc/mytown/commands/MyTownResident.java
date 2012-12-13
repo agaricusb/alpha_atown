@@ -7,6 +7,7 @@ import java.util.logging.Level;
 import ee.lutsu.alpha.mc.mytown.CommandException;
 import ee.lutsu.alpha.mc.mytown.Formatter;
 import ee.lutsu.alpha.mc.mytown.MyTownDatasource;
+import ee.lutsu.alpha.mc.mytown.Permissions;
 import ee.lutsu.alpha.mc.mytown.Term;
 import ee.lutsu.alpha.mc.mytown.Entities.Resident;
 import ee.lutsu.alpha.mc.mytown.Entities.Resident.Rank;
@@ -29,6 +30,8 @@ public class MyTownResident
 		String color = "f";
 		if (args.length < 1)
 		{
+			if (!Permissions.canAccess(res, "mytown.cmd.info")) { cs.sendChatToPlayer(Term.ErrCannotAccessCommand.toString()); return; }
+			
 			res.town().sendTownInfo(res.onlinePlayer, res.isOp());
 		}
 		else
@@ -40,6 +43,8 @@ public class MyTownResident
 			}
 			else if (args[0].equalsIgnoreCase(Term.TownCmdLeave.toString()))
 			{
+				if (!Permissions.canAccess(res, "mytown.cmd.leave")) { cs.sendChatToPlayer(Term.ErrCannotAccessCommand.toString()); return; }
+				
 				if (res.rank() == Rank.Mayor)
 					throw new CommandException(Term.TownErrMayorsCantLeaveTheTown);
 				
@@ -49,6 +54,8 @@ public class MyTownResident
 			}
 			else if (args[0].equalsIgnoreCase(Term.TownCmdOnline.toString()))
 			{
+				if (!Permissions.canAccess(res, "mytown.cmd.online")) { cs.sendChatToPlayer(Term.ErrCannotAccessCommand.toString()); return; }
+				
 				Town t = res.town();
 				
 				StringBuilder sb = new StringBuilder();

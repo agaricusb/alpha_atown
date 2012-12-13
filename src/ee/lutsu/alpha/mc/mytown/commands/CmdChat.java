@@ -79,7 +79,9 @@ public class CmdChat extends CommandBase
 	public static String sendGlobalChat(Resident res, String msg, ChatChannel ch)
 	{
 		if (!Permissions.canAccess(res, "mytown.chat.allowcaps"))
+		{
 			msg = msg.toLowerCase();
+		}
 
 		String formatted = Formatter.formatChat(res, msg, null, ch);
 		
@@ -130,7 +132,7 @@ public class CmdChat extends CommandBase
 		else
 			s = sendGlobalChat(sender, msg, channel); // trade, help, global
 		
-		Log.log(s);
+		Log.info(s);
 	}
 
 	@Override

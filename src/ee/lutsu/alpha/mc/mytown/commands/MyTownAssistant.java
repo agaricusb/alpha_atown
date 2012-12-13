@@ -7,6 +7,7 @@ import java.util.logging.Level;
 import ee.lutsu.alpha.mc.mytown.CommandException;
 import ee.lutsu.alpha.mc.mytown.Formatter;
 import ee.lutsu.alpha.mc.mytown.MyTownDatasource;
+import ee.lutsu.alpha.mc.mytown.Permissions;
 import ee.lutsu.alpha.mc.mytown.Term;
 import ee.lutsu.alpha.mc.mytown.Entities.Resident;
 import ee.lutsu.alpha.mc.mytown.Entities.TownBlock;
@@ -42,6 +43,8 @@ public class MyTownAssistant
 		}
 		else if (args[0].equalsIgnoreCase(Term.TownCmdClaim.toString()))
 		{
+			if (!Permissions.canAccess(res, "mytown.cmd.claim")) { cs.sendChatToPlayer(Term.ErrCannotAccessCommand.toString()); return; }
+			
 			if (res.onlinePlayer == null)
 				throw new NullPointerException("Onlineplayer is null");
 			
@@ -97,6 +100,8 @@ public class MyTownAssistant
 		}
 		else if (args[0].equalsIgnoreCase(Term.TownCmdUnclaim.toString()))
 		{
+			if (!Permissions.canAccess(res, "mytown.cmd.unclaim")) { cs.sendChatToPlayer(Term.ErrCannotAccessCommand.toString()); return; }
+			
 			if (res.onlinePlayer == null)
 				throw new NullPointerException("Onlineplayer is null");
 			
@@ -143,6 +148,8 @@ public class MyTownAssistant
 		}
 		else if (args[0].equalsIgnoreCase(Term.TownCmdInvite.toString()))
 		{
+			if (!Permissions.canAccess(res, "mytown.cmd.invite")) { cs.sendChatToPlayer(Term.ErrCannotAccessCommand.toString()); return; }
+			
 			if (args.length < 2)
 				cs.sendChatToPlayer(Formatter.formatCommand(Term.TownCmdInvite.toString(), Term.TownCmdInviteArgs.toString(), Term.TownCmdInviteDesc.toString(), color));
 			else
@@ -168,6 +175,8 @@ public class MyTownAssistant
 		}
 		else if (args[0].equalsIgnoreCase(Term.TownCmdKick.toString()))
 		{
+			if (!Permissions.canAccess(res, "mytown.cmd.kick")) { cs.sendChatToPlayer(Term.ErrCannotAccessCommand.toString()); return; }
+			
 			if (args.length < 2)
 				cs.sendChatToPlayer(Formatter.formatCommand(Term.TownCmdKick.toString(), Term.TownCmdKickArgs.toString(), Term.TownCmdKickDesc.toString(), color));
 			else

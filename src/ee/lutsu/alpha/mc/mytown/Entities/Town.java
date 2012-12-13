@@ -2,6 +2,7 @@ package ee.lutsu.alpha.mc.mytown.Entities;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.BrokenBarrierException;
 import java.util.logging.Level;
 
 import net.minecraft.src.Entity;
@@ -26,7 +27,7 @@ public class Town
 	private int id;
 	private String name;
 	private int extraBlocks;
-	private List<Resident> residents;
+	private List<Resident> residents = new ArrayList<Resident>();
 	private List<TownBlock> blocks;
 	
 	public String name() { return name; }
@@ -35,11 +36,10 @@ public class Town
 	public List<Resident> residents() { return residents; }
 	public List<TownBlock> blocks() { return blocks; }
 	
-	public void setName(String val) { name = val; save(); }
 	public void setId(int val) { id = val; }
 	public void setExtraBlocks(int val) { extraBlocks = val; save(); }
 	public long minecraftNotificationTime = 0;
-	public boolean bounceNonMembers = true;
+	public boolean bounceNonMembers = false;
 	public void setBounce(boolean val) { bounceNonMembers = val; save(); }
 
 	public Town(String pName, Resident creator, TownBlock home) throws CommandException
@@ -69,23 +69,20 @@ public class Town
 		}
 
 		MyTownDatasource.instance.addTown(this);
-		save();
+		save(); // has town id now
+		creator.save();
 	}
 	
 	/**
 	 * Used by SQL loading
 	 */
-	public Town(int pId, String pName, int pExtraBlocks, List<Resident> pResidents, List<TownBlock> pBlocks, String extra)
+	public Town(int pId, String pName, int pExtraBlocks, List<TownBlock> pBlocks, String extra)
 	{
 		id = pId;
 		name = pName;
 		extraBlocks = pExtraBlocks;
-		residents = pResidents;
 		blocks = pBlocks;
-		
-		for(Resident res : residents)
-			res.setTown(this);
-		
+
 		for(TownBlock res : blocks)
 			res.setTown(this);
 		
@@ -110,6 +107,14 @@ public class Town
 	public void setResidentRank(Resident res, Rank r)
 	{
 		res.setRank(r);
+		res.save();
+	}
+	
+	public void setTownName(String newName) throws CommandException
+	{
+		canSetName(newName);
+		
+		name = newName;
 		save();
 	}
 	
@@ -157,7 +162,7 @@ public class Town
 		
 		res.setTown(this);
 		residents.add(res);
-		save();
+		res.save();
 	}
 	
 	public void removeBlocks(List<TownBlock> b)
@@ -184,17 +189,14 @@ public class Town
 		res.setTown(null);
 		res.setRank(Rank.Resident);
 		residents.remove(res);
-		MyTownDatasource.instance.unloadResident(res);
-		save();
+		res.save();
 	}
 	
 	public void deleteTown()
 	{
 		for(Resident res : residents)
-		{
 			res.setTown(null);
-			MyTownDatasource.instance.unloadResident(res);
-		}
+
 		residents.clear();
 		
 		for(TownBlock block : blocks)
@@ -204,7 +206,7 @@ public class Town
 		}
 		blocks.clear();
 		
-		MyTownDatasource.instance.deleteTown(this);
+		MyTownDatasource.instance.deleteTown(this); // sets resident town to 0
 		MyTownDatasource.instance.unloadTown(this);
 	}
 	
@@ -324,5 +326,15 @@ public class Town
 	public static boolean canPluginChangeWild(String plugin, Entity e)
 	{
 		return true;
+	}
+	
+	public void notifyPlayerLoggedOn(Resident r)
+	{
+		sendNotification(Level.INFO, Term.TownBroadcastLoggedIn.toString(r.name()));
+	}
+	
+	public void notifyPlayerLoggedOff(Resident r)
+	{
+		sendNotification(Level.INFO, Term.TownBroadcastLoggedOut.toString(r.name()));
 	}
 }

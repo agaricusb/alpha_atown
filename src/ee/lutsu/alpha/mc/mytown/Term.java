@@ -25,6 +25,12 @@ public enum Term
 	TownStatusAssistants("§2Assistants: §b%s"),
 	TownStatusResidents("§2Residents: §b%s"),
 	
+	// resident status
+	ResStatusName("§6--------[[ §2%s§6 ]]--------"),
+	ResStatusGeneral1("§2Member from: §b%s"),
+	ResStatusGeneral2("§2Last online: §b%s"),
+	ResStatusTown("§2Member of: §b%s§2, §a%s"),
+	
 	// commands
 	TownCommand("mytown"),
 	TownCommandAliases("t town"),
@@ -48,6 +54,10 @@ public enum Term
 	TownCmdInfoArgs("townname"),
 	TownCmdInfoDesc("Shows info about the town"),
 	
+	TownCmdRes("res"),
+	TownCmdResArgs("playername"),
+	TownCmdResDesc("Shows info about the resident"),
+	
 	TownCmdList("list"),
 	TownCmdListDesc("Lists all towns"),
 	TownCmdListStart("§aTowns§f: %s"),
@@ -63,6 +73,10 @@ public enum Term
 	TownCmdMayor("mayor"),
 	TownCmdMayorArgs("[name]"),
 	TownCmdMayorDesc("Sets a new mayor"),
+	
+	TownCmdRename("rename"),
+	TownCmdRenameArgs("[name]"),
+	TownCmdRenameDesc("Sets a new town name"),
 	
 	TownCmdBounce("bounce"),
 	TownCmdBounceDesc("Toggle non-member bounce mode"),
@@ -133,6 +147,7 @@ public enum Term
 	TownadmCmdExtraDesc("Adds or removes extra blocks in a town"),
 
 	// Town errors
+	ErrCannotAccessCommand("You cannot access this command"),
 	TownErrAlreadyClaimed("This block is claimed by another town"),
 	TownErrPlayerAlreadyInTown("That player is already part of a town"),
 	TownErrPlayerNotFound("Player not found"),
@@ -170,6 +185,9 @@ public enum Term
 	TownBroadcastCreated("%s has just founded a new town called %s"),
 	TownBroadcastDeleted("The town of %s went like POOF"),
 	
+	TownBroadcastLoggedIn("%s came just online"),
+	TownBroadcastLoggedOut("%s went just offline"),
+	
 	TownadmCreatedNewTown("Town named %s created for mayor %s"),
 	TownadmDeletedTown("Town named %s deleted"),
 	
@@ -191,10 +209,12 @@ public enum Term
 	TownKickedPlayer("%s kicked the player %s from town"),
 	TownPlayerLeft("%s left the town"),
 	TownInvitation("§a%s would like you to join his town %s. Use /t §2accept §aor /t §4deny §ato reply"),
+	TownRenamed("Your town charter has been renamed to %s"),
 	
 	TownPlayerPromotedToAssistant("Player %s promoted to be an assistant"),
 	TownPlayerDemotedFromAssistant("Player %s demoted to a normal resident"),
 	TownPlayerPromotedToMayor("Player %s promoted to be town mayor"),
+	
 	
 	TownPlayerJoinedTown("The player %s has joined the town"),
 	TownPlayerDeniedInvitation("You have denied the invitation"),

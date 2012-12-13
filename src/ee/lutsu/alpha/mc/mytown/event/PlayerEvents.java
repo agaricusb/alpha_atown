@@ -1,5 +1,6 @@
 package ee.lutsu.alpha.mc.mytown.event;
 
+import java.lang.reflect.Field;
 import java.util.logging.Level;
 
 import cpw.mods.fml.common.IPlayerTracker;
@@ -19,6 +20,7 @@ import net.minecraft.src.EntityPlayer;
 import net.minecraft.src.NetHandler;
 import net.minecraft.src.Packet3Chat;
 import net.minecraft.src.WorldInfo;
+import net.minecraftforge.event.Event;
 import net.minecraftforge.event.Event.Result;
 import net.minecraftforge.event.EventPriority;
 import net.minecraftforge.event.ForgeSubscribe;
@@ -48,7 +50,21 @@ public class PlayerEvents implements IPlayerTracker
 			return;
 		
 		if (!r.canInteract(ev.x , ev.y, ev.z))
+		{
 			ev.setCanceled(true);
+			
+			// TODO: Remove. Fixed in Forge 1.4.5
+			try
+			{
+				Field f = Event.class.getDeclaredField("isCanceled");
+				f.setAccessible(true);
+				f.set(ev, true);
+			}
+			catch(Exception e)
+			{
+				Log.severe("Failed Forge 1.4.2 PlayerInteractEvent bug workaround", e);
+			}
+		}	
 	}
 	
 	@ForgeSubscribe
@@ -115,28 +131,35 @@ public class PlayerEvents implements IPlayerTracker
 	{
 		// load the resident
 		Resident r = source().getOrMakeResident(player);
+		
 		TownBlock t = source().getBlock(r.onlinePlayer.dimension, player.chunkCoordX, player.chunkCoordZ);
 
 		r.location = t != null && t.town() != null ? t.town() : null;
 		
 		if (r.location != null && r.location != r.town() && r.location.bounceNonMembers && !r.isOp())
 		{
-			Log.log(String.format("[MyTown] Player %s logged in at a enemy town %s (%s, %s, %s) with bouncing on. Sending to spawn.",
+			Log.warning(String.format("Player %s logged in at a enemy town %s (%s, %s, %s) with bouncing on. Sending to spawn.",
 					r.name(), r.location.name(),
 					player.posX, player.posY, player.posZ));
 			r.sendToSpawn();
 		}
+		
+		if (r.town() != null)
+			r.town().notifyPlayerLoggedOn(r);
+		
+		r.loggedIn();
 	}
 
 	@Override
 	public void onPlayerLogout(EntityPlayer player) 
 	{
 		Resident res = source().getOrMakeResident(player);
-		res.firstTick = true;
-		res.onlinePlayer = null;
+		res.loggedOf();
 		
 		if (res.town() == null)
 			source().unloadResident(res);
+		else
+			res.town().notifyPlayerLoggedOff(res);
 	}
 
 	@Override
@@ -185,7 +208,7 @@ public class PlayerEvents implements IPlayerTracker
 						if (block2 != null && block2.town() != null && block2.town() != res.town() && block2.town().bounceNonMembers)
 						{
 							// bounce failed, send to spawn
-							Log.log(String.format("[MyTown] Player %s is inside a enemy town %s (%s, %s, %s) with bouncing on. Sending to spawn.",
+							Log.warning(String.format("Player %s is inside a enemy town %s (%s, %s, %s) with bouncing on. Sending to spawn.",
 									res.name(), block2.town().name(),
 									res.onlinePlayer.posX, res.onlinePlayer.posY, res.onlinePlayer.posZ));
 							

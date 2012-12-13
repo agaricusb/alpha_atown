@@ -1,14 +1,19 @@
 package ee.lutsu.alpha.mc.mytown.Entities;
 
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+
 import ee.lutsu.alpha.mc.mytown.ChatChannel;
-import ee.lutsu.alpha.mc.mytown.GroupManager;
 import ee.lutsu.alpha.mc.mytown.MyTownDatasource;
+import ee.lutsu.alpha.mc.mytown.Permissions;
 import ee.lutsu.alpha.mc.mytown.Term;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.src.ChunkCoordinates;
 import net.minecraft.src.Entity;
 import net.minecraft.src.EntityPlayer;
 import net.minecraft.src.EntityPlayerMP;
+import net.minecraft.src.ICommandSender;
 import net.minecraft.src.WorldInfo;
 
 public class Resident 
@@ -43,6 +48,10 @@ public class Resident
 	private Rank rank = Rank.Resident;
 	private long opCheck = 0;
 	private boolean isOp = false;
+	private int id = 0;
+	private Date createdOn;
+	private Date lastLoginOn;
+	
 	public Town location;
 	public boolean mapMode = false;
 	public Town inviteActiveFrom;
@@ -66,10 +75,23 @@ public class Resident
 	public void setRank(Rank r){ rank = r; }
 	public String name() { return name; }
 	public boolean isOnline() { return onlinePlayer != null && !onlinePlayer.isDead; }
+	public int id() { return id; }
+	public void setId(int val) { id = val; }
+	public Date created() { return createdOn; }
+	public Date lastLogin() { return lastLoginOn; }
+	public String extraData() { return ""; }
 	
 	public Resident(String pName)
 	{
 		name = pName;
+		createdOn = new Date(System.currentTimeMillis());
+		lastLoginOn = new Date(System.currentTimeMillis());
+		
+		save();
+	}
+	
+	protected Resident()
+	{
 	}
 	
 	public boolean isOp()
@@ -170,43 +192,32 @@ public class Resident
 	public String prefix()
 	{
 		String w = onlinePlayer != null ? String.valueOf(onlinePlayer.dimension) : null;
-		return GroupManager.instance.getPrefix(name(), w);
+		return Permissions.getPrefix(name(), w);
 	}
 	
 	public String postfix()
 	{
 		String w = onlinePlayer != null ? String.valueOf(onlinePlayer.dimension) : null;
-		return GroupManager.instance.getPostfix(name(), w);
+		return Permissions.getPostfix(name(), w);
 	}
 	
-	public static Resident deserialize(String info) // cannot contain spaces
+	public static Resident loadFromDB(int id, String name, Town town, Rank r, ChatChannel c, Date created, Date lastLogin, String extra)
 	{
-		String[] opt = info.split(";");
+		Resident res = new Resident();
+		res.name = name;
+		res.id = id;
+		res.town = town;
+		res.rank = r;
+		res.activeChannel = c;
+		res.createdOn = created;
+		res.lastLoginOn = lastLogin;
+		
+		if (town != null)
+			town.residents().add(res);
+		
+		// split extra
 
-		Resident res = new Resident(opt[0]);
-		
-		if (opt.length > 1)
-			res.setRank(Rank.parse(opt[1]));
-		if (opt.length > 2)
-			res.activeChannel = ChatChannel.parse(opt[2]);
-		
 		return res;
-	}
-
-	public void serialize(StringBuilder residents) // cannot contain spaces
-	{
-		residents.append(name());
-		residents.append(";");
-		residents.append(rank().toString().substring(0, 1));
-		residents.append(";");
-		residents.append(activeChannel.toString());
-	}
-	
-	public String serialize()
-	{
-		StringBuilder sb = new StringBuilder();
-		serialize(sb);
-		return sb.toString();
 	}
 	
 	public void bounceAway(int prevX, int prevZ, int newX, int newZ)
@@ -233,42 +244,6 @@ public class Resident
 		}
 		else
 			throw new RuntimeException("Cannot bounce non multiplayer players");
-		
-		/*
-		double x = onlinePlayer.posX;
-		double z = onlinePlayer.posZ;
-		
-		int dirX = prevX - newX; // pos, set X to old chunk left edge
-		int dirZ = prevZ - newZ;
-		
-		if (dirX > 1 || dirX < -1 || dirZ > 1 || dirZ < -1) // cannot move back
-			return;
-		
-		if (dirX > 0)
-			x = prevX << 4;
-		else if (dirX < 0)
-			x = (newX << 4) - 1;
-		
-		if (dirZ > 0)
-			z = prevZ << 4;
-		else if (dirZ < 0)
-			z = (newZ << 4) - 1;
-		
-		int y = onlinePlayer.worldObj.getHeightValue((int)x, (int)z); // TODO: returns 0 in nether
-		
-		if (onlinePlayer.ridingEntity != null)
-			onlinePlayer.ridingEntity.moveEntity(x, y, z);
-		
-		if (onlinePlayer instanceof EntityPlayerMP)
-			((EntityPlayerMP)onlinePlayer).setPositionAndUpdate(x, y, z);
-		else
-			onlinePlayer.moveEntity(x, y, z);*/
-		
-		// -1:-1  0:-1  1:-1
-		// -1: 0  0: 0  1: 0
-		// -1: 1  0: 1  1: 1
-		
-		// new: 0:0, old: 1:1. 
 	}
 	
 	public void sendToSpawn()
@@ -297,8 +272,7 @@ public class Resident
 	
 	public void save()
 	{
-		if (town() != null)
-			town().save();
+		MyTownDatasource.instance.saveResident(this);
 	}
 	
 	/**
@@ -332,5 +306,31 @@ public class Resident
 			prevYaw = onlinePlayer.rotationYaw;
 			prevPitch = onlinePlayer.rotationPitch;
 		}
+	}
+	
+	public void sendInfoTo(ICommandSender cs)
+	{
+		DateFormat format = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+		
+		cs.sendChatToPlayer(Term.ResStatusName.toString(name));
+		cs.sendChatToPlayer(Term.ResStatusGeneral1.toString(format.format(createdOn))); 
+		cs.sendChatToPlayer(Term.ResStatusGeneral1.toString(onlinePlayer != null ? "online" : format.format(lastLoginOn)));
+		cs.sendChatToPlayer(Term.ResStatusTown.toString(
+			town == null ? "none" : town().name(),
+			town == null ? "Loner" : rank.toString()));
+	}
+	
+	public void loggedIn()
+	{
+		lastLoginOn = new Date(System.currentTimeMillis());
+		save();
+	}
+	
+	public void loggedOf()
+	{
+		firstTick = true;
+		onlinePlayer = null;
+		lastLoginOn = new Date(System.currentTimeMillis());
+		save();
 	}
 }

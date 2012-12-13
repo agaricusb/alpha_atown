@@ -29,12 +29,10 @@ public class MyTownDatasource extends MyTownDB
 		load();
 		
 		towns.addAll(loadTowns());
+		residents.addAll(loadResidents()); // links to towns
 		
 		for(Town t : towns)
 		{
-			for(Resident res : t.residents())
-				residents.add(res);
-			
 			for(TownBlock res : t.blocks())
 				blocks.add(res);
 		}
@@ -91,6 +89,18 @@ public class MyTownDatasource extends MyTownDB
 		return null;
 	}
 	
+	@Override
+	public Town getTown(int id) 
+	{
+		for (Town res : towns)
+		{
+			if (res.id() == id)
+				return res;
+		}
+
+		return null;
+	}
+	
 	public Resident getOrMakeResident(EntityPlayer player)
 	{
 		for (Resident res : residents)
@@ -128,16 +138,6 @@ public class MyTownDatasource extends MyTownDB
 		return null;
 	}
 	
-	public void unloadOfflineResidents()
-	{
-		for (Iterator<Resident> it = residents.iterator(); it.hasNext();)
-		{
-			Resident res = it.next();
-			if (!res.isOnline() && res.town() == null)
-				it.remove();
-		}
-	}
-	
 	public void unloadTown(Town t)
 	{
 		towns.remove(t);
@@ -150,8 +150,9 @@ public class MyTownDatasource extends MyTownDB
 	
 	public void unloadResident(Resident r)
 	{
+		/*
 		if (r.onlinePlayer == null && r.town() == null)
 			residents.remove(r);
+		*/
 	}
-
 }

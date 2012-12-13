@@ -71,22 +71,16 @@ public class SteveCarts
 		
 		Object module = railerModules.get(0);
 		Vec3 next = (Vec3)mGetNextblock.invoke(module);
-		
-		Log.log("next: " + next.toString());
-		
+
 		if (!tryWorkRailer(module, next)) // wont place a rail
 			return null;
-		
-		Log.log("Going on");
-		
+
 		TownBlock b = MyTownDatasource.instance.getBlock(e.dimension, ((int)next.xCoord) >> 4, ((int)next.zCoord) >> 4);
 		if (b == null && Town.canPluginChangeWild("StevesCarts", e))
 			return null;
 		
 		if (b != null && b.canPluginChange("StevesCarts", e))
 			return null;
-		
-		Log.log("Blocking");
 
 		boolean hasRails = false;
 		for (Object railer : railerModules)
@@ -106,7 +100,7 @@ public class SteveCarts
 		}
 		
 		if (hasRails)
-			Log.log(String.format("§4A railer steve cart found in %s at dim %s, %s,%s,%s. Dropping rails.",
+			Log.severe(String.format("§4A railer steve cart found in %s at dim %s, %s,%s,%s. Dropping rails.",
 					b == null || b.town() == null ? "wilderness" : b.town().name(),
 					e.dimension, (int)next.xCoord, (int)next.yCoord, (int)next.zCoord));
 		

@@ -7,6 +7,7 @@ import java.util.logging.Level;
 import ee.lutsu.alpha.mc.mytown.CommandException;
 import ee.lutsu.alpha.mc.mytown.Formatter;
 import ee.lutsu.alpha.mc.mytown.MyTownDatasource;
+import ee.lutsu.alpha.mc.mytown.Permissions;
 import ee.lutsu.alpha.mc.mytown.Term;
 import ee.lutsu.alpha.mc.mytown.Entities.Resident;
 import ee.lutsu.alpha.mc.mytown.Entities.Resident.Rank;
@@ -38,6 +39,8 @@ public class MyTownNonResident
 		}
 		else if (args[0].equalsIgnoreCase(Term.TownCmdNew.toString()))
 		{
+			if (!Permissions.canAccess(res, "mytown.cmd.new")) { cs.sendChatToPlayer(Term.ErrCannotAccessCommand.toString()); return; }
+			
 			if (args.length < 2 || args.length > 2)
 				cs.sendChatToPlayer(Formatter.formatCommand(Term.TownCmdNew.toString(), Term.TownCmdNewArgs.toString(), Term.TownCmdNewDesc.toString(), color));
 			else
@@ -58,6 +61,8 @@ public class MyTownNonResident
 		}
 		else if (args[0].equalsIgnoreCase(Term.TownCmdAccept.toString()))
 		{
+			if (!Permissions.canAccess(res, "mytown.cmd.accept")) { cs.sendChatToPlayer(Term.ErrCannotAccessCommand.toString()); return; }
+			
 			if (res.inviteActiveFrom == null)
 				throw new CommandException(Term.TownErrYouDontHavePendingInvitations);
 			
@@ -69,6 +74,8 @@ public class MyTownNonResident
 		}
 		else if (args[0].equalsIgnoreCase(Term.TownCmdDeny.toString()))
 		{
+			if (!Permissions.canAccess(res, "mytown.cmd.deny")) { cs.sendChatToPlayer(Term.ErrCannotAccessCommand.toString()); return; }
+			
 			if (res.inviteActiveFrom == null)
 				throw new CommandException(Term.TownErrYouDontHavePendingInvitations);
 			

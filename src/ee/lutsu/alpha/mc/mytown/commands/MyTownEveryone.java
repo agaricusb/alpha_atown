@@ -8,6 +8,7 @@ import java.util.TreeMap;
 import ee.lutsu.alpha.mc.mytown.CommandException;
 import ee.lutsu.alpha.mc.mytown.Formatter;
 import ee.lutsu.alpha.mc.mytown.MyTownDatasource;
+import ee.lutsu.alpha.mc.mytown.Permissions;
 import ee.lutsu.alpha.mc.mytown.Term;
 import ee.lutsu.alpha.mc.mytown.Entities.Resident;
 import ee.lutsu.alpha.mc.mytown.Entities.Resident.Rank;
@@ -33,9 +34,12 @@ public class MyTownEveryone
 				cs.sendChatToPlayer(Formatter.formatCommand(Term.TownCmdMap.toString(), Term.TownCmdMapArgs.toString(), Term.TownCmdMapDesc.toString(), color));
 				cs.sendChatToPlayer(Formatter.formatCommand(Term.TownCmdInfo.toString(), Term.TownCmdInfoArgs.toString(), Term.TownCmdInfoDesc.toString(), color));
 				cs.sendChatToPlayer(Formatter.formatCommand(Term.TownCmdList.toString(), "", Term.TownCmdListDesc.toString(), color));
+				cs.sendChatToPlayer(Formatter.formatCommand(Term.TownCmdRes.toString(), Term.TownCmdResArgs.toString(), Term.TownCmdResDesc.toString(), null));
 			}
 			else if (args.length > 0 && args[0].equalsIgnoreCase(Term.TownCmdMap.toString()))
 			{
+				if (!Permissions.canAccess(res, "mytown.cmd.map")) { cs.sendChatToPlayer(Term.ErrCannotAccessCommand.toString()); return; }
+				
 				if (args.length > 1)
 				{
 					boolean modeOn = !res.mapMode;
@@ -73,9 +77,12 @@ public class MyTownEveryone
 			{
 				cs.sendChatToPlayer(Formatter.formatCommand(Term.TownCmdInfo.toString(), Term.TownCmdInfoArgs.toString(), Term.TownCmdInfoDesc.toString(), null));
 				cs.sendChatToPlayer(Formatter.formatCommand(Term.TownCmdList.toString(), "", Term.TownCmdListDesc.toString(), null));
+				cs.sendChatToPlayer(Formatter.formatCommand(Term.TownCmdRes.toString(), Term.TownCmdResArgs.toString(), Term.TownCmdResDesc.toString(), null));
 			}
 			else if (args.length > 0 && args[0].equalsIgnoreCase(Term.TownCmdInfo.toString()))
 			{
+				if (!Permissions.canAccess(cs, "mytown.cmd.info")) { cs.sendChatToPlayer(Term.ErrCannotAccessCommand.toString()); return; }
+				
 				if (args.length == 2)
 				{
 					Town t = MyTownDatasource.instance.getTown(args[1]);
@@ -91,6 +98,8 @@ public class MyTownEveryone
 		
 		if (args.length > 0 && args[0].equals(Term.TownCmdList.toString()))
 		{
+			if (!Permissions.canAccess(cs, "mytown.cmd.list")) { cs.sendChatToPlayer(Term.ErrCannotAccessCommand.toString()); return; }
+			
 			TreeMap<String, Town> sorted = new TreeMap<String, Town>();
 			for (Town t : MyTownDatasource.instance.towns)
 				sorted.put(t.name(), t);
@@ -118,6 +127,30 @@ public class MyTownEveryone
 			
 			if (sb.length() > 0)
 				cs.sendChatToPlayer(sb.toString());
+		}
+		else if (args.length > 0 && args[0].equals(Term.TownCmdRes.toString()))
+		{
+			if (!Permissions.canAccess(cs, "mytown.cmd.res")) { cs.sendChatToPlayer(Term.ErrCannotAccessCommand.toString()); return; }
+			
+			if (args.length == 1 && cs instanceof EntityPlayer)
+			{
+				Resident res = MyTownDatasource.instance.getOrMakeResident((EntityPlayer)cs);
+				res.sendInfoTo(cs);
+			}
+			else if (args.length == 2)
+			{
+				Resident r = MyTownDatasource.instance.getResident(args[1]);
+				if (r == null)
+					cs.sendChatToPlayer(Term.TownErrPlayerNotFound.toString());
+				else
+				{
+					r.sendInfoTo(cs);
+				}
+			}
+			else
+			{
+				cs.sendChatToPlayer(Formatter.formatCommand(Term.TownCmdRes.toString(), Term.TownCmdResArgs.toString(), Term.TownCmdResDesc.toString(), null));
+			}
 		}
 	}
 }

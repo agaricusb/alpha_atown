@@ -1,5 +1,6 @@
 package ee.lutsu.alpha.mc.mytown;
 
+import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -10,12 +11,40 @@ public class Log
 	public static Logger mclog = Logger.getLogger("Minecraft");
 	public static boolean isUnix = isUnix();
 	
-	/**
-	 * Log info to stdout
-	 */
-	public static void log(String msg)
+
+	public static void info(String msg)
 	{
-		mclog.info(consoleColors(msg));
+		log(Level.INFO, msg);
+	}
+	
+	public static void warning(String msg)
+	{
+		log(Level.WARNING, msg);
+	}
+	
+	public static void severe(String msg)
+	{
+		log(Level.SEVERE, msg);
+	}
+	
+	public static void severe(String msg, Throwable t)
+	{
+		log(Level.SEVERE, msg, t);
+	}
+	
+	public static void log(Level l, String msg)
+	{
+		mclog.log(l, consoleColors(String.format("§7[§a%s§7]%s", MyTown.MOD_NAME, msg)));
+	}
+	
+	public static void log(Level l, String msg, Throwable t)
+	{
+		mclog.log(l, consoleColors(String.format("§7[§a%s§7]%s", MyTown.MOD_NAME, msg)), t);
+	}
+	
+	public static void direct(String msg)
+	{
+		mclog.log(Level.INFO, consoleColors(msg));
 	}
 	
 	public static String consoleColors(String str)

@@ -7,6 +7,7 @@ import java.util.logging.Level;
 import ee.lutsu.alpha.mc.mytown.CommandException;
 import ee.lutsu.alpha.mc.mytown.Formatter;
 import ee.lutsu.alpha.mc.mytown.MyTownDatasource;
+import ee.lutsu.alpha.mc.mytown.Permissions;
 import ee.lutsu.alpha.mc.mytown.Term;
 import ee.lutsu.alpha.mc.mytown.Entities.Resident;
 import ee.lutsu.alpha.mc.mytown.Entities.Resident.Rank;
@@ -37,10 +38,13 @@ public class MyTownMayor
 			cs.sendChatToPlayer(Formatter.formatCommand(Term.TownCmdAssistant.toString(), Term.TownCmdAssistantArgs.toString(), Term.TownCmdAssistantDesc.toString(), color));
 			cs.sendChatToPlayer(Formatter.formatCommand(Term.TownCmdMayor.toString(), Term.TownCmdMayorArgs.toString(), Term.TownCmdMayorDesc.toString(), color));
 			cs.sendChatToPlayer(Formatter.formatCommand(Term.TownCmdBounce.toString(), "", Term.TownCmdBounceDesc.toString(), color));
+			cs.sendChatToPlayer(Formatter.formatCommand(Term.TownCmdRename.toString(), Term.TownCmdRenameArgs.toString(), Term.TownCmdRenameDesc.toString(), color));
 			cs.sendChatToPlayer(Formatter.formatCommand(Term.TownCmdDelete.toString(), "", Term.TownCmdDeleteDesc.toString(), color));
 		}
 		else if (args[0].equalsIgnoreCase(Term.TownCmdAssistant.toString()))
 		{
+			if (!Permissions.canAccess(res, "mytown.cmd.assistant")) { cs.sendChatToPlayer(Term.ErrCannotAccessCommand.toString()); return; }
+			
 			if (args.length != 3)
 				cs.sendChatToPlayer(Formatter.formatCommand(Term.TownCmdAssistant.toString(), Term.TownCmdAssistantArgs.toString(), Term.TownCmdAssistantDesc.toString(), color));
 			else
@@ -80,6 +84,8 @@ public class MyTownMayor
 		}
 		else if (args[0].equalsIgnoreCase(Term.TownCmdMayor.toString()))
 		{
+			if (!Permissions.canAccess(res, "mytown.cmd.mayor")) { cs.sendChatToPlayer(Term.ErrCannotAccessCommand.toString()); return; }
+			
 			if (args.length != 2)
 				cs.sendChatToPlayer(Formatter.formatCommand(Term.TownCmdMayor.toString(), Term.TownCmdMayorArgs.toString(), Term.TownCmdMayorDesc.toString(), color));
 			else
@@ -102,6 +108,8 @@ public class MyTownMayor
 		}
 		else if (args[0].equalsIgnoreCase(Term.TownCmdDelete.toString()))
 		{
+			if (!Permissions.canAccess(res, "mytown.cmd.delete")) { cs.sendChatToPlayer(Term.ErrCannotAccessCommand.toString()); return; }
+			
 			if (args.length == 2 && args[1].equalsIgnoreCase("ok"))
 			{
 				String name = res.town().name();
@@ -121,9 +129,23 @@ public class MyTownMayor
 		}
 		else if (args[0].equalsIgnoreCase(Term.TownCmdBounce.toString()))
 		{
+			if (!Permissions.canAccess(res, "mytown.cmd.bounce")) { cs.sendChatToPlayer(Term.ErrCannotAccessCommand.toString()); return; }
+			
 			res.town().setBounce(!res.town().bounceNonMembers);
 			
 			cs.sendChatToPlayer(Term.TownBouncingChanged.toString(res.town().bounceNonMembers ? Term.TownBouncing.toString() : Term.TownNotBouncing.toString()));
+		}
+		else if (args[0].equalsIgnoreCase(Term.TownCmdRename.toString()))
+		{
+			if (!Permissions.canAccess(res, "mytown.cmd.rename")) { cs.sendChatToPlayer(Term.ErrCannotAccessCommand.toString()); return; }
+			
+			if (args.length == 2)
+			{
+				res.town().setTownName(args[1]);
+				res.town().sendNotification(Level.INFO, Term.TownRenamed.toString(res.town().name()));
+			}
+			else
+				cs.sendChatToPlayer(Formatter.formatCommand(Term.TownCmdRename.toString(), Term.TownCmdRenameArgs.toString(), Term.TownCmdRenameDesc.toString(), color));
 		}
 	}
 }
