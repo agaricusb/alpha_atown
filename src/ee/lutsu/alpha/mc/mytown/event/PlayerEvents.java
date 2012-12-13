@@ -154,12 +154,11 @@ public class PlayerEvents implements IPlayerTracker
 	public void onPlayerLogout(EntityPlayer player) 
 	{
 		Resident res = source().getOrMakeResident(player);
-		res.loggedOf();
-		
-		if (res.town() == null)
-			source().unloadResident(res);
-		else
+
+		if (res.town() != null)
 			res.town().notifyPlayerLoggedOff(res);
+		
+		res.loggedOf();
 	}
 
 	@Override
@@ -254,7 +253,11 @@ public class PlayerEvents implements IPlayerTracker
 		if (ev.isCanceled() || !(ev.entityLiving instanceof EntityPlayer))
 			return;
 
-		Resident res = source().getOrMakeResident((EntityPlayer)ev.entityLiving);
-		res.update();
+		// so we don't re-link to player to be online
+		// as this is called after the player logs off
+		Resident res = source().getResident((EntityPlayer)ev.entityLiving);
+		
+		if (res != null && res.isOnline())
+			res.update();
 	}
 }

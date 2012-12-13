@@ -132,7 +132,7 @@ public class CmdChat extends CommandBase
 		else
 			s = sendGlobalChat(sender, msg, channel); // trade, help, global
 		
-		Log.info(s);
+		Log.direct(s);
 	}
 
 	@Override

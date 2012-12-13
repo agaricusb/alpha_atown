@@ -114,6 +114,17 @@ public class MyTownDatasource extends MyTownDB
 		return r;
 	}
 	
+	public Resident getResident(EntityPlayer player)
+	{
+		for (Resident res : residents)
+		{
+			if (res.onlinePlayer == player)
+				return res;
+		}
+		
+		return null;
+	}
+	
 	public Resident getOrMakeResident(String name) // case sensitive
 	{
 		for (Resident res : residents)

@@ -50,7 +50,7 @@ public class CmdMyTownAdmin extends CommandBase
 	@Override
 	public boolean canCommandSenderUseCommand(ICommandSender cs)
 	{
-		return Permissions.canAccess(cs, "mytown.cmd.adm");
+		return Permissions.canAccess(cs, "mytown.adm.cmd");
 	}
 	
 	@Override

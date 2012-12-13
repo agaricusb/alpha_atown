@@ -314,7 +314,7 @@ public class Resident
 		
 		cs.sendChatToPlayer(Term.ResStatusName.toString(name));
 		cs.sendChatToPlayer(Term.ResStatusGeneral1.toString(format.format(createdOn))); 
-		cs.sendChatToPlayer(Term.ResStatusGeneral2.toString(onlinePlayer != null ? "online" : format.format(lastLoginOn)));
+		cs.sendChatToPlayer(Term.ResStatusGeneral2.toString(isOnline() ? "online" : format.format(lastLoginOn)));
 		cs.sendChatToPlayer(Term.ResStatusTown.toString(
 			town == null ? "none" : town().name(),
 			town == null ? "Loner" : rank.toString()));
