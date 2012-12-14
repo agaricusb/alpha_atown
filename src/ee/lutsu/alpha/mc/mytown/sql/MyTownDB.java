@@ -11,6 +11,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map.Entry;
 
+import com.google.common.base.Joiner;
+
 import ee.lutsu.alpha.mc.mytown.ChatChannel;
 import ee.lutsu.alpha.mc.mytown.MyTown;
 import ee.lutsu.alpha.mc.mytown.MyTownDatasource;
@@ -67,6 +69,7 @@ public abstract class MyTownDB extends Database {
     {
     	update_21_11_2012();
     	update_13_12_2012();
+    	update_14_12_2012();
     }
     
     private void update_21_11_2012() throws SQLException
@@ -75,7 +78,6 @@ public abstract class MyTownDB extends Database {
     		return;
     	
 		PreparedStatement statement = prepare("alter table " + prefix + "towns ADD Extra varchar(2000) null");      
-
 		statement.executeUpdate();
 		
 		dbVersion++;
@@ -148,6 +150,17 @@ public abstract class MyTownDB extends Database {
 		dbVersion++;
     }
     
+    private void update_14_12_2012() throws SQLException
+    {
+    	if (dbVersion > 2)
+    		return;
+    	
+		PreparedStatement statement = prepare("alter table " + prefix + "residents ADD Friends TEXT default ''");      
+		statement.executeUpdate();
+		
+		dbVersion++;
+    }
+    
     public void deleteTown(Town town)
     {
     	synchronized(lock)
@@ -176,26 +189,34 @@ public abstract class MyTownDB extends Database {
     
     public void saveResident(Resident res)
     {
+    	List<Integer> friends = new ArrayList<Integer>();
+    	for (Resident r : res.friends)
+    		if (r.id() > 0)
+    			friends.add(r.id());
+    	
+    	String sFriends = Joiner.on(';').join(friends);
+    	
     	synchronized(lock)
     	{
     		try 
     		{
     			if (res.id() > 0)
     			{
-	    			PreparedStatement statement = prepare("UPDATE " + prefix + "residents SET Name = ?, Town = ?, Rank = ?, Channel = ?, LastLogin = ?, Extra = ? WHERE id = ?");      
+	    			PreparedStatement statement = prepare("UPDATE " + prefix + "residents SET Name = ?, Town = ?, Rank = ?, Channel = ?, LastLogin = ?, Extra = ?, Friends = ? WHERE id = ?");      
 	    			statement.setString(1, res.name());
 	    			statement.setInt(2, res.town() == null ? 0 : res.town().id());
 	    			statement.setString(3, res.rank().toString());
 	    			statement.setString(4, res.activeChannel.toString());
 	    			statement.setString(5, iso8601Format.format(res.lastLogin()));
 	    			statement.setString(6, res.extraData());
+	    			statement.setString(7, sFriends);
 	    			
-	    			statement.setInt(7, res.id());
+	    			statement.setInt(8, res.id());
 	    			statement.executeUpdate();
     			}
     			else
     			{
-	    			PreparedStatement statement = prepare("INSERT INTO " + prefix + "residents (Name, Town, Rank, Channel, Created, LastLogin, Extra) VALUES (?, ?, ?, ?, ?, ?, ?)", true);      
+	    			PreparedStatement statement = prepare("INSERT INTO " + prefix + "residents (Name, Town, Rank, Channel, Created, LastLogin, Extra, Friends) VALUES (?, ?, ?, ?, ?, ?, ?, ?)", true);      
 	    			statement.setString(1, res.name());
 	    			statement.setInt(2, res.town() == null ? 0 : res.town().id());
 	    			statement.setString(3, res.rank().toString());
@@ -203,6 +224,7 @@ public abstract class MyTownDB extends Database {
 	    			statement.setString(5, iso8601Format.format(res.created()));
 	    			statement.setString(6, iso8601Format.format(res.lastLogin()));
 	    			statement.setString(7, res.extraData());
+	    			statement.setString(8, sFriends);
 
 	    			statement.executeUpdate();
 	    			
@@ -283,6 +305,7 @@ public abstract class MyTownDB extends Database {
 		{
 			ResultSet set = null;
 			List<Resident> residents = new ArrayList<Resident>();
+			HashMap<Resident, String> friends = new HashMap<Resident, String>();
 			try
 			{
 				PreparedStatement statement = prepare("SELECT * FROM " + prefix + "residents"); 
@@ -293,7 +316,7 @@ public abstract class MyTownDB extends Database {
 					int tid = set.getInt("Town");
 					Town town = tid > 0 ? getTown(tid) : null;
 					
-					residents.add(Resident.loadFromDB(
+					Resident r = Resident.loadFromDB(
 							set.getInt("Id"), 
 							set.getString("Name"), 
 							town, 
@@ -301,7 +324,13 @@ public abstract class MyTownDB extends Database {
 							ChatChannel.parse(set.getString("Channel")), 
 							iso8601Format.parse(set.getString("Created")), 
 							iso8601Format.parse(set.getString("LastLogin")), 
-							set.getString("Extra")));
+							set.getString("Extra"));
+					
+					residents.add(r);
+					
+					String f = set.getString("Friends");
+					if (f != null && f.length() > 0)
+						friends.put(r, f);
 				}
 			} 
 			catch (Exception e)
@@ -319,6 +348,31 @@ public abstract class MyTownDB extends Database {
 					catch(Exception e) { }
 				}
 			}
+			
+			// link friends
+			for (Entry<Resident, String> entry : friends.entrySet())
+			{
+				String[] ids = entry.getValue().split(";");
+				for (String sfid : ids)
+				{
+					int fid = Integer.parseInt(sfid);
+					Resident friend = null;
+					for (Resident r2 : residents)
+					{
+						if (r2.id() == fid)
+						{
+							friend = r2;
+							break;
+						}
+					}
+					
+					if (friend == null)
+						continue; // not found, just skip
+
+					entry.getKey().friends.add(friend);
+				}
+			}
+			
 			
 			return residents;
 		}

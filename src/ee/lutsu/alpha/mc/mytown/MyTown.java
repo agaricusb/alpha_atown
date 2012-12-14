@@ -33,7 +33,8 @@ import net.minecraftforge.common.Property;
 
 @Mod(
         modid = "MyTown",
-        name = "My Town"
+        name = "My Town",
+        version = "1.0.0"
 )
 @NetworkMod(
         clientSideRequired = false,
@@ -53,11 +54,7 @@ public class MyTown
     @Mod.PreInit
     public void preInit(FMLPreInitializationEvent ev)
     {
-        Version.init(ev.getVersionProperties());
-
         loadConfig();
-
-        ev.getModMetadata().version = Version.version();
     }
 
     @Mod.Init

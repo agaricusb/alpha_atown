@@ -2,7 +2,9 @@ package ee.lutsu.alpha.mc.mytown.Entities;
 
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
 
 import ee.lutsu.alpha.mc.mytown.ChatChannel;
 import ee.lutsu.alpha.mc.mytown.MyTownDatasource;
@@ -57,6 +59,7 @@ public class Resident
 	public Town inviteActiveFrom;
 	public ChatChannel activeChannel = ChatChannel.Global;
 	public boolean beingBounced = false;
+	public List<Resident> friends = new ArrayList<Resident>();
 	
 	public int prevDimension, prevDimension2;
 	public double prevX, prevY, prevZ, prevX2, prevY2, prevZ2;
@@ -214,7 +217,7 @@ public class Resident
 		
 		if (town != null)
 			town.residents().add(res);
-		
+
 		// split extra
 
 		return res;
@@ -332,5 +335,29 @@ public class Resident
 		onlinePlayer = null;
 		lastLoginOn = new Date(System.currentTimeMillis());
 		save();
+	}
+	
+	public boolean addFriend(Resident r)
+	{
+		for (Resident res : friends)
+		{
+			if (res == r)
+				return false;
+		}
+		
+		friends.add(r);
+		save();
+		return true;
+	}
+	
+	public boolean removeFriend(Resident r)
+	{
+		if (friends.remove(r))
+		{
+			save();
+			return true;
+		}
+		else
+			return false;
 	}
 }

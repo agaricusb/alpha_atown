@@ -8,11 +8,36 @@ import net.minecraft.src.World;
 
 public class TownBlock
 {
+	public enum Permissions
+	{
+		None, // First char has to be different
+		Enter,
+		Access,
+		Build;
+		
+		public static Permissions parse(String str)
+		{
+			for (Permissions val : values())
+			{
+				if (val.toString().toLowerCase().startsWith(str.toLowerCase()))
+					return val;
+			}
+			
+			return None;
+		}
+		
+		public String getShort() { return toString().substring(0, 0); }
+	}
+	
 	private World linkedWorld;
 	private int world_dimension;
 	private int chunkX;
 	private int chunkZ;
 	private Town town;
+	
+	private Permissions townPerm = Permissions.Enter;
+	private Permissions outsiderPerm = Permissions.Enter;
+	private Permissions friendPerm = Permissions.Build;
 	
 	public int x() { return chunkX; }
 	public int z() { return chunkZ; }
@@ -34,15 +59,30 @@ public class TownBlock
 	public static TownBlock deserialize(String info)
 	{
 		String[] splits = info.split(";");
-		if (splits.length != 3)
+		if (splits.length < 3)
 			throw new RuntimeException("Error in block info : " + info);
 
-		return new TownBlock(Integer.parseInt(splits[0]), Integer.parseInt(splits[1]), Integer.parseInt(splits[2]));
+		TownBlock t = new TownBlock(Integer.parseInt(splits[0]), Integer.parseInt(splits[1]), Integer.parseInt(splits[2]));
+		
+		if (splits.length > 3)
+		{
+			t.townPerm = Permissions.parse(splits[3].substring(0, 0));
+			t.outsiderPerm = Permissions.parse(splits[3].substring(1, 1));
+			t.friendPerm = Permissions.parse(splits[3].substring(2, 2));
+		}
+		else
+			t.townPerm = Permissions.Build;
+		
+		return t;
 	}
 	
-	public String serialize()
+	public String serialize() // don't use space
 	{
-		return worldDimension() + ";" + String.valueOf(x()) + ";" + String.valueOf(z());
+		return worldDimension() + ";" +
+			String.valueOf(x()) + ";" +
+			String.valueOf(z()) + ";" +
+			townPerm.getShort() + outsiderPerm.getShort() + friendPerm.getShort();
+			
 	}
 	
 	public boolean equals(TownBlock block)
