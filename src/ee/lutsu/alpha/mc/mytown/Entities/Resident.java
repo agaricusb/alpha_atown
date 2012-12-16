@@ -7,6 +7,7 @@ import java.util.Date;
 import java.util.List;
 
 import ee.lutsu.alpha.mc.mytown.ChatChannel;
+import ee.lutsu.alpha.mc.mytown.Log;
 import ee.lutsu.alpha.mc.mytown.MyTownDatasource;
 import ee.lutsu.alpha.mc.mytown.Permissions;
 import ee.lutsu.alpha.mc.mytown.Term;
@@ -17,6 +18,8 @@ import net.minecraft.src.EntityPlayer;
 import net.minecraft.src.EntityPlayerMP;
 import net.minecraft.src.ICommandSender;
 import net.minecraft.src.WorldInfo;
+import net.minecraftforge.event.ForgeSubscribe;
+import net.minecraftforge.event.entity.EntityEvent.EnteringChunk;
 
 public class Resident 
 {
@@ -62,8 +65,8 @@ public class Resident
 	public List<Resident> friends = new ArrayList<Resident>();
 	
 	public int prevDimension, prevDimension2;
-	public double prevX, prevY, prevZ, prevX2, prevY2, prevZ2;
-	public float prevYaw, prevPitch, prevYaw2, prevPitch2;
+	public double prevX, prevY, prevZ;
+	public float prevYaw, prevPitch;
 	
 	public boolean firstTick = true;
 	public boolean wasfirstTick = true;
@@ -222,28 +225,88 @@ public class Resident
 
 		return res;
 	}
+
+	public void checkLocation()
+	{
+		if (beingBounced)
+			return;
+		
+		MyTownDatasource source = MyTownDatasource.instance;
+		
+		int pX = ((int)onlinePlayer.posX) >> 4;
+		int pZ = ((int)onlinePlayer.posZ) >> 4;
+
+		TownBlock block = source.getBlock(onlinePlayer.dimension, pX, pZ);
+		
+		if (block == null && location != null)
+		{
+			// entered wild
+			onlinePlayer.sendChatToPlayer(Term.PlayerEnteredWild.toString());
+			location = null;
+		}
+		else if (block != null && block.town() != null && location != block.town())
+		{
+			// entered town or another town
+			if (block.town() != town())
+			{
+				if (Town.bouncingOn && block.town().bounceNonMembers && !canByPassBounce())
+				{
+					beingBounced = true;
+					try
+					{
+						onlinePlayer.sendChatToPlayer(Term.TownYouCannotEnter.toString(block.town().name()));
+						bounceBack();
+						
+						pX = ((int)onlinePlayer.posX) >> 4;
+						pZ = ((int)onlinePlayer.posZ) >> 4;
+						
+						TownBlock block2 = source.getBlock(onlinePlayer.dimension, pX, pZ);
+						if (block2 != null && block2.town() != null && block2.town() != town() && block2.town().bounceNonMembers)
+						{
+							// bounce failed, send to spawn
+							Log.warning(String.format("Player %s is inside a enemy town %s (%s, %s, %s, %s) with bouncing on. Sending to spawn.",
+									name(), block2.town().name(),
+									onlinePlayer.dimension, onlinePlayer.posX, onlinePlayer.posY, onlinePlayer.posZ));
+							
+							sendToSpawn();
+						}
+					}
+					finally
+					{
+						beingBounced = false;
+					}
+				}
+				else
+				{
+					location = block.town();
+					onlinePlayer.sendChatToPlayer(Term.PlayerEnteredTown.toString(block.town().name()));
+				}
+			}
+			else
+			{
+				location = block.town();
+				onlinePlayer.sendChatToPlayer(Term.PlayerEnteredOwnTown.toString(block.town().name()));
+			}
+		}
+		
+		if (mapMode)
+			sendLocationMap(onlinePlayer.dimension, pX, pZ);
+	}
 	
-	public void bounceAway(int prevX, int prevZ, int newX, int newZ)
+	public void bounceBack()
 	{
 		if (wasfirstTick)
 			return;
 		
 		if (this.onlinePlayer instanceof EntityPlayerMP)
 		{
-			if (this.onlinePlayer.dimension != this.prevDimension2)
-				MinecraftServer.getServer().getConfigurationManager().transferPlayerToDimension((EntityPlayerMP)this.onlinePlayer, this.prevDimension2);
+			if (this.onlinePlayer.dimension != this.prevDimension)
+				MinecraftServer.getServer().getConfigurationManager().transferPlayerToDimension((EntityPlayerMP)this.onlinePlayer, this.prevDimension);
 
-			 this.prevDimension = prevDimension2;
-			 this.prevX = prevX2;
-			 this.prevY = prevY2;
-			 this.prevZ = prevZ2;
-			 this.prevYaw = prevYaw2;
-			 this.prevPitch = prevPitch2;
-			
 			if (onlinePlayer.ridingEntity != null)
-				onlinePlayer.ridingEntity.moveEntity(this.prevX2, this.prevY2, this.prevZ2);
+				onlinePlayer.ridingEntity.moveEntity(this.prevX, this.prevY, this.prevZ);
 			
-			((EntityPlayerMP)this.onlinePlayer).playerNetServerHandler.setPlayerLocation(this.prevX2, this.prevY2, this.prevZ2, this.prevYaw2, this.prevPitch2);
+			((EntityPlayerMP)this.onlinePlayer).playerNetServerHandler.setPlayerLocation(this.prevX, this.prevY, this.prevZ, this.prevYaw, this.prevPitch);
 		}
 		else
 			throw new RuntimeException("Cannot bounce non multiplayer players");
@@ -295,13 +358,14 @@ public class Resident
 		}
 		else
 		{
-			prevDimension2 = prevDimension;
-			prevX2 = prevX;
-			prevY2 = prevY;
-			prevZ2 = prevZ;
-			prevYaw2 = prevYaw;
-			prevPitch2 = prevPitch;
+			int cX = ((int)onlinePlayer.posX) >> 4;
+			int cZ = ((int)onlinePlayer.posZ) >> 4;
+			int pcX = ((int)prevX) >> 4;
+			int pcZ = ((int)prevZ) >> 4;
 			
+			if (prevDimension != onlinePlayer.dimension || cX != pcX || cZ != pcZ)
+				checkLocation();
+
 			prevDimension = onlinePlayer.dimension;
 			prevX = onlinePlayer.posX;
 			prevY = onlinePlayer.posY;
@@ -359,5 +423,10 @@ public class Resident
 		}
 		else
 			return false;
+	}
+	
+	public boolean canByPassBounce()
+	{
+		return isOp();
 	}
 }

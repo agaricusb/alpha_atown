@@ -16,6 +16,7 @@ import com.google.common.base.Joiner;
 import ee.lutsu.alpha.mc.mytown.ChatChannel;
 import ee.lutsu.alpha.mc.mytown.MyTown;
 import ee.lutsu.alpha.mc.mytown.MyTownDatasource;
+import ee.lutsu.alpha.mc.mytown.Entities.Nation;
 import ee.lutsu.alpha.mc.mytown.Entities.Resident;
 import ee.lutsu.alpha.mc.mytown.Entities.Town;
 import ee.lutsu.alpha.mc.mytown.Entities.TownBlock;
@@ -70,6 +71,7 @@ public abstract class MyTownDB extends Database {
     	update_21_11_2012();
     	update_13_12_2012();
     	update_14_12_2012();
+    	update_16_12_2012();
     }
     
     private void update_21_11_2012() throws SQLException
@@ -159,6 +161,134 @@ public abstract class MyTownDB extends Database {
 		statement.executeUpdate();
 		
 		dbVersion++;
+    }
+    
+    private void update_16_12_2012() throws SQLException
+    {
+    	if (dbVersion > 3)
+    		return;
+    	
+    	Table nations = new Table(this, "nations");
+    	{
+    		nations.add("Id", "INTEGER", true, true);
+    		nations.add("Name", "VARCHAR(255)");
+    		nations.add("Towns", "TEXT");
+    		nations.add("Capital", "INTEGER");
+    		nations.add("Extra", "TEXT");
+    	}
+    	nations.execute();
+    	
+    	dbVersion++;
+    }
+    
+    public List<Nation> loadNations() // has to happen after town load
+    {
+    	synchronized(lock)
+		{
+			ResultSet set = null;
+			List<Nation> nations = new ArrayList<Nation>();
+			try
+			{
+				PreparedStatement statement = prepare("SELECT * FROM " + prefix + "nations"); 
+				set = statement.executeQuery();
+				
+				while (set.next())
+				{
+					nations.add(Nation.sqlLoad(set.getInt("Id"), 
+							set.getString("Name"), 
+							set.getInt("Capital"), 
+							set.getString("Towns"), set.getString("Extra")));
+				}
+			} 
+			catch (Exception e)
+			{      
+				printException(e);    
+			}
+			finally
+			{
+				if (set != null)
+				{
+					try
+					{
+						set.close();
+					}
+					catch(Exception e) { }
+				}
+			}
+			
+			return nations;
+		}
+    }
+    
+    public void saveNation(Nation nation)
+    {
+    	List<Integer> towns = new ArrayList<Integer>();
+    	for (Town r : nation.towns())
+    		if (r.id() > 0)
+    			towns.add(r.id());
+    	
+    	String sTowns = Joiner.on(';').join(towns);
+    	
+    	
+    	synchronized(lock)
+    	{
+    		try 
+    		{
+    			if (nation.id() > 0)
+    			{
+	    			PreparedStatement statement = prepare("UPDATE " + prefix + "nations SET Name = ?, Towns = ?, Capital = ?, Extra = ? WHERE id = ?");      
+	    			statement.setString(1, nation.name());
+	    			statement.setString(2, sTowns);
+	    			statement.setInt(3, nation.capital().id());
+	    			statement.setString(4, nation.serializeExtra());
+	    			
+	    			statement.setInt(5, nation.id());
+	    			statement.executeUpdate();
+    			}
+    			else
+    			{
+	    			PreparedStatement statement = prepare("INSERT INTO " + prefix + "nations (Name, Towns, Capital, Extra) VALUES (?, ?, ?, ?)", true);      
+	    			statement.setString(1, nation.name());
+	    			statement.setString(2, sTowns);
+	    			statement.setInt(3, nation.capital().id());
+	    			statement.setString(4, nation.serializeExtra());
+
+	    			statement.executeUpdate();
+
+	    			ResultSet rs = statement.getGeneratedKeys();
+	    			if (!rs.next())
+	    				throw new RuntimeException("Id wasn't returned for new nation " + nation.name());
+
+	    			nation.setId(rs.getInt(1));
+    			}
+    		} 
+    		catch (Exception e) 
+    		{ 
+    			e.printStackTrace(); 
+    			throw new RuntimeException("Error in nation saving", e);
+    		}
+    	}
+    }
+    
+    public void deleteNation(Nation nation)
+    {
+    	synchronized(lock)
+    	{
+    		try 
+    		{
+    			if (nation.id() > 0)
+    			{
+	    			PreparedStatement statement = prepare("DELETE FROM " + prefix + "nations WHERE id = ?");      
+	    			statement.setInt(1, nation.id());
+	    			statement.executeUpdate();
+    			}
+    		} 
+    		catch (Exception e) 
+    		{ 
+    			e.printStackTrace(); 
+    			throw new RuntimeException("Error in nation deleting", e);
+    		}
+    	}
     }
     
     public void deleteTown(Town town)

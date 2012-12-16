@@ -17,12 +17,14 @@ public class MyTownDatasource extends MyTownDB
 	public HashSet<Resident> residents = new HashSet<Resident>();
 	public HashSet<Town> towns = new HashSet<Town>();
 	public HashSet<TownBlock> blocks = new HashSet<TownBlock>();
+	public HashSet<Nation> nations = new HashSet<Nation>();
 	
 	public void init() throws Exception
 	{
 		residents = new HashSet<Resident>();
 		towns = new HashSet<Town>();
 		blocks = new HashSet<TownBlock>();
+		nations = new HashSet<Nation>();
 		
 		dispose();
 		connect();
@@ -34,8 +36,19 @@ public class MyTownDatasource extends MyTownDB
 		for(Town t : towns)
 		{
 			for(TownBlock res : t.blocks())
-				blocks.add(res);
+			{
+				if (res.owner_name != null) // map block owners
+				{
+					Resident r = getResident(res.owner_name);
+					res.sqlSetOwner(r);
+					res.owner_name = null;
+				}
+				
+				blocks.add(res); // add block to global list
+			}
 		}
+		
+		nations.addAll(loadNations());
 		
 		addAllOnlinePlayers();
 	}
@@ -52,6 +65,11 @@ public class MyTownDatasource extends MyTownDB
 	public void addTown(Town t)
 	{
 		towns.add(t);
+	}
+	
+	public void addNation(Nation n)
+	{
+		nations.add(n);
 	}
 	
 	public TownBlock getOrMakeBlock(int world_dimension, int x, int z)
@@ -95,6 +113,17 @@ public class MyTownDatasource extends MyTownDB
 		for (Town res : towns)
 		{
 			if (res.id() == id)
+				return res;
+		}
+
+		return null;
+	}
+	
+	public Nation getNation(String name)
+	{
+		for (Nation res : nations)
+		{
+			if (res.name().equalsIgnoreCase(name))
 				return res;
 		}
 

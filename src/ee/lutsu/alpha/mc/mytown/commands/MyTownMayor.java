@@ -116,7 +116,7 @@ public class MyTownMayor
 				res.town().deleteTown();
 				
 				// emulate that the player just entered it
-				new PlayerEvents().enterChunk(new EnteringChunk(res.onlinePlayer, res.onlinePlayer.chunkCoordX, res.onlinePlayer.chunkCoordZ, res.onlinePlayer.chunkCoordX, res.onlinePlayer.chunkCoordZ));
+				res.checkLocation();
 				
 				String msg = Term.TownBroadcastDeleted.toString(name);
 				for(Object obj : MinecraftServer.getServer().getConfigurationManager().playerEntityList)

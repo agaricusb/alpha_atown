@@ -48,8 +48,8 @@ public class MyTownNonResident
 				Town t = new Town(args[1], res, MyTownDatasource.instance.getOrMakeBlock(res.onlinePlayer.dimension, res.onlinePlayer.chunkCoordX, res.onlinePlayer.chunkCoordZ));
 				
 				// emulate that the player just entered it
-				new PlayerEvents().enterChunk(new EnteringChunk(res.onlinePlayer, res.onlinePlayer.chunkCoordX, res.onlinePlayer.chunkCoordZ, res.onlinePlayer.chunkCoordX, res.onlinePlayer.chunkCoordZ));
-				
+				res.checkLocation();
+
 				String msg = Term.TownBroadcastCreated.toString(res.name(), t.name());
 				for(Object obj : MinecraftServer.getServer().getConfigurationManager().playerEntityList)
 				{

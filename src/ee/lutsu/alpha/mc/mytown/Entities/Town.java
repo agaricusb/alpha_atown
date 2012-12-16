@@ -1,9 +1,14 @@
 package ee.lutsu.alpha.mc.mytown.Entities;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
 import java.util.concurrent.BrokenBarrierException;
 import java.util.logging.Level;
+
+import com.google.common.base.Joiner;
 
 import net.minecraft.src.Entity;
 import net.minecraft.src.EntityPlayer;
@@ -23,25 +28,34 @@ public class Town
 	public static int dontSendCartNotification = 5000;
 	public static boolean allowFullPvp = false;
 	public static boolean allowMemberToForeignPvp = true;
+	public static boolean bouncingOn = true;
 
 	private int id;
 	private String name;
 	private int extraBlocks;
 	private List<Resident> residents = new ArrayList<Resident>();
 	private List<TownBlock> blocks;
+	private Nation nation;
+	
+	public long minecraftNotificationTime = 0;
 	
 	public String name() { return name; }
 	public int id() { return id; }
 	public int extraBlocks() { return extraBlocks; }
 	public List<Resident> residents() { return residents; }
 	public List<TownBlock> blocks() { return blocks; }
+	public Nation nation() { return nation; }
 	
 	public void setId(int val) { id = val; }
 	public void setExtraBlocks(int val) { extraBlocks = val; save(); }
-	public long minecraftNotificationTime = 0;
+	public void sqlSetExtraBlocks(int val) { extraBlocks = val; }
+	public void setNation(Nation n) { nation = n; } // used internally only
+	
+	// extra
 	public boolean bounceNonMembers = false;
-	public static boolean bouncingOn = true;
-	public void setBounce(boolean val) { bounceNonMembers = val; save(); }
+	public Map<String, String> settings = genSettings();
+	
+	public void setBounce(boolean val) { bounceNonMembers = val; settings.put("bounce", bounceNonMembers ? "1" : null); save(); }
 
 	public Town(String pName, Resident creator, TownBlock home) throws CommandException
 	{
@@ -230,7 +244,13 @@ public class Town
 	
 	public String serializeExtra()
 	{
-		return "bounce:" + (bounceNonMembers ? "1" : "0");
+		List<String> ret = new ArrayList<String>();
+		
+		for (Entry<String, String> set : settings.entrySet())
+			if (set.getValue() != null)
+				ret.add(set.getKey() + ":" + set.getValue());
+		
+		return Joiner.on(';').join(ret);
 	}
 	
 	public void deserializeExtra(String val)
@@ -243,8 +263,11 @@ public class Town
 		{
 			String[] v = line.split(":");
 			
-			if (v[0].equalsIgnoreCase("bounce"))
+			if (v[0].equals("bounce"))
 				bounceNonMembers = v[1].equals("1");
+			
+			if (settings.containsKey(v[0]))
+				settings.put(v[0], v[1]);
 		}
 	}
 	
@@ -337,5 +360,27 @@ public class Town
 	public void notifyPlayerLoggedOff(Resident r)
 	{
 		sendNotification(Level.INFO, Term.TownBroadcastLoggedOut.toString(r.name()));
+	}
+	
+	public static HashMap<String, String> genSettings()
+	{
+		HashMap<String, String> settings = new HashMap<String, String>();
+		
+		settings.put("ci", null);
+		settings.put("minY", null);
+		settings.put("maxY", null);
+		settings.put("bounce", null);
+		
+		return settings;
+	}
+	
+	public void applyPerms()
+	{
+		
+	}
+	
+	public void forceBlocksToInheritPerms()
+	{
+		
 	}
 }

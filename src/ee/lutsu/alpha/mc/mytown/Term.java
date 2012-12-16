@@ -228,6 +228,9 @@ public enum Term
 	TownNotBouncing("§2Not bouncing"),
 	TownBouncingChanged("§aThe town is now in %s §astatus"),
 	ChatTownLogFormat("§f[§a%s§f]%s"),
+	
+	// nation
+	TownErrAlreadyInNation("This town is already part of a nation"),
 	;
 	
 	public final String defaultVal;

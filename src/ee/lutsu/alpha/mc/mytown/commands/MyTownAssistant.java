@@ -94,7 +94,7 @@ public class MyTownAssistant
 			finally
 			{
 				// emulate that the player just entered it
-				new PlayerEvents().enterChunk(new EnteringChunk(res.onlinePlayer, res.onlinePlayer.chunkCoordX, res.onlinePlayer.chunkCoordZ, res.onlinePlayer.chunkCoordX, res.onlinePlayer.chunkCoordZ));
+				res.checkLocation();
 				cs.sendChatToPlayer(Term.TownBlocksClaimed.toString(nr, sb.toString()));
 			}
 		}
@@ -143,7 +143,7 @@ public class MyTownAssistant
 			res.town().removeBlocks(blocks);
 			
 			// emulate that the player just entered it
-			new PlayerEvents().enterChunk(new EnteringChunk(res.onlinePlayer, res.onlinePlayer.chunkCoordX, res.onlinePlayer.chunkCoordZ, res.onlinePlayer.chunkCoordX, res.onlinePlayer.chunkCoordZ));
+			res.checkLocation();
 			cs.sendChatToPlayer(Term.TownBlocksUnclaimed.toString(nr, sb.toString()));
 		}
 		else if (args[0].equalsIgnoreCase(Term.TownCmdInvite.toString()))

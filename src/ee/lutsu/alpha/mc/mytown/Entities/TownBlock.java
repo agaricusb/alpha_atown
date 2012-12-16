@@ -1,5 +1,8 @@
 package ee.lutsu.alpha.mc.mytown.Entities;
 
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Map.Entry;
 import java.util.jar.Attributes.Name;
 
 import net.minecraft.server.MinecraftServer;
@@ -12,6 +15,7 @@ public class TownBlock
 	{
 		None, // First char has to be different
 		Enter,
+		Loot,
 		Access,
 		Build;
 		
@@ -34,8 +38,11 @@ public class TownBlock
 	private int chunkX;
 	private int chunkZ;
 	private Town town;
+	private Resident owner;
+	public String owner_name; // only for sql loading. Don't use.
 	
-	private Permissions townPerm = Permissions.Enter;
+	private Permissions townPerm = Permissions.Loot;
+	private Permissions nationPerm = Permissions.Enter;
 	private Permissions outsiderPerm = Permissions.Enter;
 	private Permissions friendPerm = Permissions.Build;
 	
@@ -45,7 +52,13 @@ public class TownBlock
 	public World world() { return linkedWorld; }
 	
 	public Town town() { return town; }
+	public Resident owner() { return owner; }
 	public void setTown(Town val) { town = val; }
+	public void setOwner(Resident val) { owner = val; save(); }
+	public void sqlSetOwner(Resident val) { owner = val; }
+	
+	// extra
+	public Map<String, String> settings = genSettings();
 	
 	public TownBlock(int pWorld, int x, int z)
 	{
@@ -67,8 +80,9 @@ public class TownBlock
 		if (splits.length > 3)
 		{
 			t.townPerm = Permissions.parse(splits[3].substring(0, 0));
-			t.outsiderPerm = Permissions.parse(splits[3].substring(1, 1));
-			t.friendPerm = Permissions.parse(splits[3].substring(2, 2));
+			t.nationPerm = Permissions.parse(splits[3].substring(1, 1));
+			t.outsiderPerm = Permissions.parse(splits[3].substring(2, 2));
+			t.friendPerm = Permissions.parse(splits[3].substring(3, 3));
 		}
 		else
 			t.townPerm = Permissions.Build;
@@ -81,7 +95,7 @@ public class TownBlock
 		return worldDimension() + ";" +
 			String.valueOf(x()) + ";" +
 			String.valueOf(z()) + ";" +
-			townPerm.getShort() + outsiderPerm.getShort() + friendPerm.getShort();
+			townPerm.getShort() + nationPerm.getShort() + outsiderPerm.getShort() + friendPerm.getShort();
 			
 	}
 	
@@ -103,6 +117,9 @@ public class TownBlock
 	
 	public int squaredDistanceTo(TownBlock b)
 	{
+		if (world_dimension != b.world_dimension)
+			throw new RuntimeException("Cannot measure distance to ");
+		
 		return Math.abs((chunkX - b.chunkX) * (chunkX - b.chunkX) + (chunkZ - b.chunkZ) * (chunkZ - b.chunkZ));
 	}
 	
@@ -112,5 +129,34 @@ public class TownBlock
 			return Town.canPluginChangeWild(plugin, e);
 		
 		return town.canPluginChange(plugin, e);
+	}
+	
+	public void save()
+	{
+		if (town != null)
+			town.save();
+	}
+	
+	public void recalcPerms()
+	{
+		
+	}
+	
+	public void forcePermsToInherit()
+	{
+		
+	}
+	
+	// returns town settings with all null values
+	public static HashMap<String, String> genSettings()
+	{
+		HashMap<String, String> settings = Town.genSettings();
+		
+		for (Entry<String, String> kv : settings.entrySet())
+		{
+			settings.put(kv.getKey(), null);
+		}
+
+		return settings;
 	}
 }
