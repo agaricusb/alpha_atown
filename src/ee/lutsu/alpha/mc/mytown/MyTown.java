@@ -16,10 +16,16 @@ import cpw.mods.fml.common.registry.TickRegistry;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.logging.Level;
 
 import ee.lutsu.alpha.mc.mytown.Entities.Resident;
 import ee.lutsu.alpha.mc.mytown.Entities.Town;
+import ee.lutsu.alpha.mc.mytown.Entities.TownSettingCollection;
+import ee.lutsu.alpha.mc.mytown.Entities.TownSettingCollection.ISettingsSaveHandler;
 import ee.lutsu.alpha.mc.mytown.commands.*;
 import ee.lutsu.alpha.mc.mytown.event.*;
 import ee.lutsu.alpha.mc.mytown.event.prot.BuildCraft;
@@ -31,6 +37,7 @@ import ee.lutsu.alpha.mc.mytown.sql.MyTownDB;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.src.ICommandSender;
 import net.minecraft.src.ServerCommandManager;
+import net.minecraft.src.World;
 import net.minecraftforge.common.Configuration;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.common.Property;
@@ -51,9 +58,12 @@ public class MyTown
 	public static String LIB_FOLDER = CONFIG_FOLDER +"lib/";
 	public static String CONFIG_FILE = CONFIG_FOLDER + "MyTown.cfg";
 	
+	public TownSettingCollection serverSettings = new TownSettingCollection();
+	public Map<World, TownSettingCollection> worldSettings = new HashMap<World, TownSettingCollection>();
 	
     @Mod.Instance("MyTown")
     public static MyTown instance;
+    public Configuration config = new Configuration(new File(CONFIG_FILE));
 
     @Mod.PreInit
     public void preInit(FMLPreInitializationEvent ev)
@@ -103,11 +113,14 @@ public class MyTown
 		for(ChatChannel c : ChatChannel.values())
 			mgr.registerCommand(new CmdChat(c));
     }
+
+    public void saveConfig()
+    {
+    	
+    }
     
     public void loadConfig()
     {
-    	Configuration config = new Configuration(new File(CONFIG_FILE));
-
         try
         {
             config.load();
@@ -116,6 +129,7 @@ public class MyTown
             loadDatabaseConfigs(config);
             loadChatConfigs(config);
             loadExtraProtectionConfig(config);
+            loadPerms(config);
         }
         catch (Exception var8)
         {
@@ -131,6 +145,7 @@ public class MyTown
     public void reload()
     {
     	loadConfig();
+    	BuildCraft.instance.reload(); // flushes the checked list
     	
     	try
     	{
@@ -254,5 +269,23 @@ public class MyTown
         prop = config.get("ProtEx", "BuildCraftCheck", "false");
         prop.comment = "Check for quarrys, fillers, builder";
         BuildCraft.instance.enabled = prop.getBoolean(false);
+    }
+    
+    private void loadPerms(Configuration config)
+    {
+        Property prop; 
+        
+        prop = config.get("WorldPerms", "Server", "");
+        prop.comment = "Run the extra protections";
+        serverSettings.deserialize(prop.value);
+        
+        serverSettings.saveHandler = new ISettingsSaveHandler()
+        {
+			public void save(TownSettingCollection sender, Object tag) 
+			{
+				MyTown.instance.config.get("WorldPerms", "Server", "").value = sender.serialize();
+				MyTown.instance.config.save();
+			}
+        };
     }
 }

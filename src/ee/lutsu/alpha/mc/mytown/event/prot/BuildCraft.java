@@ -1,6 +1,8 @@
 package ee.lutsu.alpha.mc.mytown.event.prot;
 
 import java.lang.reflect.Field;
+import java.util.ArrayList;
+import java.util.List;
 
 import ee.lutsu.alpha.mc.mytown.MyTownDatasource;
 import ee.lutsu.alpha.mc.mytown.Entities.TownBlock;
@@ -13,9 +15,15 @@ import net.minecraft.src.TileEntity;
 public class BuildCraft extends ProtBase
 {
 	public static BuildCraft instance = new BuildCraft();
+	public List<TileEntity> checkedEntitys = new ArrayList<TileEntity>();
 
 	Class clQuarry = null, clFiller, clBuilder, clBox;
 	Field fBoxQ, fBoxF, fBoxB, fmx, fmy, fmz, fxx, fxy, fxz, fBoxInit, fQuarryOwner;
+	
+	public void reload()
+	{
+		checkedEntitys.clear();
+	}
 	
 	@Override
 	public void load() throws Exception
@@ -49,9 +57,22 @@ public class BuildCraft extends ProtBase
 		
 		return c == clQuarry || c == clFiller || c == clBuilder;
 	}
-
+	
 	@Override
 	public String update(TileEntity e) throws Exception
+	{
+		if (checkedEntitys.contains(e))
+			return null;
+		
+		String s = updateSub(e);
+		
+		if (s == null) // no need to check twice if it already passed
+			checkedEntitys.add(e);
+		
+		return s == "-" ? null : s; // "-" used to bypass caching
+	}
+
+	private String updateSub(TileEntity e) throws Exception
 	{
 		Object box = null;
 		Class clazz = e.getClass();
@@ -65,7 +86,7 @@ public class BuildCraft extends ProtBase
 		
 		boolean init = (boolean)fBoxInit.getBoolean(box);
 		if (!init)
-			return null;
+			return "-";
 		
 		int ax = fmx.getInt(box);
 		int ay = fmy.getInt(box);
@@ -88,7 +109,7 @@ public class BuildCraft extends ProtBase
 			
 				if (block != null)
 				{
-					if (block.canPluginChange("BuildCraft", e))
+					if (block.canPluginChange("BuildCraft", e.getClass().getSimpleName(), e))
 						return null;
 					
 					if (clazz == clQuarry)

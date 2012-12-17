@@ -103,23 +103,28 @@ public class CmdChat extends CommandBase
 	{
 		String formatted = Formatter.formatChat(res, msg, null, ChatChannel.Local);
 		
+		int sentTo = sendChatToAround(res.onlinePlayer.dimension, res.onlinePlayer.posX, res.onlinePlayer.posY, res.onlinePlayer.posZ, formatted);
+
+		if (sentTo < 2)
+			res.onlinePlayer.sendChatToPlayer(Term.ChatAloneInChannel.toString());
+		
+		return formatted;
+	}
+	
+	public static int sendChatToAround(int dim, double posX, double posY, double posZ, String msg)
+	{
 		int sentTo = 0;
 		int dsqr = ChatChannel.localChatDistance * ChatChannel.localChatDistance;
 		for(Object obj : MinecraftServer.getServer().getConfigurationManager().playerEntityList)
 		{
 			EntityPlayer pl = (EntityPlayer)obj;
-			if (pl.dimension == res.onlinePlayer.dimension && pl.getDistanceSqToEntity(res.onlinePlayer) <= dsqr)
+			if (pl.dimension == dim && pl.getDistanceSq(posX, posY, posZ) <= dsqr)
 			{
-				pl.sendChatToPlayer(formatted);
-				if (obj != res.onlinePlayer)
-					sentTo++;
+				pl.sendChatToPlayer(msg);
+				sentTo++;
 			}
 		}
-		
-		if (sentTo < 1)
-			res.onlinePlayer.sendChatToPlayer(Term.ChatAloneInChannel.toString());
-		
-		return formatted;
+		return sentTo;
 	}
 
 	public static void sendToChannel(Resident sender, String msg, ChatChannel channel)

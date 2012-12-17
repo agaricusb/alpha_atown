@@ -348,7 +348,7 @@ public class Town
 		return false;
 	}
 	
-	public static boolean canPluginChangeWild(String plugin, Entity e)
+	public static boolean canPluginChangeWild(String plugin, String module, Entity e)
 	{
 		return true;
 	}
@@ -378,9 +378,9 @@ public class Town
 		HashMap<String, String> settings = new HashMap<String, String>();
 		
 		settings.put("ci", null);
-		settings.put("minY", null);
-		settings.put("maxY", null);
-		settings.put("bounce", null);
+		settings.put("minY", "0");
+		settings.put("maxY", "255");
+		settings.put("bounce", "false");
 		
 		return settings;
 	}

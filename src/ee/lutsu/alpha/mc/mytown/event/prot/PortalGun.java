@@ -45,14 +45,17 @@ public class PortalGun extends ProtBase
 		
 		if (owner != null && !owner.equals("def")) // not default portal
 		{
-		    int x = (int)(e.motionX / 5.0D + e.posX);
-		    int y = (int)(e.motionY / 5.0D + e.posY);
-		    int z = (int)(e.motionZ / 5.0D + e.posZ);
+			Resident r = ProtectionEvents.instance.lastOwner = MyTownDatasource.instance.getOrMakeResident(owner);
 		    
-		    Resident r = ProtectionEvents.instance.lastOwner = MyTownDatasource.instance.getOrMakeResident(owner);
-		    
-		    if (!r.canInteract(x, y, z))
-		    	return "Cannot shoot portals in this town";
+			for (int ii = 0; ii < 5; ii++)
+			{
+			    int x = (int)(e.motionX / 5.0D * ii + e.posX);
+			    int y = (int)(e.motionY / 5.0D * ii + e.posY);
+			    int z = (int)(e.motionZ / 5.0D * ii + e.posZ);
+
+			    if (!r.canInteract(x, y, z))
+			    	return "Cannot shoot portals in this town";
+			}
 		}
 
 		return null;

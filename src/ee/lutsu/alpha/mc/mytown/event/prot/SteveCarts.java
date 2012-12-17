@@ -5,10 +5,13 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 
+import ee.lutsu.alpha.mc.mytown.ChatChannel;
+import ee.lutsu.alpha.mc.mytown.Formatter;
 import ee.lutsu.alpha.mc.mytown.Log;
 import ee.lutsu.alpha.mc.mytown.MyTownDatasource;
 import ee.lutsu.alpha.mc.mytown.Entities.Town;
 import ee.lutsu.alpha.mc.mytown.Entities.TownBlock;
+import ee.lutsu.alpha.mc.mytown.commands.CmdChat;
 
 import net.minecraft.src.Entity;
 import net.minecraft.src.EntityItem;
@@ -20,24 +23,21 @@ public class SteveCarts extends ProtBase
 {
 	public static SteveCarts instance = new SteveCarts();
 	
-	Class clSteveCart = null, clSteveModule, clRailer;
-	Method mIsValidForTrack, mGetNextblock;
-	Field fWorkModules, fCargo;
+	Class clSteveCart = null, clRailer, clMiner;
+	Method mGetNextblock;
+	Field fWorkModules;
 	
 	@Override
 	public void load() throws Exception
 	{
 		clSteveCart = Class.forName("vswe.stevescarts.entMCBase");
 		fWorkModules = clSteveCart.getDeclaredField("workModules");
-		
-		clSteveModule = Class.forName("vswe.stevescarts.baseModule");
-		fCargo = clSteveModule.getDeclaredField("cargo");
-		
+
 		Class c = Class.forName("vswe.stevescarts.workModuleBase");
-		mIsValidForTrack = c.getDeclaredMethod("isValidForTrack", int.class, int.class, int.class, boolean.class);
 		mGetNextblock = c.getDeclaredMethod("getNextblock");
 
 		clRailer = Class.forName("vswe.stevescarts.workModuleRailer");
+		clMiner = Class.forName("vswe.stevescarts.workModuleMiner");
 	}
 	
 	@Override
@@ -52,61 +52,100 @@ public class SteveCarts extends ProtBase
 			return null;
 		
 		fWorkModules.setAccessible(true);
-		fCargo.setAccessible(true);
-		mIsValidForTrack.setAccessible(true);
 		
 		ArrayList modules = (ArrayList)fWorkModules.get(e);
 		ArrayList<Object> railerModules = new ArrayList<Object>();
+		ArrayList<Object> minerModules = new ArrayList<Object>();
 		
 		for (Object o : modules)
 		{
-			if (!clRailer.isInstance(o))
-				continue;
-			
-			railerModules.add(o);
+			if (clRailer.isInstance(o))
+				railerModules.add(o);
+			if (clMiner.isInstance(o))
+				minerModules.add(o);
 		}
 		
-		if (railerModules.size() < 1) // no railer
-			return null;
+		Object module = null;
+		if (railerModules.size() > 0)
+			module = railerModules.get(0);
+		else if (minerModules.size() > 0)
+			module = minerModules.get(0);
+		else
+			return null; // none found
 		
-		Object module = railerModules.get(0);
 		Vec3 next = (Vec3)mGetNextblock.invoke(module);
-
-		if (!tryWorkRailer(module, next)) // wont place a rail
-			return null;
-
 		TownBlock b = MyTownDatasource.instance.getBlock(e.dimension, ((int)next.xCoord) >> 4, ((int)next.zCoord) >> 4);
-		if (b == null && Town.canPluginChangeWild("StevesCarts", e))
-			return null;
 		
-		if (b != null && b.canPluginChange("StevesCarts", e))
-			return null;
-
-		boolean hasRails = false;
-		for (Object railer : railerModules)
+		if (railerModules.size() > 0) // railer
 		{
-			ItemStack[] cargo = (ItemStack[])fCargo.get(railer);
-			
-			for (int i = 0; i < cargo.length; i++)
+			if ((b == null && !Town.canPluginChangeWild("StevesCarts", "railer", e)) || (b != null && !b.canPluginChange("StevesCarts", "railer", e)))
 			{
-				ItemStack stack = cargo[i];
-				if (stack == null)
-					continue;
-				
-				hasRails = true;
-				cargo[i] = null;
-				e.entityDropItem(stack, 1);
+				blockAction((EntityMinecart)e, b);
+				return null;
 			}
 		}
 		
-		if (hasRails)
-			Log.severe(String.format("§4A railer steve cart found in %s at dim %s, %s,%s,%s. Dropping rails.",
-					b == null || b.town() == null ? "wilderness" : b.town().name(),
-					e.dimension, (int)next.xCoord, (int)next.yCoord, (int)next.zCoord));
+		if (minerModules.size() > 0) // miner
+		{
+			if ((b == null && !Town.canPluginChangeWild("StevesCarts", "miner", e)) || (b != null && !b.canPluginChange("StevesCarts", "miner", e)))
+			{
+				blockAction((EntityMinecart)e, b);
+				return null;
+			}
+		}
 		
 		return null;
 	}
 	
+	private void blockAction(EntityMinecart e, TownBlock b) throws IllegalArgumentException, IllegalAccessException
+	{
+		e.setDead();
+		e.dropCartAsItem();
+		
+		Log.severe(String.format("§4Stopped a steve cart found in %s @ dim %s, %s,%s,%s",
+				b == null || b.town() == null ? "wilderness" : b.town().name(),
+				e.dimension, (int)e.posX, (int)e.posY, (int)e.posZ));
+		
+		String msg = String.format("A steve cart broke @ %s,%s,%s because it wasn't allowed there", (int)e.posX, (int)e.posY, (int)e.posZ);
+		String formatted = Formatter.formatChatSystem(msg, "<MyTown> " + msg, ChatChannel.Local);
+		CmdChat.sendChatToAround(e.dimension, e.posX, e.posY, e.posZ, formatted);
+	}
+
+	@Override
+	public String getMod() 
+	{
+		return "StevesCarts";
+	}
+	/*
+	 * 		//fCargo.setAccessible(true);
+		//mIsValidForTrack.setAccessible(true);
+	 * module = railerModules.get(0);
+			// will always return false if the miner is under ground because the miner first removes the wall
+			//if (tryWorkRailer(module, next))
+			//{
+			 * 
+				boolean hasRails = false;
+				for (Object railer : railerModules)
+				{
+					ItemStack[] cargo = (ItemStack[])fCargo.get(railer);
+					
+					for (int i = 0; i < cargo.length; i++)
+					{
+						ItemStack stack = cargo[i];
+						if (stack == null)
+							continue;
+						
+						hasRails = true;
+						cargo[i] = null;
+						e.entityDropItem(stack, 1);
+					}
+				}
+				if (hasRails)
+					Log.severe(String.format("§4A railer steve cart found in %s at dim %s, %s,%s,%s. Dropping rails.",
+							b == null || b.town() == null ? "wilderness" : b.town().name(),
+							e.dimension, (int)next.xCoord, (int)next.yCoord, (int)next.zCoord));
+							
+								
 	private boolean tryWorkRailer(Object cart, Vec3 next) throws IllegalAccessException, IllegalArgumentException, InvocationTargetException
 	{
 	    int x = (int)next.xCoord;
@@ -120,10 +159,5 @@ public class SteveCarts extends ProtBase
 	{
 		return (Boolean)mIsValidForTrack.invoke(cart, i, j, k, true);
 	}
-
-	@Override
-	public String getMod() 
-	{
-		return "StevesCarts";
-	}
+	 */
 }

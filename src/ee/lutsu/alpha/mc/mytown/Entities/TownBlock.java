@@ -5,6 +5,8 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.jar.Attributes.Name;
 
+import ee.lutsu.alpha.mc.mytown.Entities.TownSettingCollection.Permissions;
+
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.src.Entity;
 import net.minecraft.src.TileEntity;
@@ -12,28 +14,6 @@ import net.minecraft.src.World;
 
 public class TownBlock
 {
-	public enum Permissions
-	{
-		None, // First char has to be different
-		Enter,
-		Loot,
-		Access,
-		Build;
-		
-		public static Permissions parse(String str)
-		{
-			for (Permissions val : values())
-			{
-				if (val.toString().toLowerCase().startsWith(str.toLowerCase()))
-					return val;
-			}
-			
-			return None;
-		}
-		
-		public String getShort() { return toString().substring(0, 0); }
-	}
-	
 	private World linkedWorld;
 	private int world_dimension;
 	private int chunkX;
@@ -124,17 +104,17 @@ public class TownBlock
 		return Math.abs((chunkX - b.chunkX) * (chunkX - b.chunkX) + (chunkZ - b.chunkZ) * (chunkZ - b.chunkZ));
 	}
 	
-	public boolean canPluginChange(String plugin, Entity e)
+	public boolean canPluginChange(String plugin, String module, Entity e)
 	{
 		if (town == null)
-			return Town.canPluginChangeWild(plugin, e);
+			return Town.canPluginChangeWild(plugin, module, e);
 		
 		// TODO: quarry switch
 		
 		return town.canPluginChange(plugin, e);
 	}
 	
-	public boolean canPluginChange(String plugin, TileEntity e)
+	public boolean canPluginChange(String plugin, String module, TileEntity e)
 	{
 		if (town == null)
 			return Town.canPluginChangeWild(plugin, e);

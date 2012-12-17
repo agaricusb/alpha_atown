@@ -60,6 +60,20 @@ public class Formatter
 				.replace("$postfix$", res.postfix());
 	}
 	
+	public static String formatChatSystem( String line, String forgeFormatted, ChatChannel channel)
+	{
+		if (!formatChat)
+			return forgeFormatted;
+
+		return Term.ChatFormat.toString()
+				.replace("$color$", channel.color)
+				.replace("$channel$", channel.abbrevation)
+				.replace("$name$", "§4MyTown")
+				.replace("$msg$", line)
+				.replace("$prefix$", "§f[§4Sys§f]")
+				.replace("$postfix$", "");
+	}
+	
 	public static String formatResidentName(Resident r)
 	{
 		if (r.isOnline())
