@@ -16,7 +16,7 @@ import net.minecraft.src.EntityMinecart;
 import net.minecraft.src.ItemStack;
 import net.minecraft.src.Vec3;
 
-public class SteveCarts 
+public class SteveCarts extends ProtBase
 {
 	public static SteveCarts instance = new SteveCarts();
 	
@@ -24,6 +24,7 @@ public class SteveCarts
 	Method mIsValidForTrack, mGetNextblock;
 	Field fWorkModules, fCargo;
 	
+	@Override
 	public void load() throws Exception
 	{
 		clSteveCart = Class.forName("vswe.stevescarts.entMCBase");
@@ -39,13 +40,12 @@ public class SteveCarts
 		clRailer = Class.forName("vswe.stevescarts.workModuleRailer");
 	}
 	
+	@Override
 	public boolean loaded() { return clSteveCart != null; }
-	public boolean isSteveEntity(Entity e) { return e.getClass() == clSteveCart; }
+	@Override
+	public boolean isEntityInstance(Entity e) { return e.getClass() == clSteveCart; }
 	
-	/**
-	 * Doesn't work. The classes contain links to client-side-only classes and there for mapping to them will crash us.
-	 * Even by adding client to the server, FMLRelauncher wont allow us to load client base class because it has the side.client tag on it.
-	 */
+	@Override
 	public String update(Entity e) throws Exception
 	{
 		if ((int)e.posX == (int)e.prevPosX && (int)e.posZ == (int)e.prevPosZ) // didn't move
@@ -119,5 +119,11 @@ public class SteveCarts
 	private boolean canPlaceTrack(Object cart, int i, int j, int k) throws IllegalAccessException, IllegalArgumentException, InvocationTargetException
 	{
 		return (Boolean)mIsValidForTrack.invoke(cart, i, j, k, true);
+	}
+
+	@Override
+	public String getMod() 
+	{
+		return "StevesCarts";
 	}
 }

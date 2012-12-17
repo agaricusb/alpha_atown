@@ -22,6 +22,9 @@ import ee.lutsu.alpha.mc.mytown.Entities.Resident;
 import ee.lutsu.alpha.mc.mytown.Entities.Town;
 import ee.lutsu.alpha.mc.mytown.commands.*;
 import ee.lutsu.alpha.mc.mytown.event.*;
+import ee.lutsu.alpha.mc.mytown.event.prot.MiningLaser;
+import ee.lutsu.alpha.mc.mytown.event.prot.PortalGun;
+import ee.lutsu.alpha.mc.mytown.event.prot.SteveCarts;
 import ee.lutsu.alpha.mc.mytown.sql.Database;
 import ee.lutsu.alpha.mc.mytown.sql.MyTownDB;
 import net.minecraft.server.MinecraftServer;
@@ -237,10 +240,14 @@ public class MyTown
         
         prop = config.get("ProtEx", "LaserCheck", "false");
         prop.comment = "Check for mining laser bypass";
-        ProtectionEvents.instance.laserEnabled = prop.getBoolean(false);
+        MiningLaser.instance.enabled = prop.getBoolean(false);
+        
+        prop = config.get("ProtEx", "PortalGunCheck", "false");
+        prop.comment = "Check for portal gun balls flying in foreign towns";
+        PortalGun.instance.enabled = prop.getBoolean(false);
         
         prop = config.get("ProtEx", "SteveRailerCheck", "false");
         prop.comment = "Check for steve carts with railers";
-        ProtectionEvents.instance.steveCartsRailerEnabled = prop.getBoolean(false);
+        SteveCarts.instance.enabled = prop.getBoolean(false);
     }
 }
