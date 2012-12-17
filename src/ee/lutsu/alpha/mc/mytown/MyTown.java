@@ -22,6 +22,7 @@ import ee.lutsu.alpha.mc.mytown.Entities.Resident;
 import ee.lutsu.alpha.mc.mytown.Entities.Town;
 import ee.lutsu.alpha.mc.mytown.commands.*;
 import ee.lutsu.alpha.mc.mytown.event.*;
+import ee.lutsu.alpha.mc.mytown.event.prot.BuildCraft;
 import ee.lutsu.alpha.mc.mytown.event.prot.MiningLaser;
 import ee.lutsu.alpha.mc.mytown.event.prot.PortalGun;
 import ee.lutsu.alpha.mc.mytown.event.prot.SteveCarts;
@@ -249,5 +250,9 @@ public class MyTown
         prop = config.get("ProtEx", "SteveRailerCheck", "false");
         prop.comment = "Check for steve carts with railers";
         SteveCarts.instance.enabled = prop.getBoolean(false);
+        
+        prop = config.get("ProtEx", "BuildCraftCheck", "false");
+        prop.comment = "Check for quarrys, fillers, builder";
+        BuildCraft.instance.enabled = prop.getBoolean(false);
     }
 }

@@ -7,6 +7,7 @@ import java.util.jar.Attributes.Name;
 
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.src.Entity;
+import net.minecraft.src.TileEntity;
 import net.minecraft.src.World;
 
 public class TownBlock
@@ -127,6 +128,18 @@ public class TownBlock
 	{
 		if (town == null)
 			return Town.canPluginChangeWild(plugin, e);
+		
+		// TODO: quarry switch
+		
+		return town.canPluginChange(plugin, e);
+	}
+	
+	public boolean canPluginChange(String plugin, TileEntity e)
+	{
+		if (town == null)
+			return Town.canPluginChangeWild(plugin, e);
+		
+		// TODO: quarry switch
 		
 		return town.canPluginChange(plugin, e);
 	}

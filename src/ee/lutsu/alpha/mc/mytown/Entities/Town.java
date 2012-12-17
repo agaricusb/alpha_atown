@@ -13,6 +13,7 @@ import com.google.common.base.Joiner;
 import net.minecraft.src.Entity;
 import net.minecraft.src.EntityPlayer;
 import net.minecraft.src.ICommandSender;
+import net.minecraft.src.TileEntity;
 
 import ee.lutsu.alpha.mc.mytown.CommandException;
 import ee.lutsu.alpha.mc.mytown.Formatter;
@@ -348,6 +349,16 @@ public class Town
 	}
 	
 	public static boolean canPluginChangeWild(String plugin, Entity e)
+	{
+		return true;
+	}
+	
+	public boolean canPluginChange(String plugin, TileEntity e)
+	{
+		return false;
+	}
+	
+	public static boolean canPluginChangeWild(String plugin, TileEntity e)
 	{
 		return true;
 	}
