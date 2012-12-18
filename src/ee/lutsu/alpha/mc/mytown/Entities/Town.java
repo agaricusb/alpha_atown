@@ -171,7 +171,7 @@ public class Town
 		int sqr = minDistanceFromOtherTown * minDistanceFromOtherTown;
 		for(TownBlock b : MyTownDatasource.instance.blocks)
 		{
-			if (b != block && b.worldDimension() == block.worldDimension() && b.town() != this && block.squaredDistanceTo(b) <= sqr)
+			if (b != block && b.town() != null && b.worldDimension() == block.worldDimension() && b.town() != this && block.squaredDistanceTo(b) <= sqr && !b.settings.allowClaimingNextTo)
 				throw new CommandException(Term.TownErrBlockTooCloseToAnotherTown);
 		}
 		

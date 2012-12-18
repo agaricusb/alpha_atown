@@ -106,7 +106,12 @@ public class PlayerEvents implements IPlayerTracker
 
 		if (!r.canInteract(ev.item))
 		{
-			ev.entityPlayer.sendChatToPlayer(Term.ErrPermCannotPickup.toString()); // spamming
+			long time = System.currentTimeMillis();
+			if (time > r.pickupWarningCooldown)
+			{
+				ev.entityPlayer.sendChatToPlayer(Term.ErrPermCannotPickup.toString());
+				r.pickupWarningCooldown = time + Resident.pickupSpamCooldown;
+			}
 			ev.setCanceled(true);
 		}
 	}

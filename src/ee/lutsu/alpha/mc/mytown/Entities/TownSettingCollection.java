@@ -278,6 +278,11 @@ public class TownSettingCollection
 	public boolean allowStevecartsRailers;
 	public boolean allowStevecartsMiners;
 	public boolean allowBuildcraftMiners;
+	public boolean allowClaimingNextTo;
+	
+	public boolean yCheckOn;
+	public int yCheckFrom;
+	public int yCheckTo;
 	
 	protected void unnest(TownSetting set)
 	{
@@ -298,6 +303,15 @@ public class TownSettingCollection
 			allowStevecartsMiners = set.getEffBoolean();
 		else if (set.getSerializationKey().equals("bc"))
 			allowBuildcraftMiners = set.getEffBoolean();
+		else if (set.getSerializationKey().equals("closeclaim"))
+			allowClaimingNextTo = set.getEffBoolean();
+		
+		else if (set.getSerializationKey().equals("yon"))
+			yCheckOn = set.getEffBoolean();
+		else if (set.getSerializationKey().equals("yfrom"))
+			yCheckFrom = set.getEffInt();
+		else if (set.getSerializationKey().equals("yto"))
+			yCheckTo = set.getEffInt();
 	}
 	
 	public void reset()
@@ -314,6 +328,11 @@ public class TownSettingCollection
 		settings.add(new TownSetting("Allow stevescarts railers", 		"steverailer", 	false, 				true, 				"boolean:yes/no", 							boolean.class));
 		settings.add(new TownSetting("Allow stevescarts miners", 		"steveminer", 	false, 				true, 				"boolean:yes/no", 							boolean.class));
 		settings.add(new TownSetting("Allow quarrys,filler,builders", 	"bc",		 	false, 				true, 				"boolean:yes/no", 							boolean.class));
+		settings.add(new TownSetting("Allow claiming next to", 			"closeclaim",	false, 				null, 				"boolean:yes/no", 							boolean.class));
+		
+		settings.add(new TownSetting("Height enabled", 					"yon",	 		false, 				null, 				"boolean:yes/no", 							boolean.class));
+		settings.add(new TownSetting("Height check from", 				"yfrom",	 	0, 					null,				"int:0-255", 								int.class));
+		settings.add(new TownSetting("Height check to", 				"yto",	 		255, 				null, 				"int:0-255, below [yfrom]", 				int.class));
 		
 		if (!isRoot)
 			clearValues();

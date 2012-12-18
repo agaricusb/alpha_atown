@@ -29,6 +29,7 @@ public class Resident
 {
 	public static boolean ignoreOps = false;
 	public static boolean allowMemberToMemberPvp = false;
+	public static int pickupSpamCooldown = 5000;
 	
 	public enum Rank
 	{
@@ -71,6 +72,7 @@ public class Resident
 	public int prevDimension, prevDimension2;
 	public double prevX, prevY, prevZ;
 	public float prevYaw, prevPitch;
+	public long pickupWarningCooldown = 0;
 	
 	public boolean firstTick = true;
 	public boolean wasfirstTick = true;
@@ -161,9 +163,24 @@ public class Resident
 		return block.settings.outsiderRights.compareTo(askedFor) >= 0;
 	}
 	
+	public boolean canInteract(TownBlock targetBlock, int y, TownSettingCollection.Permissions askedFor)
+	{
+		if (targetBlock == null || targetBlock.town() == null)
+			return canInteract(null, askedFor);
+
+		if (targetBlock.settings.yCheckOn)
+		{
+			if (y < targetBlock.settings.yCheckFrom || y > targetBlock.settings.yCheckTo)
+				return canInteract(null, askedFor); // assume its the wild
+		}
+		
+		return canInteract(targetBlock, askedFor);
+	}
+	
 	public boolean canInteract(int x, int y, int z, TownSettingCollection.Permissions askedFor)
 	{
-		return canInteract(x >> 4, z >> 4, askedFor);
+		TownBlock targetBlock = MyTownDatasource.instance.getBlock(onlinePlayer.dimension, x >> 4, z >> 4);
+		return canInteract(targetBlock, y, askedFor);
 	}
 	
 	public boolean canInteract(Entity e)
@@ -177,9 +194,9 @@ public class Resident
 		}
 		
 		if (e instanceof EntityItem)
-			return canInteract(targetBlock, TownSettingCollection.Permissions.Loot);
+			return canInteract(targetBlock, (int)e.posY, TownSettingCollection.Permissions.Loot);
 		else
-			return canInteract(targetBlock, TownSettingCollection.Permissions.Access);
+			return canInteract(targetBlock, (int)e.posY, TownSettingCollection.Permissions.Access);
 	}
 	
 	public boolean canAttack(Entity e)
@@ -199,11 +216,30 @@ public class Resident
 
 			TownBlock targetBlock = MyTownDatasource.instance.getBlock(onlinePlayer.dimension, e.chunkCoordX, e.chunkCoordZ);
 			if (targetBlock != null && targetBlock.town() != null)
-				return Town.allowMemberToForeignPvp && town() == targetBlock.town();
+			{
+				if (targetBlock.settings.yCheckOn)
+				{
+					int y = (int)e.posY;
+					if (y < targetBlock.settings.yCheckFrom || y > targetBlock.settings.yCheckTo)
+						targetBlock = null;
+				}
 			
+				if (targetBlock != null)
+					return Town.allowMemberToForeignPvp && town() == targetBlock.town();
+			}
 			TownBlock sourceBlock = MyTownDatasource.instance.getBlock(onlinePlayer.dimension, onlinePlayer.chunkCoordX, onlinePlayer.chunkCoordZ);
 			if (sourceBlock != null && sourceBlock.town() != null)
-				return Town.allowMemberToForeignPvp && town() == sourceBlock.town();
+			{
+				if (sourceBlock.settings.yCheckOn)
+				{
+					int y = (int)e.posY;
+					if (y < sourceBlock.settings.yCheckFrom || y > sourceBlock.settings.yCheckTo)
+						sourceBlock = null;
+				}
+			
+				if (sourceBlock != null)
+					return Town.allowMemberToForeignPvp && town() == sourceBlock.town();
+			}
 			
 			return true;
 		}
@@ -217,7 +253,7 @@ public class Resident
 					return true;
 			}
 
-			return canInteract(targetBlock, TownSettingCollection.Permissions.Build);
+			return canInteract(targetBlock, (int)e.posY, TownSettingCollection.Permissions.Build);
 		}
 	}
 	
