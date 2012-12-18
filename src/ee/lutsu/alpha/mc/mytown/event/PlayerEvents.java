@@ -9,16 +9,23 @@ import cpw.mods.fml.common.network.IChatListener;
 import ee.lutsu.alpha.mc.mytown.ChatChannel;
 import ee.lutsu.alpha.mc.mytown.Formatter;
 import ee.lutsu.alpha.mc.mytown.Log;
+import ee.lutsu.alpha.mc.mytown.MyTown;
 import ee.lutsu.alpha.mc.mytown.MyTownDatasource;
 import ee.lutsu.alpha.mc.mytown.Term;
 import ee.lutsu.alpha.mc.mytown.Entities.Resident;
 import ee.lutsu.alpha.mc.mytown.Entities.Town;
 import ee.lutsu.alpha.mc.mytown.Entities.TownBlock;
+import ee.lutsu.alpha.mc.mytown.Entities.TownSettingCollection.Permissions;
 import ee.lutsu.alpha.mc.mytown.commands.CmdChat;
 import net.minecraft.server.MinecraftServer;
+import net.minecraft.src.Block;
+import net.minecraft.src.BlockRail;
+import net.minecraft.src.EntityMinecart;
 import net.minecraft.src.EntityPlayer;
+import net.minecraft.src.Item;
 import net.minecraft.src.NetHandler;
 import net.minecraft.src.Packet3Chat;
+import net.minecraft.src.TileEntity;
 import net.minecraft.src.WorldInfo;
 import net.minecraftforge.event.Event;
 import net.minecraftforge.event.Event.Result;
@@ -49,8 +56,30 @@ public class PlayerEvents implements IPlayerTracker
 		if (ev.action == Action.RIGHT_CLICK_AIR)
 			return;
 		
-		if (!r.canInteract(ev.x , ev.y, ev.z))
+		Permissions perm = Permissions.Build;
+		if (ev.action == Action.RIGHT_CLICK_BLOCK && ev.entityPlayer.getHeldItem() == null)
+			perm = Permissions.Access;
+		
+		// TODO: cart ids to config
+		if (ev.action == Action.RIGHT_CLICK_BLOCK && ev.entityPlayer.getHeldItem().getItem() == Item.minecartEmpty)
 		{
+			int en = ev.entityPlayer.worldObj.getBlockId(ev.x , ev.y, ev.z);
+			if (Block.blocksList[en] instanceof BlockRail)
+			{
+				TownBlock targetBlock = MyTownDatasource.instance.getBlock(ev.entityPlayer.dimension, (int)ev.x >> 4, (int)ev.z >> 4);
+
+				if ((targetBlock != null && targetBlock.town() != null && targetBlock.settings.allowCartInteraction) || ((targetBlock == null || targetBlock.town() == null) && MyTown.instance.getWorldWildSettings(ev.entityPlayer.dimension).allowCartInteraction))
+					return;
+			}
+		}
+		
+		if (!r.canInteract(ev.x , ev.y, ev.z, perm))
+		{
+			if (perm == Permissions.Access)
+				ev.entityPlayer.sendChatToPlayer(Term.ErrPermCannotAccessHere.toString());
+			else
+				ev.entityPlayer.sendChatToPlayer(Term.ErrPermCannotBuildHere.toString());
+				
 			ev.setCanceled(true);
 			
 			// TODO: Remove. Fixed in Forge 1.4.5
@@ -76,7 +105,10 @@ public class PlayerEvents implements IPlayerTracker
 		Resident r = source().getOrMakeResident(ev.entityPlayer);
 
 		if (!r.canInteract(ev.item))
+		{
+			ev.entityPlayer.sendChatToPlayer(Term.ErrPermCannotPickup.toString()); // spamming
 			ev.setCanceled(true);
+		}
 	}
 	
 	@ForgeSubscribe
@@ -88,7 +120,10 @@ public class PlayerEvents implements IPlayerTracker
 		Resident attacker = source().getOrMakeResident(ev.entityPlayer);
 
 		if (!attacker.canAttack(ev.target))
+		{
+			ev.entityPlayer.sendChatToPlayer(Term.ErrPermCannotAttack.toString());
 			ev.setCanceled(true);
+		}
 	}
 	
 	@ForgeSubscribe
@@ -100,7 +135,10 @@ public class PlayerEvents implements IPlayerTracker
 		Resident r = source().getOrMakeResident(ev.entityPlayer);
 
 		if (!r.canInteract(ev.target))
+		{
+			ev.entityPlayer.sendChatToPlayer(Term.ErrPermCannotInteract.toString());
 			ev.setCanceled(true);
+		}
 	}
 	
 	@ForgeSubscribe
@@ -113,7 +151,7 @@ public class PlayerEvents implements IPlayerTracker
 		
 		TownBlock t = source().getBlock(r.onlinePlayer.dimension, ev.minecart.chunkCoordX, ev.minecart.chunkCoordZ);
 		
-		if (t == null || t.town() == null || t.town() == r.town())
+		if (t == null || t.town() == null || t.town() == r.town() || t.settings.allowCartInteraction)
 			return;
 		
 		long time = System.currentTimeMillis();
@@ -136,7 +174,7 @@ public class PlayerEvents implements IPlayerTracker
 
 		r.location = t != null && t.town() != null ? t.town() : null;
 		
-		if (r.location != null && r.location != r.town() && r.location.bounceNonMembers && !r.isOp())
+		if (!r.canByPassBounce() && !r.canInteract(t, Permissions.Enter))
 		{
 			Log.warning(String.format("Player %s logged in at a enemy town %s (%s, %s, %s) with bouncing on. Sending to spawn.",
 					r.name(), r.location.name(),

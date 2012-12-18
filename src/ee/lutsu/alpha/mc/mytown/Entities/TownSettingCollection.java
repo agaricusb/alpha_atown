@@ -305,7 +305,7 @@ public class TownSettingCollection
 		settings.clear();
 
 		//                             label                             key             default value       wild value          value limitation description                value conversion class
-		settings.add(new TownSetting("Town member rights", 				"town", 		Permissions.Loot, 	null, 				"choice:" + Permissions.getValuesDesc(), 	Permissions.class));
+		settings.add(new TownSetting("Town member rights", 				"town", 		Permissions.Build, 	null, 				"choice:" + Permissions.getValuesDesc(), 	Permissions.class));
 		settings.add(new TownSetting("Nation member rights", 			"nation", 		Permissions.Enter, 	null, 				"choice:" + Permissions.getValuesDesc(), 	Permissions.class));
 		settings.add(new TownSetting("Outsider rights", 				"out", 			Permissions.Enter, 	Permissions.Build, 	"choice:" + Permissions.getValuesDesc(), 	Permissions.class));
 		settings.add(new TownSetting("Friend rights", 					"friend", 		Permissions.Build, 	null, 				"choice:" + Permissions.getValuesDesc(), 	Permissions.class));

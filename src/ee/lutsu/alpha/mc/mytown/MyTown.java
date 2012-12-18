@@ -37,6 +37,7 @@ import ee.lutsu.alpha.mc.mytown.sql.Database;
 import ee.lutsu.alpha.mc.mytown.sql.MyTownDB;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.src.ICommandSender;
+import net.minecraft.src.Item;
 import net.minecraft.src.ServerCommandManager;
 import net.minecraft.src.World;
 import net.minecraftforge.common.Configuration;

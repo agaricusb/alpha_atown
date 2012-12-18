@@ -8,6 +8,7 @@ import java.util.List;
 
 import ee.lutsu.alpha.mc.mytown.ChatChannel;
 import ee.lutsu.alpha.mc.mytown.Log;
+import ee.lutsu.alpha.mc.mytown.MyTown;
 import ee.lutsu.alpha.mc.mytown.MyTownDatasource;
 import ee.lutsu.alpha.mc.mytown.Permissions;
 import ee.lutsu.alpha.mc.mytown.Term;
@@ -15,6 +16,8 @@ import ee.lutsu.alpha.mc.mytown.Entities.TownSettingCollection.ISettingsSaveHand
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.src.ChunkCoordinates;
 import net.minecraft.src.Entity;
+import net.minecraft.src.EntityItem;
+import net.minecraft.src.EntityMinecart;
 import net.minecraft.src.EntityPlayer;
 import net.minecraft.src.EntityPlayerMP;
 import net.minecraft.src.ICommandSender;
@@ -128,27 +131,55 @@ public class Resident
 		return isOp;
 	}
 	
-	public boolean canInteract(int chunkX, int chunkZ)
+	public boolean canInteract(int chunkX, int chunkZ, TownSettingCollection.Permissions askedFor)
+	{
+		TownBlock block = MyTownDatasource.instance.getBlock(onlinePlayer.dimension, chunkX, chunkZ);
+
+		return canInteract(block, askedFor);
+	}
+	
+	public boolean canInteract(TownBlock block, TownSettingCollection.Permissions askedFor)
 	{
 		if (ignoreOps && isOp())
 			return true;
-		
-		TownBlock block = MyTownDatasource.instance.getBlock(onlinePlayer.dimension, chunkX, chunkZ);
-		
+
 		if (block == null || block.town() == null)
+			return MyTown.instance.getWorldWildSettings(onlinePlayer.dimension).outsiderRights.compareTo(askedFor) >= 0;
+		
+		if (block.owner() == this) // plot owner
 			return true;
 		
-		return town() == block.town();
+		if (block.owner() != null && block.owner().friends.contains(this)) // friends
+			return block.settings.friendRights.compareTo(askedFor) >= 0;
+		
+		if (town() == block.town()) // town member
+			return block.settings.townMemberRights.compareTo(askedFor) >= 0;
+
+		if (town() != null && town().nation() != null && town().nation() == block.town().nation()) // nation
+			return block.settings.nationMemberRights.compareTo(askedFor) >= 0;
+		
+		return block.settings.outsiderRights.compareTo(askedFor) >= 0;
 	}
 	
-	public boolean canInteract(int x, int y, int z)
+	public boolean canInteract(int x, int y, int z, TownSettingCollection.Permissions askedFor)
 	{
-		return canInteract(x >> 4, z >> 4);
+		return canInteract(x >> 4, z >> 4, askedFor);
 	}
 	
 	public boolean canInteract(Entity e)
 	{
-		return canInteract(e.chunkCoordX, e.chunkCoordZ);
+		TownBlock targetBlock = MyTownDatasource.instance.getBlock(e.dimension, e.chunkCoordX, e.chunkCoordZ);
+
+		if (e instanceof EntityMinecart)
+		{
+			if ((targetBlock != null && targetBlock.town() != null && targetBlock.settings.allowCartInteraction) || ((targetBlock == null || targetBlock.town() == null) && MyTown.instance.getWorldWildSettings(e.dimension).allowCartInteraction))
+				return true;
+		}
+		
+		if (e instanceof EntityItem)
+			return canInteract(targetBlock, TownSettingCollection.Permissions.Loot);
+		else
+			return canInteract(targetBlock, TownSettingCollection.Permissions.Access);
 	}
 	
 	public boolean canAttack(Entity e)
@@ -179,11 +210,14 @@ public class Resident
 		else
 		{
 			TownBlock targetBlock = MyTownDatasource.instance.getBlock(onlinePlayer.dimension, e.chunkCoordX, e.chunkCoordZ);
-			
-			if (targetBlock != null && targetBlock.town() != null)
-				return town() == targetBlock.town();
-			else
-				return true;
+
+			if (e instanceof EntityMinecart)
+			{
+				if ((targetBlock != null && targetBlock.town() != null && targetBlock.settings.allowCartInteraction) || ((targetBlock == null || targetBlock.town() == null) && MyTown.instance.getWorldWildSettings(e.dimension).allowCartInteraction))
+					return true;
+			}
+
+			return canInteract(targetBlock, TownSettingCollection.Permissions.Build);
 		}
 	}
 	
@@ -271,45 +305,40 @@ public class Resident
 		else if (block != null && block.town() != null && location != block.town())
 		{
 			// entered town or another town
-			if (block.town() != town())
+			if (!canByPassBounce() && !canInteract(block, TownSettingCollection.Permissions.Enter))
 			{
-				if (Town.bouncingOn && block.town().bounceNonMembers && !canByPassBounce())
+				beingBounced = true;
+				try
 				{
-					beingBounced = true;
-					try
+					onlinePlayer.sendChatToPlayer(Term.TownYouCannotEnter.toString(block.town().name()));
+					bounceBack();
+					
+					pX = ((int)onlinePlayer.posX) >> 4;
+					pZ = ((int)onlinePlayer.posZ) >> 4;
+					
+					TownBlock block2 = source.getBlock(onlinePlayer.dimension, pX, pZ);
+					if (block2 != null && block2.town() != null && block2.town() != town() && block2.town().bounceNonMembers)
 					{
-						onlinePlayer.sendChatToPlayer(Term.TownYouCannotEnter.toString(block.town().name()));
-						bounceBack();
+						// bounce failed, send to spawn
+						Log.warning(String.format("Player %s is inside a enemy town %s (%s, %s, %s, %s) with bouncing on. Sending to spawn.",
+								name(), block2.town().name(),
+								onlinePlayer.dimension, onlinePlayer.posX, onlinePlayer.posY, onlinePlayer.posZ));
 						
-						pX = ((int)onlinePlayer.posX) >> 4;
-						pZ = ((int)onlinePlayer.posZ) >> 4;
-						
-						TownBlock block2 = source.getBlock(onlinePlayer.dimension, pX, pZ);
-						if (block2 != null && block2.town() != null && block2.town() != town() && block2.town().bounceNonMembers)
-						{
-							// bounce failed, send to spawn
-							Log.warning(String.format("Player %s is inside a enemy town %s (%s, %s, %s, %s) with bouncing on. Sending to spawn.",
-									name(), block2.town().name(),
-									onlinePlayer.dimension, onlinePlayer.posX, onlinePlayer.posY, onlinePlayer.posZ));
-							
-							sendToSpawn();
-						}
-					}
-					finally
-					{
-						beingBounced = false;
+						sendToSpawn();
 					}
 				}
-				else
+				finally
 				{
-					location = block.town();
-					onlinePlayer.sendChatToPlayer(Term.PlayerEnteredTown.toString(block.town().name()));
+					beingBounced = false;
 				}
 			}
 			else
 			{
+				if (block.town() == town())
+					onlinePlayer.sendChatToPlayer(Term.PlayerEnteredOwnTown.toString(block.town().name()));
+				else
+					onlinePlayer.sendChatToPlayer(Term.PlayerEnteredTown.toString(block.town().name()));
 				location = block.town();
-				onlinePlayer.sendChatToPlayer(Term.PlayerEnteredOwnTown.toString(block.town().name()));
 			}
 		}
 		

@@ -265,6 +265,13 @@ public enum Term
 	ErrPermPlotNotInTown("The current block doesn't belong to any town"),
 	ErrPermPlotNotInYourTown("The current block doesn't belong to your town"),
 	ErrPermRankNotEnough("You have to be atleast the assistant of the town for this"),
+	
+	ErrPermCannotBuildHere("You cannot build in this area"),
+	ErrPermCannotAccessHere("You cannot access things here"),
+	ErrPermCannotPickup("You cannot pick items up here"),
+	
+	ErrPermCannotInteract("You cannot interact with the target here"),
+	ErrPermCannotAttack("You cannot attack the target here")
 	;
 	
 	public final String defaultVal;

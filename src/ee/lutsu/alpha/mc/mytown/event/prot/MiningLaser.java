@@ -11,6 +11,7 @@ import ee.lutsu.alpha.mc.mytown.MyTownDatasource;
 import ee.lutsu.alpha.mc.mytown.Entities.Resident;
 import ee.lutsu.alpha.mc.mytown.Entities.Town;
 import ee.lutsu.alpha.mc.mytown.Entities.TownBlock;
+import ee.lutsu.alpha.mc.mytown.Entities.TownSettingCollection.Permissions;
 import ee.lutsu.alpha.mc.mytown.event.ProtectionEvents;
 
 import net.minecraft.src.AxisAlignedBB;
@@ -113,7 +114,7 @@ public class MiningLaser extends ProtBase
 
         if (var3 != null)
         {
-        	if ((var3.entityHit != null && !res.canAttack(var3.entityHit)) || (var3.entityHit == null && !res.canInteract(var3.blockX, var3.blockY, var3.blockZ)))
+        	if ((var3.entityHit != null && !res.canAttack(var3.entityHit)) || (var3.entityHit == null && !res.canInteract(var3.blockX, var3.blockY, var3.blockZ, Permissions.Build)))
         	{
 				return "Target in MyTown protected area";
         	}
@@ -136,10 +137,10 @@ public class MiningLaser extends ProtBase
         			z = (int)var3.blockZ;
         		}
         		
-        		if (!res.canInteract(x - explosionRadius, y, z) || 
-    				!res.canInteract(x + explosionRadius, y, z) ||
-    				!res.canInteract(x, y, z - explosionRadius) ||
-    				!res.canInteract(x, y, z + explosionRadius))
+        		if (!res.canInteract(x - explosionRadius, y, z, Permissions.Build) || 
+    				!res.canInteract(x + explosionRadius, y, z, Permissions.Build) ||
+    				!res.canInteract(x, y, z - explosionRadius, Permissions.Build) ||
+    				!res.canInteract(x, y, z + explosionRadius, Permissions.Build))
         			return "Explosion would hit a protected town";
         	}
         }

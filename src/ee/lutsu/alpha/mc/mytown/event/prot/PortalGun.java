@@ -10,6 +10,7 @@ import ee.lutsu.alpha.mc.mytown.MyTownDatasource;
 import ee.lutsu.alpha.mc.mytown.Entities.Resident;
 import ee.lutsu.alpha.mc.mytown.Entities.Town;
 import ee.lutsu.alpha.mc.mytown.Entities.TownBlock;
+import ee.lutsu.alpha.mc.mytown.Entities.TownSettingCollection.Permissions;
 import ee.lutsu.alpha.mc.mytown.event.ProtectionEvents;
 
 import net.minecraft.src.Entity;
@@ -53,7 +54,7 @@ public class PortalGun extends ProtBase
 			    int y = (int)(e.motionY / 5.0D * ii + e.posY);
 			    int z = (int)(e.motionZ / 5.0D * ii + e.posZ);
 
-			    if (!r.canInteract(x, y, z))
+			    if (!r.canInteract(x, y, z, Permissions.Build))
 			    	return "Cannot shoot portals in this town";
 			}
 		}
