@@ -269,12 +269,35 @@ public class TownSettingCollection
 	}
 	
 	// elements
-	public boolean allowPickup;
+	public Permissions townMemberRights;
+	public Permissions nationMemberRights;
+	public Permissions outsiderRights;
+	public Permissions friendRights;
+	
+	public boolean allowCartInteraction;
+	public boolean allowStevecartsRailers;
+	public boolean allowStevecartsMiners;
+	public boolean allowBuildcraftMiners;
 	
 	protected void unnest(TownSetting set)
 	{
-		if (set.getSerializationKey().equals("pickup"))
-			allowPickup = set.getEffBoolean();
+		if (set.getSerializationKey().equals("town"))
+			townMemberRights = set.<Permissions>effValue();
+		else if (set.getSerializationKey().equals("nation"))
+			nationMemberRights = set.<Permissions>effValue();
+		else if (set.getSerializationKey().equals("out"))
+			outsiderRights = set.<Permissions>effValue();
+		else if (set.getSerializationKey().equals("friend"))
+			friendRights = set.<Permissions>effValue();
+		
+		else if (set.getSerializationKey().equals("carts"))
+			allowCartInteraction = set.getEffBoolean();
+		else if (set.getSerializationKey().equals("steverailer"))
+			allowStevecartsRailers = set.getEffBoolean();
+		else if (set.getSerializationKey().equals("steveminer"))
+			allowStevecartsMiners = set.getEffBoolean();
+		else if (set.getSerializationKey().equals("bc"))
+			allowBuildcraftMiners = set.getEffBoolean();
 	}
 	
 	public void reset()

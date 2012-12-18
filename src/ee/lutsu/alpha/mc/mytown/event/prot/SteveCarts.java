@@ -8,6 +8,7 @@ import java.util.ArrayList;
 import ee.lutsu.alpha.mc.mytown.ChatChannel;
 import ee.lutsu.alpha.mc.mytown.Formatter;
 import ee.lutsu.alpha.mc.mytown.Log;
+import ee.lutsu.alpha.mc.mytown.MyTown;
 import ee.lutsu.alpha.mc.mytown.MyTownDatasource;
 import ee.lutsu.alpha.mc.mytown.Entities.Town;
 import ee.lutsu.alpha.mc.mytown.Entities.TownBlock;
@@ -78,7 +79,7 @@ public class SteveCarts extends ProtBase
 		
 		if (railerModules.size() > 0) // railer
 		{
-			if ((b == null && !Town.canPluginChangeWild("StevesCarts", "railer", e)) || (b != null && !b.canPluginChange("StevesCarts", "railer", e)))
+			if ((b == null && !MyTown.instance.getWorldWildSettings(e.dimension).allowStevecartsRailers) || (b != null && !b.settings.allowStevecartsRailers))
 			{
 				blockAction((EntityMinecart)e, b);
 				return null;
@@ -87,7 +88,7 @@ public class SteveCarts extends ProtBase
 		
 		if (minerModules.size() > 0) // miner
 		{
-			if ((b == null && !Town.canPluginChangeWild("StevesCarts", "miner", e)) || (b != null && !b.canPluginChange("StevesCarts", "miner", e)))
+			if ((b == null && !MyTown.instance.getWorldWildSettings(e.dimension).allowStevecartsMiners) || (b != null && !b.settings.allowStevecartsMiners))
 			{
 				blockAction((EntityMinecart)e, b);
 				return null;

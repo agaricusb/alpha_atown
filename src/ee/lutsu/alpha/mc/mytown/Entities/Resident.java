@@ -81,6 +81,8 @@ public class Resident
 	{ 
 		town = t; 
 		settings.setParent(t == null ? null : t.settings);
+		if (t == null)
+			settings.unlinkAllDown();
 	}
 	public Rank rank(){ return rank; }
 	public void setRank(Rank r){ rank = r; }
@@ -238,6 +240,7 @@ public class Resident
 			town.residents().add(res);
 
 		res.settings.deserialize(extra);
+		res.settings.setParent(town == null ? null : town.settings);
 
 		return res;
 	}

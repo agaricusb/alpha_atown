@@ -43,6 +43,7 @@ public class MyTownResident
 			{
 				cs.sendChatToPlayer(Formatter.formatCommand(Term.TownCmdLeave.toString(), "", Term.TownCmdLeaveDesc.toString(), color));
 				cs.sendChatToPlayer(Formatter.formatCommand(Term.TownCmdOnline.toString(), "", Term.TownCmdOnlineDesc.toString(), color));
+				cs.sendChatToPlayer(Formatter.formatCommand(Term.TownCmdPerm.toString(), Term.TownCmdPermArgs.toString(), Term.TownCmdPermDesc.toString(), color));
 			}
 			else if (args[0].equalsIgnoreCase(Term.TownCmdLeave.toString()))
 			{
@@ -79,14 +80,14 @@ public class MyTownResident
 			{
 				if (args.length < 2)
 				{
-					cs.sendChatToPlayer(Formatter.formatAdminCommand(Term.TownCmdPerm.toString(), Term.TownCmdPermArgs.toString(), Term.TownCmdPermDesc.toString(), color));
+					cs.sendChatToPlayer(Formatter.formatCommand(Term.TownCmdPerm.toString(), Term.TownCmdPermArgs.toString(), Term.TownCmdPermDesc.toString(), color));
 					return;
 				}
 				
 				String node = args[1];
 				if (!node.equalsIgnoreCase(Term.TownCmdPermArgsTown.toString()) && !node.equalsIgnoreCase(Term.TownCmdPermArgsResident.toString()) && !node.equalsIgnoreCase(Term.TownCmdPermArgsPlot.toString()))
 				{
-					cs.sendChatToPlayer(Formatter.formatAdminCommand(Term.TownCmdPerm.toString(), Term.TownCmdPermArgs.toString(), Term.TownCmdPermDesc.toString(), color));
+					cs.sendChatToPlayer(Formatter.formatCommand(Term.TownCmdPerm.toString(), Term.TownCmdPermArgs.toString(), Term.TownCmdPermDesc.toString(), color));
 					return;
 				}
 				
@@ -110,7 +111,7 @@ public class MyTownResident
 						flushPermissions(cs, res, node);
 					}
 					else
-						cs.sendChatToPlayer(Formatter.formatAdminCommand(Term.TownCmdPerm.toString(), Term.TownCmdPermArgs.toString(), Term.TownCmdPermDesc.toString(), color));
+						cs.sendChatToPlayer(Formatter.formatCommand(Term.TownCmdPerm.toString(), Term.TownCmdPermArgs.toString(), Term.TownCmdPermDesc.toString(), color));
 				}
 			}
 		}
@@ -167,14 +168,11 @@ public class MyTownResident
 	{
 		TownSettingCollection set = getPermNode(node, res);
 		
-		if (node.equalsIgnoreCase(Term.TownCmdPermArgsTown.toString()) || node.equalsIgnoreCase(Term.TownCmdPermArgsPlot.toString()))
-		{
-			if (res.rank() == Rank.Resident)
-				throw new CommandException(Term.ErrPermRankNotEnough);
-		}
-		
 		if (set.childs.size() < 1)
 			throw new CommandException(Term.ErrPermNoChilds);
+		
+		if (node.equalsIgnoreCase(Term.TownCmdPermArgsTown.toString()) && res.rank() == Rank.Resident)
+			throw new CommandException(Term.ErrPermRankNotEnough);
 		
 		set.forceChildsToInherit();
 		sender.sendChatToPlayer(Term.PermForced.toString(node));
@@ -184,9 +182,13 @@ public class MyTownResident
 	{
 		TownSettingCollection set = getPermNode(node, res);
 
-		if (node.equalsIgnoreCase(Term.TownCmdPermArgsTown.toString()) || node.equalsIgnoreCase(Term.TownCmdPermArgsPlot.toString()))
+		if (node.equalsIgnoreCase(Term.TownCmdPermArgsTown.toString()) && res.rank() == Rank.Resident)
+			throw new CommandException(Term.ErrPermRankNotEnough);
+		
+		if (node.equalsIgnoreCase(Term.TownCmdPermArgsPlot.toString()) && res.rank() == Rank.Resident)
 		{
-			if (res.rank() == Rank.Resident)
+			TownBlock b = (TownBlock)set.tag;
+			if (b.owner() != res)
 				throw new CommandException(Term.ErrPermRankNotEnough);
 		}
 		

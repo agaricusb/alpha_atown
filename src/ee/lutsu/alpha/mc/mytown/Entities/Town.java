@@ -100,12 +100,12 @@ public class Town
 		name = pName;
 		extraBlocks = pExtraBlocks;
 		blocks = pBlocks;
-
-		for(TownBlock res : blocks)
-			res.setTown(this);
-
+		
 		setSettings();
 		deserializeExtra(extra);
+		
+		for(TownBlock res : blocks)
+			res.setTown(this); // needs parent settings to be on
 	}
 	
 	private void setSettings()
@@ -340,26 +340,6 @@ public class Town
 		pl.sendChatToPlayer(Term.TownStatusMayor.toString(mayors.toString()));
 		pl.sendChatToPlayer(Term.TownStatusAssistants.toString(assistants.toString()));
 		pl.sendChatToPlayer(Term.TownStatusResidents.toString(residents.toString()));
-	}
-	
-	public boolean canPluginChange(String plugin, Entity e)
-	{
-		return false;
-	}
-	
-	public static boolean canPluginChangeWild(String plugin, String module, Entity e)
-	{
-		return true;
-	}
-	
-	public boolean canPluginChange(String plugin, TileEntity e)
-	{
-		return false;
-	}
-	
-	public static boolean canPluginChangeWild(String plugin, TileEntity e)
-	{
-		return true;
 	}
 	
 	public void notifyPlayerLoggedOn(Resident r)

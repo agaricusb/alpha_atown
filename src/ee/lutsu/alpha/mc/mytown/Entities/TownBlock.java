@@ -109,57 +109,9 @@ public class TownBlock
 		return Math.abs((chunkX - b.chunkX) * (chunkX - b.chunkX) + (chunkZ - b.chunkZ) * (chunkZ - b.chunkZ));
 	}
 	
-	public boolean canPluginChange(String plugin, String module, Entity e)
-	{
-		if (town == null)
-			return Town.canPluginChangeWild(plugin, module, e);
-		
-		// TODO: quarry switch
-		
-		return town.canPluginChange(plugin, e);
-	}
-	
-	public boolean canPluginChange(String plugin, String module, TileEntity e)
-	{
-		if (town == null)
-			return Town.canPluginChangeWild(plugin, e);
-		
-		// TODO: quarry switch
-		
-		return town.canPluginChange(plugin, e);
-	}
-	
 	public void save()
 	{
 		if (town != null)
 			town.save();
-	}
-	
-	public void recalcPerms()
-	{
-		
-	}
-	
-	public void forcePermsToInherit()
-	{
-		
-	}
-	
-	public boolean canAdministrate(Resident res)
-	{
-		/*
-		if (res.isOp())
-			return true;
-		*/
-		if (town == null)
-			return false;
-		
-		if (res.town() != town)
-			return false;
-
-		if (res.rank() == Rank.Resident)
-			return false;
-		
-		return true;
 	}
 }

@@ -4,6 +4,7 @@ import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.List;
 
+import ee.lutsu.alpha.mc.mytown.MyTown;
 import ee.lutsu.alpha.mc.mytown.MyTownDatasource;
 import ee.lutsu.alpha.mc.mytown.Entities.TownBlock;
 import ee.lutsu.alpha.mc.mytown.event.ProtectionEvents;
@@ -107,11 +108,8 @@ public class BuildCraft extends ProtBase
 			{
 				TownBlock block = MyTownDatasource.instance.getBlock(e.worldObj.provider.dimensionId, x, z);
 			
-				if (block != null)
+				if ((block != null && block.town() != null && !block.settings.allowBuildcraftMiners) || ((block == null || block.town() == null) && !MyTown.instance.getWorldWildSettings(e.worldObj.provider.dimensionId).allowBuildcraftMiners))
 				{
-					if (block.canPluginChange("BuildCraft", e.getClass().getSimpleName(), e))
-						return null;
-					
 					if (clazz == clQuarry)
 					{
 						EntityPlayer pl = (EntityPlayer)fQuarryOwner.get(e);
@@ -121,7 +119,7 @@ public class BuildCraft extends ProtBase
 						}
 					}
 					
-					return "Region will hit a town block that doesn't allow this";
+					return "Region will hit a an area which doesn't allow buildcraft block breakers";
 				}
 			}
 		}
