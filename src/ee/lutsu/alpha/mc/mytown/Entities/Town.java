@@ -21,6 +21,7 @@ import ee.lutsu.alpha.mc.mytown.MyTown;
 import ee.lutsu.alpha.mc.mytown.MyTownDatasource;
 import ee.lutsu.alpha.mc.mytown.Term;
 import ee.lutsu.alpha.mc.mytown.Entities.Resident.Rank;
+import ee.lutsu.alpha.mc.mytown.Entities.TownSettingCollection.ISettingsSaveHandler;
 
 public class Town 
 {
@@ -54,9 +55,9 @@ public class Town
 	
 	// extra
 	public boolean bounceNonMembers = false;
-	public Map<String, String> settings = genSettings();
+	public TownSettingCollection settings = new TownSettingCollection();
 	
-	public void setBounce(boolean val) { bounceNonMembers = val; settings.put("bounce", bounceNonMembers ? "1" : null); save(); }
+	public void setBounce(boolean val) { bounceNonMembers = val; save(); }
 
 	public Town(String pName, Resident creator, TownBlock home) throws CommandException
 	{
@@ -83,7 +84,8 @@ public class Town
 			home.setTown(this);
 			blocks.add(home);
 		}
-
+		
+		setSettings();
 		MyTownDatasource.instance.addTown(this);
 		save(); // has town id now
 		creator.save();
@@ -101,8 +103,23 @@ public class Town
 
 		for(TownBlock res : blocks)
 			res.setTown(this);
-		
+
+		setSettings();
 		deserializeExtra(extra);
+	}
+	
+	private void setSettings()
+	{
+		settings.tag = this;
+		settings.setParent(MyTown.instance.serverSettings);
+		settings.saveHandler = new ISettingsSaveHandler() 
+		{
+			public void save(TownSettingCollection sender, Object tag) 
+			{
+				Town r = (Town)tag;
+				r.save();
+			}
+		};
 	}
 	
 	public int allowedBlocksWOExtra()
@@ -222,6 +239,7 @@ public class Town
 		}
 		blocks.clear();
 		
+		settings.unlinkAllDown();
 		MyTownDatasource.instance.deleteTown(this); // sets resident town to 0
 		MyTownDatasource.instance.unloadTown(this);
 	}
@@ -245,31 +263,12 @@ public class Town
 	
 	public String serializeExtra()
 	{
-		List<String> ret = new ArrayList<String>();
-		
-		for (Entry<String, String> set : settings.entrySet())
-			if (set.getValue() != null)
-				ret.add(set.getKey() + ":" + set.getValue());
-		
-		return Joiner.on(';').join(ret);
+		return settings.serialize();
 	}
 	
 	public void deserializeExtra(String val)
 	{
-		if (val == null || val.equals(""))
-			return;
-		
-		String[] splits = val.split(";");
-		for(String line : splits)
-		{
-			String[] v = line.split(":");
-			
-			if (v[0].equals("bounce"))
-				bounceNonMembers = v[1].equals("1");
-			
-			if (settings.containsKey(v[0]))
-				settings.put(v[0], v[1]);
-		}
+		settings.deserialize(val);
 	}
 	
 	public void sendTownInfo(ICommandSender pl, boolean adminInfo)
@@ -373,25 +372,14 @@ public class Town
 		sendNotification(Level.INFO, Term.TownBroadcastLoggedOut.toString(r.name()));
 	}
 	
-	public static HashMap<String, String> genSettings()
+	public boolean usesPlotOwnership()
 	{
-		HashMap<String, String> settings = new HashMap<String, String>();
+		for (TownBlock b : blocks)
+		{
+			if (b.owner() != null)
+				return true;
+		}
 		
-		settings.put("ci", null);
-		settings.put("minY", "0");
-		settings.put("maxY", "255");
-		settings.put("bounce", "false");
-		
-		return settings;
-	}
-	
-	public void applyPerms()
-	{
-		
-	}
-	
-	public void forceBlocksToInheritPerms()
-	{
-		
+		return false;
 	}
 }

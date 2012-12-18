@@ -11,6 +11,7 @@ import ee.lutsu.alpha.mc.mytown.Log;
 import ee.lutsu.alpha.mc.mytown.MyTownDatasource;
 import ee.lutsu.alpha.mc.mytown.Permissions;
 import ee.lutsu.alpha.mc.mytown.Term;
+import ee.lutsu.alpha.mc.mytown.Entities.TownSettingCollection.ISettingsSaveHandler;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.src.ChunkCoordinates;
 import net.minecraft.src.Entity;
@@ -76,7 +77,11 @@ public class Resident
 	
 	public void setActiveChannel(ChatChannel ch) { activeChannel = ch; save(); }
 	public Town town(){ return town; }
-	public void setTown(Town t){ town = t; }
+	public void setTown(Town t)
+	{ 
+		town = t; 
+		settings.setParent(t == null ? null : t.settings);
+	}
 	public Rank rank(){ return rank; }
 	public void setRank(Rank r){ rank = r; }
 	public String name() { return name; }
@@ -85,10 +90,12 @@ public class Resident
 	public void setId(int val) { id = val; }
 	public Date created() { return createdOn; }
 	public Date lastLogin() { return lastLoginOn; }
-	public String extraData() { return ""; }
+	public TownSettingCollection settings = new TownSettingCollection();
 	
 	public Resident(String pName)
 	{
+		this();
+		
 		name = pName;
 		createdOn = new Date(System.currentTimeMillis());
 		lastLoginOn = new Date(System.currentTimeMillis());
@@ -98,6 +105,15 @@ public class Resident
 	
 	protected Resident()
 	{
+		settings.tag = this;
+		settings.saveHandler = new ISettingsSaveHandler() 
+		{
+			public void save(TownSettingCollection sender, Object tag) 
+			{
+				Resident r = (Resident)tag;
+				r.save();
+			}
+		};
 	}
 	
 	public boolean isOp()
@@ -221,9 +237,14 @@ public class Resident
 		if (town != null)
 			town.residents().add(res);
 
-		// split extra
+		res.settings.deserialize(extra);
 
 		return res;
+	}
+	
+	public String serializeExtra()
+	{
+		return settings.serialize();
 	}
 
 	public void checkLocation()

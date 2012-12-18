@@ -5,6 +5,7 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.jar.Attributes.Name;
 
+import ee.lutsu.alpha.mc.mytown.Entities.Resident.Rank;
 import ee.lutsu.alpha.mc.mytown.Entities.TownSettingCollection.Permissions;
 
 import net.minecraft.server.MinecraftServer;
@@ -21,12 +22,7 @@ public class TownBlock
 	private Town town;
 	private Resident owner;
 	public String owner_name; // only for sql loading. Don't use.
-	
-	private Permissions townPerm = Permissions.Loot;
-	private Permissions nationPerm = Permissions.Enter;
-	private Permissions outsiderPerm = Permissions.Enter;
-	private Permissions friendPerm = Permissions.Build;
-	
+
 	public int x() { return chunkX; }
 	public int z() { return chunkZ; }
 	public int worldDimension() { return world_dimension; }
@@ -34,12 +30,25 @@ public class TownBlock
 	
 	public Town town() { return town; }
 	public Resident owner() { return owner; }
-	public void setTown(Town val) { town = val; }
-	public void setOwner(Resident val) { owner = val; save(); }
-	public void sqlSetOwner(Resident val) { owner = val; }
+	public String ownerDisplay() { return owner == null ? "-" : owner.name(); }
+	public void setTown(Town val) 
+	{ 
+		town = val;
+		settings.setParent(town == null ? null : owner != null ? owner.settings : town.settings);
+	}
+	public void setOwner(Resident val) 
+	{ 
+		sqlSetOwner(val);
+		save(); 
+	}
+	public void sqlSetOwner(Resident val) 
+	{
+		owner = val; 
+		settings.setParent(town == null ? null : owner != null ? owner.settings : town.settings);
+	}
 	
 	// extra
-	public Map<String, String> settings = genSettings();
+	public TownSettingCollection settings = new TownSettingCollection();
 	
 	public TownBlock(int pWorld, int x, int z)
 	{
@@ -60,13 +69,9 @@ public class TownBlock
 		
 		if (splits.length > 3)
 		{
-			t.townPerm = Permissions.parse(splits[3].substring(0, 0));
-			t.nationPerm = Permissions.parse(splits[3].substring(1, 1));
-			t.outsiderPerm = Permissions.parse(splits[3].substring(2, 2));
-			t.friendPerm = Permissions.parse(splits[3].substring(3, 3));
+			String s = info.substring(splits[0].length() + splits[1].length() + splits[2].length() + 3);
+			t.settings.deserialize(s);
 		}
-		else
-			t.townPerm = Permissions.Build;
 		
 		return t;
 	}
@@ -76,7 +81,7 @@ public class TownBlock
 		return worldDimension() + ";" +
 			String.valueOf(x()) + ";" +
 			String.valueOf(z()) + ";" +
-			townPerm.getShort() + nationPerm.getShort() + outsiderPerm.getShort() + friendPerm.getShort();
+			settings.serialize();
 			
 	}
 	
@@ -140,16 +145,21 @@ public class TownBlock
 		
 	}
 	
-	// returns town settings with all null values
-	public static HashMap<String, String> genSettings()
+	public boolean canAdministrate(Resident res)
 	{
-		HashMap<String, String> settings = Town.genSettings();
+		/*
+		if (res.isOp())
+			return true;
+		*/
+		if (town == null)
+			return false;
 		
-		for (Entry<String, String> kv : settings.entrySet())
-		{
-			settings.put(kv.getKey(), null);
-		}
+		if (res.town() != town)
+			return false;
 
-		return settings;
+		if (res.rank() == Rank.Resident)
+			return false;
+		
+		return true;
 	}
 }

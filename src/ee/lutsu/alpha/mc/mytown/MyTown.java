@@ -20,6 +20,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.logging.Level;
 
 import ee.lutsu.alpha.mc.mytown.Entities.Resident;
@@ -58,8 +59,9 @@ public class MyTown
 	public static String LIB_FOLDER = CONFIG_FOLDER +"lib/";
 	public static String CONFIG_FILE = CONFIG_FOLDER + "MyTown.cfg";
 	
-	public TownSettingCollection serverSettings = new TownSettingCollection();
-	public Map<World, TownSettingCollection> worldSettings = new HashMap<World, TownSettingCollection>();
+	public TownSettingCollection serverWildSettings = new TownSettingCollection(true, true);
+	public TownSettingCollection serverSettings = new TownSettingCollection(true, false);
+	public Map<Integer, TownSettingCollection> worldWildSettings = new HashMap<Integer, TownSettingCollection>();
 	
     @Mod.Instance("MyTown")
     public static MyTown instance;
@@ -104,6 +106,7 @@ public class MyTown
     	GameRegistry.registerPlayerTracker(events);
     	MinecraftForge.EVENT_BUS.register(ProtectionEvents.instance);
     	TickRegistry.registerTickHandler(ProtectionEvents.instance, Side.SERVER);
+    	MinecraftForge.EVENT_BUS.register(WorldEvents.instance);
     	
     	ServerCommandManager mgr = (ServerCommandManager)MinecraftServer.getServer().getCommandManager();
     	mgr.registerCommand(new CmdMyTown());
@@ -275,17 +278,68 @@ public class MyTown
     {
         Property prop; 
         
-        prop = config.get("WorldPerms", "Server", "");
-        prop.comment = "Run the extra protections";
+        prop = config.get("ServerPerms", "Server", "");
         serverSettings.deserialize(prop.value);
         
         serverSettings.saveHandler = new ISettingsSaveHandler()
         {
 			public void save(TownSettingCollection sender, Object tag) 
 			{
-				MyTown.instance.config.get("WorldPerms", "Server", "").value = sender.serialize();
+				MyTown.instance.config.get("ServerPerms", "Server", "").value = sender.serialize();
 				MyTown.instance.config.save();
 			}
         };
+        
+        prop = config.get("WildPerms", "Server", "");
+        serverWildSettings.deserialize(prop.value);
+        
+        serverWildSettings.saveHandler = new ISettingsSaveHandler()
+        {
+			public void save(TownSettingCollection sender, Object tag) 
+			{
+				MyTown.instance.config.get("WildPerms", "Server", "").value = sender.serialize();
+				MyTown.instance.config.save();
+			}
+        };
+        
+        Map<String, Property> cat = config.categories.get("WildPerms");
+        if (cat == null)
+        	return;
+        
+        for (Property p : cat.values())
+        {
+        	if (!p.getName().startsWith("Dim_"))
+        		continue;
+
+    		int dim = Integer.parseInt(p.getName().substring(4));
+    		TownSettingCollection set = getWorldWildSettings(dim);
+    		set.deserialize(p.value);
+        }
+    }
+    
+    public TownSettingCollection getWorldWildSettings(int w)
+    {
+    	for (Entry<Integer, TownSettingCollection> set : worldWildSettings.entrySet())
+    	{
+    		if (set.getKey() == w)
+    			return set.getValue();
+    	}
+    	
+    	TownSettingCollection set = new TownSettingCollection(false, true);
+    	set.tag = w;
+    	set.setParent(serverWildSettings);
+    	set.saveHandler = new ISettingsSaveHandler()
+        {
+			public void save(TownSettingCollection sender, Object tag) 
+			{
+				int w = (int)tag;
+				MyTown.instance.config.get("WildPerms", "Dim_" + String.valueOf(w), "").value = sender.serialize();
+				MyTown.instance.config.save();
+			}
+        };
+        
+        worldWildSettings.put(w, set);
+        
+        return set;
     }
 }

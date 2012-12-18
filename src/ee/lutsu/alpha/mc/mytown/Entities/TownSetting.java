@@ -10,28 +10,31 @@ public class TownSetting
 {
 	private String name;
 	public Object value;
+	public Object wildValue;
 	public Object effectiveValue;
 	
 	private String valueDesc;
 	private Class instanceOf;
 	private String seriaKey;
 	
-	public TownSetting(String name, String key, Object value, String valueDesc, Class instanceOf)
+	public TownSetting(String name, String key, Object value, Object wildValue, String valueDesc, Class instanceOf)
 	{
 		this.name = name;
 		this.seriaKey = key;
 		this.value = value;
 		this.valueDesc = valueDesc;
 		this.instanceOf = instanceOf;
+		this.wildValue = wildValue;
 	}
 	
 	public String getName() { return name; }
 	public String getValueDescription() { return valueDesc; }
 	public String getSerializationKey() { return seriaKey; }
+	public String getValueType() { return instanceOf.getSimpleName(); }
 	
 	public String getVisualValue()
 	{
-		return value == null ? "inherit" : value.toString();
+		return (effectiveValue == null ? "null" : effectiveValue.toString()) + (value == null && effectiveValue != null ? " (inherited)" : "");
 	}
 	
 	public void setValue(String from)

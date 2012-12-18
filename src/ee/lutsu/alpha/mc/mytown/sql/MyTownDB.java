@@ -338,7 +338,7 @@ public abstract class MyTownDB extends Database {
 	    			statement.setString(3, res.rank().toString());
 	    			statement.setString(4, res.activeChannel.toString());
 	    			statement.setString(5, iso8601Format.format(res.lastLogin()));
-	    			statement.setString(6, res.extraData());
+	    			statement.setString(6, res.serializeExtra());
 	    			statement.setString(7, sFriends);
 	    			
 	    			statement.setInt(8, res.id());
@@ -353,7 +353,7 @@ public abstract class MyTownDB extends Database {
 	    			statement.setString(4, res.activeChannel.toString());
 	    			statement.setString(5, iso8601Format.format(res.created()));
 	    			statement.setString(6, iso8601Format.format(res.lastLogin()));
-	    			statement.setString(7, res.extraData());
+	    			statement.setString(7, res.serializeExtra());
 	    			statement.setString(8, sFriends);
 
 	    			statement.executeUpdate();

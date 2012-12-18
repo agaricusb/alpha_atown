@@ -4,16 +4,22 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map.Entry;
 
+import net.minecraft.src.ICommandSender;
+
 import com.google.common.base.Joiner;
+
+import ee.lutsu.alpha.mc.mytown.CommandException;
+import ee.lutsu.alpha.mc.mytown.Term;
 
 /**
  * 
  * Hierarchy:
+ * Server-Wild
+ *  L World-Wild
  * Server
- *  L World
- *     L Town
- *        L Resident
- *           L Plot
+ *  L Town
+ *     L Resident
+ *        L Plot
  *
  */
 public class TownSettingCollection 
@@ -55,6 +61,7 @@ public class TownSettingCollection
 		void save(TownSettingCollection sender, Object tag);
 	}
 	
+	public boolean isWild, isRoot;
 	public TownSettingCollection parent;
 	public List<TownSettingCollection> childs = new ArrayList<TownSettingCollection>();
 	
@@ -65,18 +72,28 @@ public class TownSettingCollection
 	
 	public TownSettingCollection()
 	{
-		this(false);
+		this(false, false);
 	}
 	
-	public TownSettingCollection(boolean isRoot)
+	public TownSettingCollection(boolean isRoot, boolean isWild)
 	{
-		reset(isRoot);
+		this.isWild = isWild;
+		this.isRoot = isRoot;
+		reset();
 	}
 	
 	public void setParent(TownSettingCollection col)
 	{
+		if (parent != null)
+			parent.removeChild(this);
+
 		parent = col;
-		parent.addChild(this);
+		
+		if (parent != null)
+		{
+			parent.addChild(this);
+			refresh();
+		}
 	}
 	
 	protected void addChild(TownSettingCollection col)
@@ -89,11 +106,21 @@ public class TownSettingCollection
 		childs.remove(col);
 	}
 	
+	public void unlinkAllDown()
+	{
+		setParent(null);
+		
+		for (Object child : childs.toArray())
+		{
+			((TownSettingCollection)child).unlinkAllDown();
+		}
+	}
+	
 	private TownSetting getSetting(String key)
 	{
 		for (TownSetting set : settings)
 		{
-			if (set.getSerializationKey() == key)
+			if (set.getSerializationKey().equalsIgnoreCase(key))
 				return set;
 		}
 		
@@ -132,15 +159,41 @@ public class TownSettingCollection
 			if (set.value == null)
 			{
 				if (parent == null)
-					throw new RuntimeException("Top value cannot be null : " + set.getSerializationKey());
-				
-				set.effectiveValue = parent.getEffValue(set.getSerializationKey());
+				{
+					if (!isWild)
+						throw new RuntimeException("Top value cannot be null : " + set.getSerializationKey());
+				}
+				else
+					set.effectiveValue = parent.getEffValue(set.getSerializationKey());
 			}
 			else
 				set.effectiveValue = set.value;
 			
 			unnest(set);
 		}
+	}
+	
+	public void setValue(String key, String value) throws CommandException
+	{
+		TownSetting set = getSetting(key);
+		if (set == null)
+			throw new CommandException(Term.ErrPermSettingNotFound, key);
+		
+		if (value != null && value.equals("?"))
+			throw new CommandException(Term.ErrPermSupportedValues, set.getValueType(), set.getValueDescription());
+		
+		try
+		{
+			set.setValue(value);
+		}
+		catch (Exception e)
+		{
+			String err =  e.getClass().getSimpleName() + (e.toString() != null ? ": " + e.toString() : "");
+			throw new CommandException(Term.ErrPermSupportedValues, err, set.getValueDescription());
+		}
+		
+		refresh();
+		save();
 	}
 	
 	public void refresh()
@@ -162,11 +215,15 @@ public class TownSettingCollection
 		for(String line : splits)
 		{
 			String[] v = line.split(":");
+			if (v.length != 2)
+				continue;
 			
 			TownSetting set = getSetting(v[0]);
 			if (set != null)
 				set.setValue(v[1]);
 		}
+		
+		refresh();
 	}
 	
 	public String serialize()
@@ -188,30 +245,61 @@ public class TownSettingCollection
 		}
 	}
 	
+	private void clearValuesToWild()
+	{
+		for (TownSetting set : settings)
+		{
+			set.value = set.wildValue;
+		}
+	}
+	
+	public void show(ICommandSender cs, String title)
+	{
+		cs.sendChatToPlayer(String.format("§6-- §ePermissions for %s§6 --", title));
+		
+		for (TownSetting set : settings)
+		{
+			if (!isWild || set.wildValue != null)
+				cs.sendChatToPlayer(String.format("§a%s §2[%s] : %s%s",
+					set.getName(),
+					set.getSerializationKey(),
+					set.value == null ? "§d" : "§c",
+					set.getVisualValue()));
+		}
+	}
+	
 	// elements
 	public boolean allowPickup;
-	
-	public void reset(boolean isRoot)
-	{
-		settings.clear();
-
-		settings.add(new TownSetting("Town member rights", "townperm", Permissions.Loot, "choice:" + Permissions.getValuesDesc(), Permissions.class));
-		settings.add(new TownSetting("Nation member rights", "nationperm", Permissions.Enter, "choice:" + Permissions.getValuesDesc(), Permissions.class));
-		settings.add(new TownSetting("Outsider rights", "outperm", Permissions.Enter, "choice:" + Permissions.getValuesDesc(), Permissions.class));
-		settings.add(new TownSetting("Friend rights", "friendperm", Permissions.Build, "choice:" + Permissions.getValuesDesc(), Permissions.class));
-		
-		settings.add(new TownSetting("Allow cart interaction", "cartinter", false, "boolean:yes/no", boolean.class));
-		settings.add(new TownSetting("Allow stevescarts railers", "steverailer", false, "boolean:yes/no", boolean.class));
-		settings.add(new TownSetting("Allow stevescarts miners", "steveminer", false, "boolean:yes/no", boolean.class));
-		settings.add(new TownSetting("Allow quarrys,filler,builders", "bcmachines", false, "boolean:yes/no", boolean.class));
-		
-		if (!isRoot)
-			clearValues();
-	}
 	
 	protected void unnest(TownSetting set)
 	{
 		if (set.getSerializationKey().equals("pickup"))
 			allowPickup = set.getEffBoolean();
+	}
+	
+	public void reset()
+	{
+		settings.clear();
+
+		//                             label                             key             default value       wild value          value limitation description                value conversion class
+		settings.add(new TownSetting("Town member rights", 				"town", 		Permissions.Loot, 	null, 				"choice:" + Permissions.getValuesDesc(), 	Permissions.class));
+		settings.add(new TownSetting("Nation member rights", 			"nation", 		Permissions.Enter, 	null, 				"choice:" + Permissions.getValuesDesc(), 	Permissions.class));
+		settings.add(new TownSetting("Outsider rights", 				"out", 			Permissions.Enter, 	Permissions.Build, 	"choice:" + Permissions.getValuesDesc(), 	Permissions.class));
+		settings.add(new TownSetting("Friend rights", 					"friend", 		Permissions.Build, 	null, 				"choice:" + Permissions.getValuesDesc(), 	Permissions.class));
+		
+		settings.add(new TownSetting("Allow cart interaction", 			"carts",	 	false, 				true, 				"boolean:yes/no", 							boolean.class));
+		settings.add(new TownSetting("Allow stevescarts railers", 		"steverailer", 	false, 				true, 				"boolean:yes/no", 							boolean.class));
+		settings.add(new TownSetting("Allow stevescarts miners", 		"steveminer", 	false, 				true, 				"boolean:yes/no", 							boolean.class));
+		settings.add(new TownSetting("Allow quarrys,filler,builders", 	"bc",		 	false, 				true, 				"boolean:yes/no", 							boolean.class));
+		
+		if (!isRoot)
+			clearValues();
+		else 
+		{
+			if (isWild)
+				clearValuesToWild();
+			
+			refresh(); // non-roots will refresh on parent set
+		}
 	}
 }

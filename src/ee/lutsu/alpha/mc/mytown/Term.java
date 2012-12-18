@@ -231,6 +231,40 @@ public enum Term
 	
 	// nation
 	TownErrAlreadyInNation("This town is already part of a nation"),
+	
+	// permissions - town command
+	TownCmdPerm("perm"),
+	TownCmdPermArgs("town|res|plot [force|(set key [val])]"),
+	TownCmdPermArgsTown("town"),
+	TownCmdPermArgsResident("res"),
+	TownCmdPermArgsPlot("plot"),
+	TownCmdPermArgs2Set("set"),
+	TownCmdPermArgs2Force("force"),
+	TownCmdPermDesc("Shows, sets or forces the permissions"),
+
+	// permissions - town admin command
+	TownadmCmdPerm("perm"),
+	TownadmCmdPermArgs("server|wild|wild:# [force|(set key [val])]"),
+	TownadmCmdPermArgsServer("server"),
+	TownadmCmdPermArgsWild("wild"),
+	TownadmCmdPermArgsWild2("wild:"),
+	TownadmCmdPermArgs2Set("set"),
+	TownadmCmdPermArgs2Force("force"),
+	TownadmCmdPermDesc("Shows, sets or forces the permissions"),
+	
+	// per general
+	PermForced("§aAll child nodes have been updated to inherit from the node '§2%s§a'"),
+	PermSetDone("§aPermission '§2%s§a' set for the node '§2%s§a'"),
+	// per errors
+	ErrPermSettingNotFound("The specified setting '%s' cannot be found"),
+	ErrPermSettingCollectionNotFound("The specified node '%s' doesn't exist"),
+	ErrPermNoChilds("The current permission node has no children"),
+	ErrPermSupportedValues("§4Value type: §2%s§4, Supported values: §2%s"),
+	ErrPermInvalidValue("§4Error: §2%s§4, Supported values: §2%s"),
+	ErrPermYouDontHaveTown("You don't belong to any town"),
+	ErrPermPlotNotInTown("The current block doesn't belong to any town"),
+	ErrPermPlotNotInYourTown("The current block doesn't belong to your town"),
+	ErrPermRankNotEnough("You have to be atleast the assistant of the town for this"),
 	;
 	
 	public final String defaultVal;

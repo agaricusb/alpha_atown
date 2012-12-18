@@ -6,6 +6,7 @@ import java.util.logging.Level;
 
 import ee.lutsu.alpha.mc.mytown.CommandException;
 import ee.lutsu.alpha.mc.mytown.Formatter;
+import ee.lutsu.alpha.mc.mytown.Log;
 import ee.lutsu.alpha.mc.mytown.Permissions;
 import ee.lutsu.alpha.mc.mytown.Term;
 import net.minecraft.src.CommandBase;
@@ -60,6 +61,11 @@ public class CmdMyTown extends CommandBase
 		catch(CommandException ex)
 		{
 			var1.sendChatToPlayer(Formatter.commandError(Level.WARNING, ex.errorCode.toString(ex.args)));
+		}
+		catch(Throwable ex)
+		{
+			Log.log(Level.WARNING, String.format("Command execution error by %s", var1), ex);
+			var1.sendChatToPlayer(Formatter.commandError(Level.SEVERE, ex.toString()));
 		}
 	}
 
