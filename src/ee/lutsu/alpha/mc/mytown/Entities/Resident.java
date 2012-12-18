@@ -63,6 +63,7 @@ public class Resident
 	private Date lastLoginOn;
 	
 	public Town location;
+	public Resident location2;
 	public boolean mapMode = false;
 	public Town inviteActiveFrom;
 	public ChatChannel activeChannel = ChatChannel.Global;
@@ -331,17 +332,20 @@ public class Resident
 		int pZ = ((int)onlinePlayer.posZ) >> 4;
 
 		TownBlock block = source.getBlock(onlinePlayer.dimension, pX, pZ);
+		boolean forceOwnerUpdate = false;
 		
 		if (block == null && location != null)
 		{
 			// entered wild
 			onlinePlayer.sendChatToPlayer(Term.PlayerEnteredWild.toString());
 			location = null;
+			location2 = null;
 		}
-		else if (block != null && block.town() != null && location != block.town())
+		else if (block != null && block.town() != null)
 		{
+			forceOwnerUpdate = true;
 			// entered town or another town
-			if (!canByPassBounce() && !canInteract(block, TownSettingCollection.Permissions.Enter))
+			if (!canByPassBounce() && !canInteract(block, (int)onlinePlayer.posY, TownSettingCollection.Permissions.Enter))
 			{
 				beingBounced = true;
 				try
@@ -353,7 +357,7 @@ public class Resident
 					pZ = ((int)onlinePlayer.posZ) >> 4;
 					
 					TownBlock block2 = source.getBlock(onlinePlayer.dimension, pX, pZ);
-					if (block2 != null && block2.town() != null && block2.town() != town() && block2.town().bounceNonMembers)
+					if (block2 != null && block2.town() != null && !canInteract(block2, (int)onlinePlayer.posY, TownSettingCollection.Permissions.Enter))
 					{
 						// bounce failed, send to spawn
 						Log.warning(String.format("Player %s is inside a enemy town %s (%s, %s, %s, %s) with bouncing on. Sending to spawn.",
@@ -370,11 +374,26 @@ public class Resident
 			}
 			else
 			{
-				if (block.town() == town())
-					onlinePlayer.sendChatToPlayer(Term.PlayerEnteredOwnTown.toString(block.town().name()));
-				else
-					onlinePlayer.sendChatToPlayer(Term.PlayerEnteredTown.toString(block.town().name()));
-				location = block.town();
+				if (block.owner() != location2 || block.town() != location)
+				{
+					if (block.town() != location)
+					{
+						if (block.town() == town())
+							onlinePlayer.sendChatToPlayer(Term.PlayerEnteredOwnTown.toString(block.town().name()));
+						else
+							onlinePlayer.sendChatToPlayer(Term.PlayerEnteredTown.toString(block.town().name()));
+					}
+					
+					if (block.owner() == this)
+						onlinePlayer.sendChatToPlayer(Term.PlayerEnteredOwnPlot.toString(block.owner().name()));
+					else if (block.owner() != null)
+						onlinePlayer.sendChatToPlayer(Term.PlayerEnteredOwnPlot.toString(block.owner().name()));
+					else
+						onlinePlayer.sendChatToPlayer(Term.PlayerEnteredUnclaimedPlot.toString());
+					
+					location = block.town();
+					location2 = block.owner();
+				}
 			}
 		}
 		

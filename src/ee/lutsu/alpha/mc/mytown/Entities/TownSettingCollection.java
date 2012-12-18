@@ -211,7 +211,7 @@ public class TownSettingCollection
 		if (val == null || val.equals(""))
 			return;
 		
-		String[] splits = val.split(";");
+		String[] splits = val.split("/");
 		for(String line : splits)
 		{
 			String[] v = line.split(":");
@@ -232,7 +232,7 @@ public class TownSettingCollection
 		
 		for (TownSetting set : settings)
 			if (set.value != null)
-				ret.add(set.getSerializationKey() + ":" + set.getValue());
+				ret.add(set.getSerializationKey() + "/" + set.getValue());
 		
 		return Joiner.on(';').join(ret);
 	}
@@ -286,6 +286,9 @@ public class TownSettingCollection
 	
 	protected void unnest(TownSetting set)
 	{
+		if (set.effectiveValue == null)
+			return; // wild has missing values
+		
 		if (set.getSerializationKey().equals("town"))
 			townMemberRights = set.<Permissions>effValue();
 		else if (set.getSerializationKey().equals("nation"))

@@ -30,7 +30,6 @@ public class Town
 	public static int dontSendCartNotification = 5000;
 	public static boolean allowFullPvp = false;
 	public static boolean allowMemberToForeignPvp = true;
-	public static boolean bouncingOn = true;
 
 	private int id;
 	private String name;
@@ -52,12 +51,7 @@ public class Town
 	public void setExtraBlocks(int val) { extraBlocks = val; save(); }
 	public void sqlSetExtraBlocks(int val) { extraBlocks = val; }
 	public void setNation(Nation n) { nation = n; } // used internally only
-	
-	// extra
-	public boolean bounceNonMembers = false;
 	public TownSettingCollection settings = new TownSettingCollection();
-	
-	public void setBounce(boolean val) { bounceNonMembers = val; save(); }
 
 	public Town(String pName, Resident creator, TownBlock home) throws CommandException
 	{
@@ -333,7 +327,7 @@ public class Town
 		
 		pl.sendChatToPlayer(Term.TownStatusName.toString(townColor, t.name()));
 		
-		pl.sendChatToPlayer(Term.TownStatusGeneral.toString(t.blocks().size(), String.valueOf(t.allowedBlocksWOExtra()) + extraBlocks, !Town.bouncingOn ? "§6Disabled" : t.bounceNonMembers ? Term.TownBouncing.toString() : Term.TownNotBouncing.toString()));
+		pl.sendChatToPlayer(Term.TownStatusGeneral.toString(t.blocks().size(), String.valueOf(t.allowedBlocksWOExtra()) + extraBlocks));
 		if (blocks_list.length() > 0)
 			pl.sendChatToPlayer(blocks_list.toString());
 		
@@ -350,16 +344,5 @@ public class Town
 	public void notifyPlayerLoggedOff(Resident r)
 	{
 		sendNotification(Level.INFO, Term.TownBroadcastLoggedOut.toString(r.name()));
-	}
-	
-	public boolean usesPlotOwnership()
-	{
-		for (TownBlock b : blocks)
-		{
-			if (b.owner() != null)
-				return true;
-		}
-		
-		return false;
 	}
 }

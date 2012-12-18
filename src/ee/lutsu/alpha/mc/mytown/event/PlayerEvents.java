@@ -178,6 +178,7 @@ public class PlayerEvents implements IPlayerTracker
 		TownBlock t = source().getBlock(r.onlinePlayer.dimension, player.chunkCoordX, player.chunkCoordZ);
 
 		r.location = t != null && t.town() != null ? t.town() : null;
+		r.location2 = t != null && t.town() != null ? t.owner() : null;
 		
 		if (!r.canByPassBounce() && !r.canInteract(t, Permissions.Enter))
 		{

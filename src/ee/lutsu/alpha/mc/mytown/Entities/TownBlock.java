@@ -1,5 +1,6 @@
 package ee.lutsu.alpha.mc.mytown.Entities;
 
+import java.security.acl.Owner;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -69,8 +70,8 @@ public class TownBlock
 		
 		if (splits.length > 3)
 		{
-			String s = info.substring(splits[0].length() + splits[1].length() + splits[2].length() + 3);
-			t.settings.deserialize(s);
+			t.owner_name = splits[3];
+			t.settings.deserialize(splits[4]);
 		}
 		
 		return t;
@@ -81,6 +82,7 @@ public class TownBlock
 		return worldDimension() + ";" +
 			String.valueOf(x()) + ";" +
 			String.valueOf(z()) + ";" +
+			(owner == null ? "" : owner.name()) + ";" +
 			settings.serialize();
 			
 	}

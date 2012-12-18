@@ -40,6 +40,7 @@ public class MyTownAssistant
 			cs.sendChatToPlayer(Formatter.formatCommand(Term.TownCmdUnclaim.toString(), Term.TownCmdUnclaimArgs.toString(), Term.TownCmdUnclaimDesc.toString(), color));
 			cs.sendChatToPlayer(Formatter.formatCommand(Term.TownCmdInvite.toString(), Term.TownCmdInviteArgs.toString(), Term.TownCmdInviteDesc.toString(), color));
 			cs.sendChatToPlayer(Formatter.formatCommand(Term.TownCmdKick.toString(), Term.TownCmdKickArgs.toString(), Term.TownCmdKickDesc.toString(), color));
+			cs.sendChatToPlayer(Formatter.formatCommand(Term.TownCmdPlot.toString(), Term.TownCmdPlotArgs.toString(), Term.TownCmdPlotDesc.toString(), color));
 		}
 		else if (args[0].equalsIgnoreCase(Term.TownCmdClaim.toString()))
 		{
@@ -198,6 +199,28 @@ public class MyTownAssistant
 				res.town().removeResident(target);
 				
 				res.town().sendNotification(Level.INFO, Term.TownKickedPlayer.toString(res.name(), target.name()));
+			}
+		}
+		else if (args[0].equalsIgnoreCase(Term.TownCmdPlot.toString()))
+		{
+			if (!Permissions.canAccess(res, "mytown.cmd.plot")) { cs.sendChatToPlayer(Term.ErrCannotAccessCommand.toString()); return; }
+			
+			if (args.length < 2)
+				cs.sendChatToPlayer(Formatter.formatCommand(Term.TownCmdPlot.toString(), Term.TownCmdPlotArgs.toString(), Term.TownCmdPlotDesc.toString(), color));
+			else
+			{
+				TownBlock b = MyTownDatasource.instance.getBlock(res.onlinePlayer.dimension, res.onlinePlayer.chunkCoordX, res.onlinePlayer.chunkCoordZ);
+				if (b == null || b.town() == null)
+					throw new CommandException(Term.ErrPermPlotNotInTown);
+				if (b.town() != res.town())
+					throw new CommandException(Term.ErrPermPlotNotInYourTown);
+				
+				Resident target = MyTownDatasource.instance.getResident(args[1]);
+				if (target == null) // all town residents are always loaded
+					throw new CommandException(Term.TownErrPlayerNotFound);
+				
+				b.setOwner(target);
+				cs.sendChatToPlayer(Term.TownPlotAssigned.toString(target.name()));
 			}
 		}
 	}

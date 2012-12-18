@@ -20,7 +20,7 @@ public enum Term
 	
 	// status
 	TownStatusName("§6--------[[ %s%s§6 ]]--------"),
-	TownStatusGeneral("§2Town blocks: §b%s§2/§b%s §2Bounce?: %s"),
+	TownStatusGeneral("§2Town blocks: §b%s§2/§b%s"),
 	TownStatusMayor("§2Mayor: §b%s"),
 	TownStatusAssistants("§2Assistants: §b%s"),
 	TownStatusResidents("§2Residents: §b%s"),
@@ -103,6 +103,10 @@ public enum Term
 	TownCmdKick("kick"),
 	TownCmdKickArgs("name"),
 	TownCmdKickDesc("Remove the player from your town"),
+	
+	TownCmdPlot("assignplot"),
+	TownCmdPlotArgs("name"),
+	TownCmdPlotDesc("Assigns your current plot to the player"),
 	
 	// resident commands
 	TownCmdLeave("leave"),
@@ -197,6 +201,9 @@ public enum Term
 	PlayerEnteredWild("§aYou just entered the §2wilderness"),
 	PlayerEnteredTown("§aWelcome to §4%s"),
 	PlayerEnteredOwnTown("§aWelcome back to §2%s"),
+	PlayerEnteredOtherPlot("§6~%s"),
+	PlayerEnteredOwnPlot("§2~%s"),
+	PlayerEnteredUnclaimedPlot("§6~unclaimed"),
 	
 	PlayerMapModeOn("§aTown map mode is now §2ON"),
 	PlayerMapModeOff("§aTown map mode is now §4OFF"),
@@ -255,6 +262,9 @@ public enum Term
 	// per general
 	PermForced("§aAll child nodes have been updated to inherit from the node '§2%s§a'"),
 	PermSetDone("§aPermission '§2%s§a' set for the node '§2%s§a'"),
+	
+	TownPlotAssigned("§aPlot assigned to '%s'"),
+	
 	// per errors
 	ErrPermSettingNotFound("The specified setting '%s' cannot be found"),
 	ErrPermSettingCollectionNotFound("The specified node '%s' doesn't exist"),

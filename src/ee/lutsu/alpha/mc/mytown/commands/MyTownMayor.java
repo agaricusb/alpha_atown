@@ -37,7 +37,7 @@ public class MyTownMayor
 		{
 			cs.sendChatToPlayer(Formatter.formatCommand(Term.TownCmdAssistant.toString(), Term.TownCmdAssistantArgs.toString(), Term.TownCmdAssistantDesc.toString(), color));
 			cs.sendChatToPlayer(Formatter.formatCommand(Term.TownCmdMayor.toString(), Term.TownCmdMayorArgs.toString(), Term.TownCmdMayorDesc.toString(), color));
-			cs.sendChatToPlayer(Formatter.formatCommand(Term.TownCmdBounce.toString(), "", Term.TownCmdBounceDesc.toString(), color));
+			//cs.sendChatToPlayer(Formatter.formatCommand(Term.TownCmdBounce.toString(), "", Term.TownCmdBounceDesc.toString(), color));
 			cs.sendChatToPlayer(Formatter.formatCommand(Term.TownCmdRename.toString(), Term.TownCmdRenameArgs.toString(), Term.TownCmdRenameDesc.toString(), color));
 			cs.sendChatToPlayer(Formatter.formatCommand(Term.TownCmdDelete.toString(), "", Term.TownCmdDeleteDesc.toString(), color));
 		}
@@ -127,6 +127,7 @@ public class MyTownMayor
 			else
 				cs.sendChatToPlayer(Term.TownCmdDeleteAction.toString());
 		}
+		/*
 		else if (args[0].equalsIgnoreCase(Term.TownCmdBounce.toString()))
 		{
 			if (!Permissions.canAccess(res, "mytown.cmd.bounce")) { cs.sendChatToPlayer(Term.ErrCannotAccessCommand.toString()); return; }
@@ -134,7 +135,7 @@ public class MyTownMayor
 			res.town().setBounce(!res.town().bounceNonMembers);
 			
 			cs.sendChatToPlayer(Term.TownBouncingChanged.toString(res.town().bounceNonMembers ? Term.TownBouncing.toString() : Term.TownNotBouncing.toString()));
-		}
+		}*/
 		else if (args[0].equalsIgnoreCase(Term.TownCmdRename.toString()))
 		{
 			if (!Permissions.canAccess(res, "mytown.cmd.rename")) { cs.sendChatToPlayer(Term.ErrCannotAccessCommand.toString()); return; }
