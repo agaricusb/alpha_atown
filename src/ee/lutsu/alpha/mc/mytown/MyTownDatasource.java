@@ -185,6 +185,7 @@ public class MyTownDatasource extends MyTownDB
 	
 	public void unloadBlock(TownBlock b)
 	{
+		b.settings.setParent(null);
 		blocks.remove(b);
 	}
 	

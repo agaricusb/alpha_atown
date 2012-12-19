@@ -32,7 +32,7 @@ public class TownSettingCollection
 		Access,
 		Build;
 		
-		public String getShort() { return toString().substring(0, 0); }
+		public String getShort() { return toString().substring(0, 1); }
 		
 		public static Permissions parse(String str)
 		{
@@ -149,7 +149,8 @@ public class TownSettingCollection
 	
 	public void save()
 	{
-		saveHandler.save(this, tag);
+		if (saveHandler != null)
+			saveHandler.save(this, tag);
 	}
 	
 	private void refreshSelf()
@@ -158,12 +159,7 @@ public class TownSettingCollection
 		{
 			if (set.value == null)
 			{
-				if (parent == null)
-				{
-					if (!isWild)
-						throw new RuntimeException("Top value cannot be null : " + set.getSerializationKey());
-				}
-				else
+				if (parent != null)
 					set.effectiveValue = parent.getEffValue(set.getSerializationKey());
 			}
 			else
@@ -208,6 +204,12 @@ public class TownSettingCollection
 	
 	public void deserialize(String val)
 	{
+		deserializeNorefresh(val);
+		refresh();
+	}
+	
+	public void deserializeNorefresh(String val) // used when the parent is set later
+	{
 		if (val == null || val.equals(""))
 			return;
 		
@@ -222,8 +224,6 @@ public class TownSettingCollection
 			if (set != null)
 				set.setValue(v[1]);
 		}
-		
-		refresh();
 	}
 	
 	public String serialize()
@@ -232,12 +232,12 @@ public class TownSettingCollection
 		
 		for (TownSetting set : settings)
 			if (set.value != null)
-				ret.add(set.getSerializationKey() + "/" + set.getValue());
+				ret.add(set.getSerializationKey() + ":" + set.getValue());
 		
-		return Joiner.on(';').join(ret);
+		return Joiner.on('/').join(ret);
 	}
 	
-	private void clearValues()
+	public void clearValues()
 	{
 		for (TownSetting set : settings)
 		{

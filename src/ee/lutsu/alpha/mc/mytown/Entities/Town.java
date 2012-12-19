@@ -213,10 +213,23 @@ public class Town
 	
 	public void removeResident(Resident res)
 	{
-		res.setTown(null);
+		res.setTown(null); // unlinks plots
 		res.setRank(Rank.Resident);
 		residents.remove(res);
 		res.save();
+		
+		boolean town_change = false;
+		for (TownBlock b : blocks)
+		{
+			if (b.owner() == res)
+			{
+				b.sqlSetOwner(null); // sets settings parent to town
+				town_change = true;
+			}
+		}
+		
+		if (town_change)
+			save(); // saves block owner to null
 	}
 	
 	public void deleteTown()

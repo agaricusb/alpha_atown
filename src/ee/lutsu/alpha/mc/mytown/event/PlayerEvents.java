@@ -12,6 +12,7 @@ import ee.lutsu.alpha.mc.mytown.Log;
 import ee.lutsu.alpha.mc.mytown.MyTown;
 import ee.lutsu.alpha.mc.mytown.MyTownDatasource;
 import ee.lutsu.alpha.mc.mytown.Term;
+import ee.lutsu.alpha.mc.mytown.Entities.ItemIdRange;
 import ee.lutsu.alpha.mc.mytown.Entities.Resident;
 import ee.lutsu.alpha.mc.mytown.Entities.Town;
 import ee.lutsu.alpha.mc.mytown.Entities.TownBlock;
@@ -59,9 +60,7 @@ public class PlayerEvents implements IPlayerTracker
 		Permissions perm = Permissions.Build;
 		if (ev.action == Action.RIGHT_CLICK_BLOCK && ev.entityPlayer.getHeldItem() == null)
 			perm = Permissions.Access;
-		
-		// TODO: cart ids to config
-		if (ev.action == Action.RIGHT_CLICK_BLOCK && ev.entityPlayer.getHeldItem().getItem() == Item.minecartEmpty)
+		else if (ev.action == Action.RIGHT_CLICK_BLOCK && ItemIdRange.contains(MyTown.instance.carts, ev.entityPlayer.getHeldItem()))
 		{
 			int en = ev.entityPlayer.worldObj.getBlockId(ev.x , ev.y, ev.z);
 			if (Block.blocksList[en] instanceof BlockRail)
@@ -180,7 +179,7 @@ public class PlayerEvents implements IPlayerTracker
 		r.location = t != null && t.town() != null ? t.town() : null;
 		r.location2 = t != null && t.town() != null ? t.owner() : null;
 		
-		if (!r.canByPassBounce() && !r.canInteract(t, Permissions.Enter))
+		if (!r.canByPassBounce() && !r.canInteract(t, (int)player.posY, Permissions.Enter))
 		{
 			Log.warning(String.format("Player %s logged in at a enemy town %s (%s, %s, %s) with bouncing on. Sending to spawn.",
 					r.name(), r.location.name(),

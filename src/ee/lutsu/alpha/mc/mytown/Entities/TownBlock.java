@@ -6,6 +6,7 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.jar.Attributes.Name;
 
+import ee.lutsu.alpha.mc.mytown.MyTownDatasource;
 import ee.lutsu.alpha.mc.mytown.Entities.Resident.Rank;
 import ee.lutsu.alpha.mc.mytown.Entities.TownSettingCollection.Permissions;
 
@@ -58,6 +59,14 @@ public class TownBlock
 		chunkZ = z;
 		
 		linkedWorld = MinecraftServer.getServer().worldServerForDimension(pWorld);
+		settings.tag = this;
+		settings.saveHandler = new TownSettingCollection.ISettingsSaveHandler() 
+		{
+			public void save(TownSettingCollection sender, Object tag) 
+			{
+				((TownBlock)tag).save();
+			}
+		};
 	}
 	
 	public static TownBlock deserialize(String info)
@@ -69,10 +78,9 @@ public class TownBlock
 		TownBlock t = new TownBlock(Integer.parseInt(splits[0]), Integer.parseInt(splits[1]), Integer.parseInt(splits[2]));
 		
 		if (splits.length > 3)
-		{
 			t.owner_name = splits[3];
-			t.settings.deserialize(splits[4]);
-		}
+		if (splits.length > 4)
+			t.settings.deserializeNorefresh(splits[4]);
 		
 		return t;
 	}
@@ -84,7 +92,6 @@ public class TownBlock
 			String.valueOf(z()) + ";" +
 			(owner == null ? "" : owner.name()) + ";" +
 			settings.serialize();
-			
 	}
 	
 	public boolean equals(TownBlock block)
@@ -115,5 +122,28 @@ public class TownBlock
 	{
 		if (town != null)
 			town.save();
+	}
+	
+	public TownBlock getFirstFullSidingClockwise(Town notForTown)
+	{
+		TownBlock b;
+		
+		b = MyTownDatasource.instance.getBlock(world_dimension, chunkX, chunkZ - 1);
+		if (b != null && b.town != null && b.town != notForTown && !b.settings.yCheckOn)
+			return b;
+		
+		b = MyTownDatasource.instance.getBlock(world_dimension, chunkX + 1, chunkZ);
+		if (b != null && b.town != null && b.town != notForTown && !b.settings.yCheckOn)
+			return b;
+		
+		b = MyTownDatasource.instance.getBlock(world_dimension, chunkX, chunkZ + 1);
+		if (b != null && b.town != null && b.town != notForTown && !b.settings.yCheckOn)
+			return b;
+		
+		b = MyTownDatasource.instance.getBlock(world_dimension, chunkX - 1, chunkZ);
+		if (b != null && b.town != null && b.town != notForTown && !b.settings.yCheckOn)
+			return b;
+		
+		return null;
 	}
 }

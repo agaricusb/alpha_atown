@@ -30,6 +30,8 @@ public enum Term
 	ResStatusGeneral1("§2Member from: §b%s"),
 	ResStatusGeneral2("§2Last online: §b%s"),
 	ResStatusTown("§2Member of: §b%s§2, §a%s"),
+	ResStatusFriends("§2Friends: %s"),
+	ResStatusFriends2("§2Friend of: %s"),
 	
 	// commands
 	TownCommand("mytown"),
@@ -62,6 +64,12 @@ public enum Term
 	TownCmdListDesc("Lists all towns"),
 	TownCmdListStart("§aTowns§f: %s"),
 	TownCmdListEntry("%s[%s]"),
+	
+	TownCmdFriend("friend"),
+	TownCmdFriendArgs("add|remove name"),
+	TownCmdFriendArgsAdd("add"),
+	TownCmdFriendArgsRemove("remove"),
+	TownCmdFriendDesc("Adds or removes friends"),
 	
 	// mayor commands
 	TownCmdAssistant("assistant"),
@@ -251,7 +259,7 @@ public enum Term
 
 	// permissions - town admin command
 	TownadmCmdPerm("perm"),
-	TownadmCmdPermArgs("server|wild|wild:# [force|(set key [val])]"),
+	TownadmCmdPermArgs("town|plot|server|wild|wild:# [force|(set key [val])]"),
 	TownadmCmdPermArgsServer("server"),
 	TownadmCmdPermArgsWild("wild"),
 	TownadmCmdPermArgsWild2("wild:"),
@@ -281,7 +289,11 @@ public enum Term
 	ErrPermCannotPickup("You cannot pick items up here"),
 	
 	ErrPermCannotInteract("You cannot interact with the target here"),
-	ErrPermCannotAttack("You cannot attack the target here")
+	ErrPermCannotAttack("You cannot attack the target here"),
+	
+	ErrNotUsableByConsole("This command can't be run from console"),
+	ErrPlayerAlreadyInFriendList("The player '%s' is already in your friends list"),
+	ErrPlayerNotInFriendList("The player '%s' is not in your friends list"),
 	;
 	
 	public final String defaultVal;

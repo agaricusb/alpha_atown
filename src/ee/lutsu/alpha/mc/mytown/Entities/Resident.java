@@ -6,6 +6,8 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
+import com.google.common.base.Joiner;
+
 import ee.lutsu.alpha.mc.mytown.ChatChannel;
 import ee.lutsu.alpha.mc.mytown.Log;
 import ee.lutsu.alpha.mc.mytown.MyTown;
@@ -64,6 +66,7 @@ public class Resident
 	
 	public Town location;
 	public Resident location2;
+	public TownBlock checkYMovement = null;
 	public boolean mapMode = false;
 	public Town inviteActiveFrom;
 	public ChatChannel activeChannel = ChatChannel.Global;
@@ -172,7 +175,9 @@ public class Resident
 		if (targetBlock.settings.yCheckOn)
 		{
 			if (y < targetBlock.settings.yCheckFrom || y > targetBlock.settings.yCheckTo)
-				return canInteract(null, askedFor); // assume its the wild
+			{
+				targetBlock = targetBlock.getFirstFullSidingClockwise(targetBlock.town());
+			}
 		}
 		
 		return canInteract(targetBlock, askedFor);
@@ -222,7 +227,7 @@ public class Resident
 				{
 					int y = (int)e.posY;
 					if (y < targetBlock.settings.yCheckFrom || y > targetBlock.settings.yCheckTo)
-						targetBlock = null;
+						targetBlock = targetBlock.getFirstFullSidingClockwise(targetBlock.town());
 				}
 			
 				if (targetBlock != null)
@@ -235,7 +240,7 @@ public class Resident
 				{
 					int y = (int)e.posY;
 					if (y < sourceBlock.settings.yCheckFrom || y > sourceBlock.settings.yCheckTo)
-						sourceBlock = null;
+						sourceBlock = sourceBlock.getFirstFullSidingClockwise(sourceBlock.town());
 				}
 			
 				if (sourceBlock != null)
@@ -310,8 +315,8 @@ public class Resident
 		if (town != null)
 			town.residents().add(res);
 
-		res.settings.deserialize(extra);
 		res.settings.setParent(town == null ? null : town.settings);
+		res.settings.deserialize(extra);
 
 		return res;
 	}
@@ -330,9 +335,10 @@ public class Resident
 		
 		int pX = ((int)onlinePlayer.posX) >> 4;
 		int pZ = ((int)onlinePlayer.posZ) >> 4;
-
-		TownBlock block = source.getBlock(onlinePlayer.dimension, pX, pZ);
-		boolean forceOwnerUpdate = false;
+		TownBlock block = checkYMovement;
+		
+		if (block == null)
+			block = source.getBlock(onlinePlayer.dimension, pX, pZ);
 		
 		if (block == null && location != null)
 		{
@@ -340,10 +346,10 @@ public class Resident
 			onlinePlayer.sendChatToPlayer(Term.PlayerEnteredWild.toString());
 			location = null;
 			location2 = null;
+			checkYMovement = null;
 		}
 		else if (block != null && block.town() != null)
 		{
-			forceOwnerUpdate = true;
 			// entered town or another town
 			if (!canByPassBounce() && !canInteract(block, (int)onlinePlayer.posY, TownSettingCollection.Permissions.Enter))
 			{
@@ -374,6 +380,8 @@ public class Resident
 			}
 			else
 			{
+				checkYMovement = block.settings.yCheckOn ? block : null;
+				
 				if (block.owner() != location2 || block.town() != location)
 				{
 					if (block.town() != location)
@@ -472,6 +480,11 @@ public class Resident
 			int pcZ = ((int)prevZ) >> 4;
 			
 			if (prevDimension != onlinePlayer.dimension || cX != pcX || cZ != pcZ)
+			{
+				checkYMovement = null;
+				checkLocation();
+			}
+			else if (checkYMovement != null && onlinePlayer.posY != prevY)
 				checkLocation();
 
 			prevDimension = onlinePlayer.dimension;
@@ -487,12 +500,33 @@ public class Resident
 	{
 		DateFormat format = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
 		
+		List<String> fnames = new ArrayList<String>();
+		List<String> fnames2 = new ArrayList<String>();
+		
+		for (Resident r : friends)
+			fnames.add("§b" + r.name());
+		
+		for (Resident r : MyTownDatasource.instance.residents)
+		{
+			if (r.friends.contains(this))
+				fnames2.add("§b" + r.name());
+		}
+		
+		String sFriends = Joiner.on("§2, ").join(fnames);
+		String sFriends2 = Joiner.on("§2, ").join(fnames2);
+		
 		cs.sendChatToPlayer(Term.ResStatusName.toString(name));
 		cs.sendChatToPlayer(Term.ResStatusGeneral1.toString(format.format(createdOn))); 
 		cs.sendChatToPlayer(Term.ResStatusGeneral2.toString(isOnline() ? "online" : format.format(lastLoginOn)));
 		cs.sendChatToPlayer(Term.ResStatusTown.toString(
 			town == null ? "none" : town().name(),
 			town == null ? "Loner" : rank.toString()));
+		
+		if (fnames.size() > 0)
+			cs.sendChatToPlayer(Term.ResStatusFriends.toString(sFriends));
+		if (fnames2.size() > 0)
+			cs.sendChatToPlayer(Term.ResStatusFriends2.toString(sFriends2));
+		
 	}
 	
 	public void loggedIn()

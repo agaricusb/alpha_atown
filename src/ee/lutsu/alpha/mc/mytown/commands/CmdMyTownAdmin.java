@@ -19,6 +19,7 @@ import ee.lutsu.alpha.mc.mytown.Permissions;
 import ee.lutsu.alpha.mc.mytown.Term;
 import ee.lutsu.alpha.mc.mytown.Entities.Resident;
 import ee.lutsu.alpha.mc.mytown.Entities.Town;
+import ee.lutsu.alpha.mc.mytown.Entities.TownBlock;
 import ee.lutsu.alpha.mc.mytown.Entities.Resident.Rank;
 import ee.lutsu.alpha.mc.mytown.Entities.TownSettingCollection;
 import net.minecraft.server.MinecraftServer;
@@ -142,9 +143,8 @@ public class CmdMyTownAdmin extends CommandBase
 								r = src.getOrMakeResident(var2[i]);
 							}
 						}
-						else
-							t.addResident(r);
 						
+						t.addResident(r);
 						t.setResidentRank(r, rank);
 					}
 					cs.sendChatToPlayer(Term.TownadmResidentsSet.toString());
@@ -199,7 +199,11 @@ public class CmdMyTownAdmin extends CommandBase
 				}
 				
 				String node = var2[1];
-				if (!node.equalsIgnoreCase(Term.TownadmCmdPermArgsServer.toString()) && !node.equalsIgnoreCase(Term.TownadmCmdPermArgsWild.toString()) && !node.toLowerCase().startsWith(Term.TownadmCmdPermArgsWild2.toString().toLowerCase()))
+				if (!node.equalsIgnoreCase(Term.TownCmdPermArgsTown.toString()) &&
+					!node.equalsIgnoreCase(Term.TownCmdPermArgsPlot.toString()) &&
+					!node.equalsIgnoreCase(Term.TownadmCmdPermArgsServer.toString()) && 
+					!node.equalsIgnoreCase(Term.TownadmCmdPermArgsWild.toString()) && 
+					!node.toLowerCase().startsWith(Term.TownadmCmdPermArgsWild2.toString().toLowerCase()))
 				{
 					cs.sendChatToPlayer(Formatter.formatAdminCommand(Term.TownadmCmdPerm.toString(), Term.TownadmCmdPermArgs.toString(), Term.TownadmCmdPermDesc.toString(), color));
 					return;
@@ -240,10 +244,33 @@ public class CmdMyTownAdmin extends CommandBase
 		}
 	}
 	
-	private TownSettingCollection getPermNode(String node) throws CommandException
+	private TownSettingCollection getPermNode(ICommandSender cs, String node) throws CommandException
 	{
+		Resident res = cs instanceof EntityPlayer ? MyTownDatasource.instance.getOrMakeResident((EntityPlayer)cs) : null;
 		TownSettingCollection set = null;
-		if (node.equalsIgnoreCase(Term.TownadmCmdPermArgsServer.toString()))
+		if (node.equalsIgnoreCase(Term.TownCmdPermArgsTown.toString()))
+		{
+			if (res == null)
+				throw new CommandException(Term.ErrNotUsableByConsole);
+			
+			TownBlock block = MyTownDatasource.instance.getBlock(res.onlinePlayer.dimension, res.onlinePlayer.chunkCoordX, res.onlinePlayer.chunkCoordZ);
+			if (block == null || block.town() == null)
+				throw new CommandException(Term.ErrPermPlotNotInTown);
+			
+			set = block.town().settings;
+		}
+		else if (node.equalsIgnoreCase(Term.TownCmdPermArgsPlot.toString()))
+		{
+			if (res == null)
+				throw new CommandException(Term.ErrNotUsableByConsole);
+			
+			TownBlock block = MyTownDatasource.instance.getBlock(res.onlinePlayer.dimension, res.onlinePlayer.chunkCoordX, res.onlinePlayer.chunkCoordZ);
+			if (block == null || block.town() == null)
+				throw new CommandException(Term.ErrPermPlotNotInTown);
+			
+			set = block.settings;
+		}
+		else if (node.equalsIgnoreCase(Term.TownadmCmdPermArgsServer.toString()))
 			set = MyTown.instance.serverSettings;
 		else if (node.equalsIgnoreCase(Term.TownadmCmdPermArgsWild.toString()))
 			set = MyTown.instance.serverWildSettings;
@@ -260,10 +287,18 @@ public class CmdMyTownAdmin extends CommandBase
 
 	private void showPermissions(ICommandSender sender, String node) throws CommandException
 	{
-		TownSettingCollection set = getPermNode(node);
+		TownSettingCollection set = getPermNode(sender, node);
+		Resident res = sender instanceof EntityPlayer ? MyTownDatasource.instance.getOrMakeResident((EntityPlayer)sender) : null;
 		
 		String title = "";
-		if (node.equalsIgnoreCase(Term.TownadmCmdPermArgsServer.toString()))
+		if (node.equalsIgnoreCase(Term.TownCmdPermArgsTown.toString()))
+			title = "town '" + ((Town)set.tag).name() + "' (default for residents)";
+		else if (node.equalsIgnoreCase(Term.TownCmdPermArgsPlot.toString()))
+		{
+			TownBlock block = (TownBlock)set.tag;
+			title = String.format("the plot @ dim %s, %s,%s owned by '%s'", block.worldDimension(), block.x(), block.z(), block.ownerDisplay());
+		}
+		else if (node.equalsIgnoreCase(Term.TownadmCmdPermArgsServer.toString()))
 			title = "the server (default for towns)";
 		else if (node.equalsIgnoreCase(Term.TownadmCmdPermArgsWild.toString()))
 			title = "the wild (default for world wilds)";
@@ -278,7 +313,7 @@ public class CmdMyTownAdmin extends CommandBase
 	
 	private void flushPermissions(ICommandSender sender, String node) throws CommandException
 	{
-		TownSettingCollection set = getPermNode(node);
+		TownSettingCollection set = getPermNode(sender, node);
 		if (set.childs.size() < 1)
 			throw new CommandException(Term.ErrPermNoChilds);
 		
@@ -288,7 +323,7 @@ public class CmdMyTownAdmin extends CommandBase
 	
 	private void setPermissions(ICommandSender sender, String node, String key, String val) throws CommandException
 	{
-		TownSettingCollection set = getPermNode(node);
+		TownSettingCollection set = getPermNode(sender, node);
 
 		set.setValue(key, val);
 		

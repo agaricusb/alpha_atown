@@ -17,12 +17,15 @@ import cpw.mods.fml.common.registry.TickRegistry;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.logging.Level;
 
+import ee.lutsu.alpha.mc.mytown.Entities.ItemIdRange;
 import ee.lutsu.alpha.mc.mytown.Entities.Resident;
 import ee.lutsu.alpha.mc.mytown.Entities.Town;
 import ee.lutsu.alpha.mc.mytown.Entities.TownSettingCollection;
@@ -63,6 +66,7 @@ public class MyTown
 	public TownSettingCollection serverWildSettings = new TownSettingCollection(true, true);
 	public TownSettingCollection serverSettings = new TownSettingCollection(true, false);
 	public Map<Integer, TownSettingCollection> worldWildSettings = new HashMap<Integer, TownSettingCollection>();
+	public LinkedList<ItemIdRange> carts = null;
 	
     @Mod.Instance("MyTown")
     public static MyTown instance;
@@ -194,6 +198,11 @@ public class MyTown
         prop = config.get("General", "AllowMemberKillNonMember", "true");
         prop.comment = "Third check. Can a member of the town kill someone who doesn't belong to his town?";
         Town.allowMemberToForeignPvp = prop.getBoolean(true);
+        
+        List items = Arrays.asList(Item.itemsList);
+        prop = config.get("General", "CartItemIds", String.valueOf(items.indexOf(Item.minecartEmpty)) + ";" + String.valueOf(items.indexOf(Item.minecartPowered)) + ";" + String.valueOf(items.indexOf(Item.minecartCrate)));
+        prop.comment = "Defines the cart id's which can be placed on a rail with carts perm on";
+        carts = ItemIdRange.parseList(Arrays.asList(prop.value.split(";")));
     }
     
     private void loadDatabaseConfigs(Configuration config)

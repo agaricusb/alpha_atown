@@ -35,6 +35,7 @@ public class MyTownEveryone
 				cs.sendChatToPlayer(Formatter.formatCommand(Term.TownCmdInfo.toString(), Term.TownCmdInfoArgs.toString(), Term.TownCmdInfoDesc.toString(), color));
 				cs.sendChatToPlayer(Formatter.formatCommand(Term.TownCmdList.toString(), "", Term.TownCmdListDesc.toString(), color));
 				cs.sendChatToPlayer(Formatter.formatCommand(Term.TownCmdRes.toString(), Term.TownCmdResArgs.toString(), Term.TownCmdResDesc.toString(), null));
+				cs.sendChatToPlayer(Formatter.formatCommand(Term.TownCmdFriend.toString(), Term.TownCmdFriendArgs.toString(), Term.TownCmdFriendDesc.toString(), color));
 			}
 			else if (args.length > 0 && args[0].equalsIgnoreCase(Term.TownCmdMap.toString()))
 			{
@@ -69,6 +70,30 @@ public class MyTownEveryone
 				}
 				else
 					cs.sendChatToPlayer(Formatter.formatCommand(Term.TownCmdInfo.toString(), Term.TownCmdInfoArgs.toString(), Term.TownCmdInfoDesc.toString(), color));
+			}
+			else if (args.length > 0 && args[0].equalsIgnoreCase(Term.TownCmdFriend.toString()))
+			{
+				if (args.length == 3)
+				{
+					String cmd = args[1];
+					Resident target = MyTownDatasource.instance.getResident(args[2]);
+					if (target == null)
+						throw new CommandException(Term.TownErrPlayerNotFound);
+					
+					if (cmd.equalsIgnoreCase(Term.TownCmdFriendArgsAdd.toString()))
+					{
+						if (!res.addFriend(target))
+							throw new CommandException(Term.ErrPlayerAlreadyInFriendList, res.name());
+					}
+					else if (cmd.equalsIgnoreCase(Term.TownCmdFriendArgsRemove.toString()))
+					{
+						if (!res.removeFriend(target))
+							throw new CommandException(Term.ErrPlayerNotInFriendList, res.name());
+					}
+					res.sendInfoTo(cs);
+				}
+				else
+					cs.sendChatToPlayer(Formatter.formatCommand(Term.TownCmdFriend.toString(), Term.TownCmdFriendArgs.toString(), Term.TownCmdFriendDesc.toString(), color));
 			}
 		}
 		else
