@@ -21,10 +21,7 @@ public class Nation
 	private int extraBlocks = 0;
 	
 	public String name() { return name; }
-	public void setName(String v) { name = v; save(); }
-	
 	public Town capital(){ return capital; }
-	public void setCapital(Town t){ capital = t; save(); }
 	
 	public int extraBlocks() { return extraBlocks; }
 	public void setExtraBlocks(int val) { extraBlocks = val; save(); }
@@ -44,20 +41,82 @@ public class Nation
 		
 		name = pName;
 		capital = pCapital;
-		towns.add(capital);
 		
-		save();
+		addTown(capital); // calls save
+
 		MyTownDatasource.instance.addNation(this);
 	}
 	
-	public static void checkName(String name) throws CommandException
+	public void checkName(String name) throws CommandException
 	{
+		if (name == null || name.equals(""))
+			throw new CommandException(Term.TownErrNationNameCannotBeEmpty);
 		
+		for (Nation n : MyTownDatasource.instance.nations)
+		{
+			if (n != this && n.name.equalsIgnoreCase(name))
+				throw new CommandException(Term.TownErrNationNameInUse);
+		}
 	}
 	
 	public void save()
 	{
 		MyTownDatasource.instance.saveNation(this);
+	}
+	
+	public void delete()
+	{
+		for (Town t : towns)
+			t.setNation(null);
+		
+		MyTownDatasource.instance.deleteNation(this);
+		MyTownDatasource.instance.unloadNation(this);
+	}
+	
+	public void addTown(Town t) throws CommandException
+	{
+		if (t.nation() != null)
+			throw new CommandException(Term.TownErrAlreadyInNation);
+		
+		t.setNation(this);
+		towns.add(t);
+		t.pendingNationInvitation = null;
+		
+		save();
+	}
+	
+	public void removeTown(Town t) throws CommandException
+	{
+		if (t.nation() != this || !towns.contains(t))
+			throw new CommandException(Term.TownErrNationNotPartOfNation);
+
+		t.setNation(null);
+		towns.remove(t);
+		save();
+	}
+	
+	public void setCapital(Town t) throws CommandException
+	{
+		if (t.nation() != this || !towns.contains(t))
+			throw new CommandException(Term.TownErrNationNotPartOfNation);
+		
+		capital = t;
+		save();
+	}
+	
+	public void setName(String v) throws CommandException
+	{ 
+		checkName(v);
+		name = v; 
+		save(); 
+	}
+	
+	public int getTotalExtraBlocks(Town forTown)
+	{
+		if (forTown.nation() != this)
+			return 0;
+		
+		return nationAddsBlocksPerResident * forTown.residents().size() + extraBlocks + nationAddsBlocks;
 	}
 	
 	public static Nation sqlLoad(int id, String name, int capital, String pTowns, String extra)

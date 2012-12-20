@@ -50,6 +50,7 @@ public class CmdMyTown extends CommandBase
 			MyTownResident.handleCommand(var1, var2);
 			MyTownAssistant.handleCommand(var1, var2);
 			MyTownMayor.handleCommand(var1, var2);
+			MyTownNation.handleCommand(var1, var2);
 			
 			// not in town
 			MyTownNonResident.handleCommand(var1, var2);

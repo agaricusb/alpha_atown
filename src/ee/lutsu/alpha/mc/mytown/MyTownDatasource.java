@@ -183,6 +183,11 @@ public class MyTownDatasource extends MyTownDB
 		towns.remove(t);
 	}
 	
+	public void unloadNation(Nation n)
+	{
+		nations.remove(n);
+	}
+	
 	public void unloadBlock(TownBlock b)
 	{
 		b.settings.setParent(null);

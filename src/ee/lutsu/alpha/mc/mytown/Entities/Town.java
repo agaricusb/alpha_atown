@@ -37,6 +37,7 @@ public class Town
 	private List<Resident> residents = new ArrayList<Resident>();
 	private List<TownBlock> blocks;
 	private Nation nation;
+	public Nation pendingNationInvitation = null;
 	
 	public long minecraftNotificationTime = 0;
 	
@@ -123,7 +124,7 @@ public class Town
 	
 	public int totalBlocks()
 	{
-		return allowedBlocksWOExtra() + extraBlocks;
+		return allowedBlocksWOExtra() + extraBlocks + (nation() == null ? 0 : nation().getTotalExtraBlocks(this));
 	}
 	
 	public int freeBlocks()
@@ -152,7 +153,7 @@ public class Town
 		
 		for(Town t : MyTownDatasource.instance.towns)
 		{
-			if (t.name.equalsIgnoreCase(name))
+			if (t != this && t.name.equalsIgnoreCase(name))
 				throw new CommandException(Term.TownErrTownNameAlreadyInUse);
 		}
 	}
@@ -165,7 +166,13 @@ public class Town
 		int sqr = minDistanceFromOtherTown * minDistanceFromOtherTown;
 		for(TownBlock b : MyTownDatasource.instance.blocks)
 		{
-			if (b != block && b.town() != null && b.worldDimension() == block.worldDimension() && b.town() != this && block.squaredDistanceTo(b) <= sqr && !b.settings.allowClaimingNextTo)
+			if (b != block && 
+					b.town() != null &&
+					b.town() != this &&
+					b.worldDimension() == block.worldDimension() &&
+					(b.town().nation() == null || b.town().nation() != nation()) &&
+					block.squaredDistanceTo(b) <= sqr && 
+					!b.settings.allowClaimingNextTo)
 				throw new CommandException(Term.TownErrBlockTooCloseToAnotherTown);
 		}
 		
@@ -340,7 +347,7 @@ public class Town
 		
 		pl.sendChatToPlayer(Term.TownStatusName.toString(townColor, t.name()));
 		
-		pl.sendChatToPlayer(Term.TownStatusGeneral.toString(t.blocks().size(), String.valueOf(t.allowedBlocksWOExtra()) + extraBlocks));
+		pl.sendChatToPlayer(Term.TownStatusGeneral.toString(t.blocks().size(), String.valueOf(t.allowedBlocksWOExtra()) + extraBlocks, t.nation() == null ? "none" : t.nation().name()));
 		if (blocks_list.length() > 0)
 			pl.sendChatToPlayer(blocks_list.toString());
 		

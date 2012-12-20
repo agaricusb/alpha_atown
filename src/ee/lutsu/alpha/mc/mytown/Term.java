@@ -7,6 +7,7 @@ public enum Term
 	// General & events
 	ChatFormat("§f[$color$$channel$§f]$prefix$$name$$postfix$$color$: $msg$"),
 	ChatErrNotInTown("You cannot use townchat if you are not in a town"),
+	ChatErrNotInNation("You cannot use nationchat if your town is not part of a nation"),
 	ChatAloneInChannel("§7§oSo lonely..."),
 	ChatListStart("Switch chat channel"),
 	ChatListEntry("   %s%s §f[%s%s§f]"),
@@ -20,7 +21,7 @@ public enum Term
 	
 	// status
 	TownStatusName("§6--------[[ %s%s§6 ]]--------"),
-	TownStatusGeneral("§2Town blocks: §b%s§2/§b%s"),
+	TownStatusGeneral("§2Town blocks: §b%s§2/§b%s §2Nation: §b%s"),
 	TownStatusMayor("§2Mayor: §b%s"),
 	TownStatusAssistants("§2Assistants: §b%s"),
 	TownStatusResidents("§2Residents: §b%s"),
@@ -92,7 +93,7 @@ public enum Term
 	TownCmdDelete("delete"),
 	TownCmdDeleteDesc("Deletes your town"),
 	TownCmdDeleteAction("Are you sure? Use /t delete ok"),
-	
+
 	// assistant commands
 	TownCmdClaim("claim"),
 	TownCmdClaimArgs("[rect X]"),
@@ -133,6 +134,37 @@ public enum Term
 	
 	TownCmdDeny("deny"),
 	TownCmdDenyDesc("Deny a town invitation"),
+	
+	// nation commands
+	TownCmdNation("nation"),
+	
+	TownCmdNationNew("new"),
+	TownCmdNationNewArgs("name"),
+	TownCmdNationNewDesc("Creates a new nation"),
+	
+	TownCmdNationDel("delete"),
+	TownCmdNationDelDesc("Deletes your nation"),
+	
+	TownCmdNationInvite("invite"),
+	TownCmdNationInviteArgs("name"),
+	TownCmdNationInviteDesc("Invites a town to your nation"),
+	
+	TownCmdNationAccept("accept"),
+	TownCmdNationAcceptDesc("Accepts a nation invitation"),
+	
+	TownCmdNationReject("reject"),
+	TownCmdNationRejectDesc("Rejects a nation invitation"),
+	
+	TownCmdNationLeave("leave"),
+	TownCmdNationLeaveDesc("Leave the nation"),
+	
+	TownCmdNationKick("kick"),
+	TownCmdNationKickArgs("name"),
+	TownCmdNationKickDesc("Kicks a town from your nation"),
+	
+	TownCmdNationTransfer("transfer"),
+	TownCmdNationTransferArgs("name"),
+	TownCmdNationTransferDesc("Transfers the capitol to a member town"),
 	
 	// admin commands
 	TownadmCmdReload("reload"),
@@ -243,9 +275,16 @@ public enum Term
 	TownNotBouncing("§2Not bouncing"),
 	TownBouncingChanged("§aThe town is now in %s §astatus"),
 	ChatTownLogFormat("§f[§a%s§f]%s"),
+	ChatNationLogFormat("§f[§2%s§f]%s"),
 	
 	// nation
+	NationBroadcastCreated("The town of %s grew into the nation of %s"),
+	NationBroadcastDeleted("The nation of %s has fallen"),
+	
 	TownErrAlreadyInNation("This town is already part of a nation"),
+	TownErrNationNameInUse("Name already in use"),
+	TownErrNationNameCannotBeEmpty("Cannot set a empty name"),
+	TownErrNationNotPartOfNation("That town isn't part of this nation"),
 	
 	// permissions - town command
 	TownCmdPerm("perm"),

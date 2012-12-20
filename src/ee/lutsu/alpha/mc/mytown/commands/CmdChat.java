@@ -9,6 +9,7 @@ import ee.lutsu.alpha.mc.mytown.MyTownDatasource;
 import ee.lutsu.alpha.mc.mytown.Permissions;
 import ee.lutsu.alpha.mc.mytown.Term;
 import ee.lutsu.alpha.mc.mytown.Entities.Resident;
+import ee.lutsu.alpha.mc.mytown.Entities.Town;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.src.CommandBase;
 import net.minecraft.src.EntityPlayer;
@@ -48,8 +49,8 @@ public class CmdChat extends CommandBase
 		int sentTo = 0;
 		if (res.town() == null)
 		{
-			sentTo++;
 			res.onlinePlayer.sendChatToPlayer(Term.ChatErrNotInTown.toString());
+			return null;
 		}
 		else
 		{
@@ -69,6 +70,44 @@ public class CmdChat extends CommandBase
 			res.onlinePlayer.sendChatToPlayer(Term.ChatAloneInChannel.toString());
 		
 		return Term.ChatTownLogFormat.toString(res.town().name(), formatted);
+	}
+	
+	public static String sendNationChat(Resident res, String msg)
+	{
+		String formatted = Formatter.formatChat(res, msg, null, ChatChannel.Nation);
+		
+		int sentTo = 0;
+		if (res.town() == null)
+		{
+			res.onlinePlayer.sendChatToPlayer(Term.ChatErrNotInTown.toString());
+			return null;
+		}
+		else if (res.town().nation() == null)
+		{
+			res.onlinePlayer.sendChatToPlayer(Term.ChatErrNotInNation.toString());
+			return null;
+		}
+		else
+		{
+			for (Town t : res.town().nation().towns())
+			{
+				for (Resident r : t.residents())
+				{
+					if (r.isOnline()) // also sends to self
+					{
+						r.onlinePlayer.sendChatToPlayer(formatted);
+						
+						if (r != res)
+							sentTo++;
+					}
+				}
+			}
+		}
+		
+		if (sentTo < 1)
+			res.onlinePlayer.sendChatToPlayer(Term.ChatAloneInChannel.toString());
+		
+		return Term.ChatNationLogFormat.toString(res.town().nation().name(), formatted);
 	}
 	
 	public static String sendGlobalChat(Resident res, String msg)
@@ -134,10 +173,13 @@ public class CmdChat extends CommandBase
 			s = sendLocalChat(sender, msg);
 		else if (channel == ChatChannel.Town)
 			s = sendTownChat(sender, msg);
+		else if (channel == ChatChannel.Nation)
+			s = sendNationChat(sender, msg);
 		else
 			s = sendGlobalChat(sender, msg, channel); // trade, help, global
 		
-		Log.direct(s);
+		if (s != null)
+			Log.direct(s);
 	}
 
 	@Override
