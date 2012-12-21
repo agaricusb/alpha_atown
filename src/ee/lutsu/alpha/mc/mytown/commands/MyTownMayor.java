@@ -11,11 +11,13 @@ import ee.lutsu.alpha.mc.mytown.Permissions;
 import ee.lutsu.alpha.mc.mytown.Term;
 import ee.lutsu.alpha.mc.mytown.Entities.Resident;
 import ee.lutsu.alpha.mc.mytown.Entities.Resident.Rank;
+import ee.lutsu.alpha.mc.mytown.Entities.TownBlock;
 import ee.lutsu.alpha.mc.mytown.event.PlayerEvents;
 
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.src.EntityPlayer;
 import net.minecraft.src.ICommandSender;
+import net.minecraft.src.Vec3;
 import net.minecraftforge.event.entity.EntityEvent.EnteringChunk;
 
 public class MyTownMayor 
@@ -35,9 +37,9 @@ public class MyTownMayor
 		String color = "c";
 		if (args[0].equals("?") || args[0].equalsIgnoreCase(Term.CommandHelp.toString()))
 		{
+			cs.sendChatToPlayer(Formatter.formatCommand(Term.TownCmdSetSpawn.toString(), "", Term.TownCmdSetSpawnDesc.toString(), color));
 			cs.sendChatToPlayer(Formatter.formatCommand(Term.TownCmdAssistant.toString(), Term.TownCmdAssistantArgs.toString(), Term.TownCmdAssistantDesc.toString(), color));
 			cs.sendChatToPlayer(Formatter.formatCommand(Term.TownCmdMayor.toString(), Term.TownCmdMayorArgs.toString(), Term.TownCmdMayorDesc.toString(), color));
-			//cs.sendChatToPlayer(Formatter.formatCommand(Term.TownCmdBounce.toString(), "", Term.TownCmdBounceDesc.toString(), color));
 			cs.sendChatToPlayer(Formatter.formatCommand(Term.TownCmdRename.toString(), Term.TownCmdRenameArgs.toString(), Term.TownCmdRenameDesc.toString(), color));
 			cs.sendChatToPlayer(Formatter.formatCommand(Term.TownCmdDelete.toString(), "", Term.TownCmdDeleteDesc.toString(), color));
 		}
@@ -147,6 +149,22 @@ public class MyTownMayor
 			}
 			else
 				cs.sendChatToPlayer(Formatter.formatCommand(Term.TownCmdRename.toString(), Term.TownCmdRenameArgs.toString(), Term.TownCmdRenameDesc.toString(), color));
+		}
+		else if (args[0].equalsIgnoreCase(Term.TownCmdSetSpawn.toString()))
+		{
+			if (!Permissions.canAccess(res, "mytown.cmd.setspawn")) { cs.sendChatToPlayer(Term.ErrCannotAccessCommand.toString()); return; }
+			
+			TownBlock b = MyTownDatasource.instance.getBlock(res.onlinePlayer.dimension, res.onlinePlayer.chunkCoordX, res.onlinePlayer.chunkCoordZ);
+			
+			if (b == null || b.town() == null)
+				throw new CommandException(Term.ErrPermPlotNotInTown);
+			if (b.town() != res.town())
+				throw new CommandException(Term.ErrPermPlotNotInYourTown);
+			
+			Vec3 vec = Vec3.createVectorHelper(res.onlinePlayer.posX, res.onlinePlayer.posY, res.onlinePlayer.posZ);
+			res.town().setSpawn(b, vec, res.onlinePlayer.rotationPitch, res.onlinePlayer.rotationYaw);
+			
+			cs.sendChatToPlayer(Term.TownSpawnSet.toString());
 		}
 	}
 }

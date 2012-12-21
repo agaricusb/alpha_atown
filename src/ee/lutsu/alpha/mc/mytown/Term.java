@@ -72,6 +72,10 @@ public enum Term
 	TownCmdFriendArgsRemove("remove"),
 	TownCmdFriendDesc("Adds or removes friends"),
 	
+	TownCmdSpawn("spawn"),
+	TownCmdSpawnArgs("[name]"),
+	TownCmdSpawnDesc("Teleports you to [the specified] town spawn"),
+	
 	// mayor commands
 	TownCmdAssistant("assistant"),
 	TownCmdAssistantArgs("add|remove name"),
@@ -116,6 +120,9 @@ public enum Term
 	TownCmdPlot("assignplot"),
 	TownCmdPlotArgs("name"),
 	TownCmdPlotDesc("Assigns your current plot to the player"),
+	
+	TownCmdSetSpawn("setspawn"),
+	TownCmdSetSpawnDesc("Sets your town spawn"),
 	
 	// resident commands
 	TownCmdLeave("leave"),
@@ -271,11 +278,13 @@ public enum Term
 	TownPlayersOnlineStart("§aPlayers online: %s"),
 	TownYouCannotEnter("§aYou cannot enter the town §4%s§a. Town rules."),
 	
-	TownBouncing("§4Bouncing"),
-	TownNotBouncing("§2Not bouncing"),
+	TownSpawnSet("§aTown spawn has been set"),
+	
 	TownBouncingChanged("§aThe town is now in %s §astatus"),
 	ChatTownLogFormat("§f[§a%s§f]%s"),
 	ChatNationLogFormat("§f[§2%s§f]%s"),
+	
+	TownSpawnReset("Your spawn has been reset. Please set a new one"),
 	
 	// nation
 	NationBroadcastCreated("The town of %s grew into the nation of %s"),

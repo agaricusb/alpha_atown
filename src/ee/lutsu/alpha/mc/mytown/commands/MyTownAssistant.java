@@ -132,6 +132,9 @@ public class MyTownAssistant
 						continue;
 					
 					blocks.add(b);
+					
+					if (b == res.town().spawnBlock)
+						cs.sendChatToPlayer(Term.TownSpawnReset.toString());
 
 					nr++;
 					if (sb.length() > 0)

@@ -14,6 +14,7 @@ import net.minecraft.src.Entity;
 import net.minecraft.src.EntityPlayer;
 import net.minecraft.src.ICommandSender;
 import net.minecraft.src.TileEntity;
+import net.minecraft.src.Vec3;
 
 import ee.lutsu.alpha.mc.mytown.CommandException;
 import ee.lutsu.alpha.mc.mytown.Formatter;
@@ -37,6 +38,10 @@ public class Town
 	private List<Resident> residents = new ArrayList<Resident>();
 	private List<TownBlock> blocks;
 	private Nation nation;
+	private Vec3 spawnLocation;
+	private float spawnEye1, spawnEye2;
+	private int spawnDimension;
+	public TownBlock spawnBlock;
 	public Nation pendingNationInvitation = null;
 	
 	public long minecraftNotificationTime = 0;
@@ -53,7 +58,13 @@ public class Town
 	public void sqlSetExtraBlocks(int val) { extraBlocks = val; }
 	public void setNation(Nation n) { nation = n; } // used internally only
 	public TownSettingCollection settings = new TownSettingCollection();
-
+	
+	public Vec3 getSpawn() { return spawnLocation; }
+	public float getSpawnEye1() { return spawnEye1; }
+	public float getSpawnEye2() { return spawnEye2; }
+	public void setSpawn(TownBlock b, Vec3 loc, float eye1, float eye2) { spawnBlock = b; spawnLocation = loc; spawnEye1 = eye1; spawnEye2 = eye2; save(); }
+	public void resetSpawn() { spawnLocation = null; spawnEye1 = 0; spawnEye2 = 0; save(); }
+	
 	public Town(String pName, Resident creator, TownBlock home) throws CommandException
 	{
 		if (creator.town() != null)
@@ -203,6 +214,9 @@ public class Town
 	{
 		for(TownBlock block : b)
 		{
+			if (spawnBlock == b)
+				resetSpawn();
+			
 			block.setTown(null);
 			blocks.remove(block);
 			MyTownDatasource.instance.unloadBlock(block);
@@ -212,6 +226,9 @@ public class Town
 	
 	public void removeBlock(TownBlock block)
 	{
+		if (spawnBlock == block)
+			resetSpawn();
+		
 		block.setTown(null);
 		blocks.remove(block);
 		MyTownDatasource.instance.unloadBlock(block);
@@ -245,6 +262,7 @@ public class Town
 			res.setTown(null);
 
 		residents.clear();
+		spawnBlock = null;
 		
 		for(TownBlock block : blocks)
 		{
@@ -277,12 +295,38 @@ public class Town
 	
 	public String serializeExtra()
 	{
-		return settings.serialize();
+		return settings.serialize() + ";" + 
+				(spawnLocation == null ? "" :
+				spawnDimension + "/" + spawnLocation.xCoord + "/" + spawnLocation.yCoord + "/" + spawnLocation.zCoord + "/" + spawnEye1 + "/" + spawnEye2);
 	}
 	
 	public void deserializeExtra(String val)
 	{
-		settings.deserialize(val);
+		String[] parts = val.split(";");
+		settings.deserialize(parts[0]);
+		if (parts.length > 1 && parts[1].trim().length() > 0)
+		{
+			String[] location = parts[1].split("/");
+			double x = Double.parseDouble(location[0]);
+			double y = Double.parseDouble(location[1]);
+			double z = Double.parseDouble(location[2]);
+			float a = Float.parseFloat(location[3]);
+			float b = Float.parseFloat(location[4]);
+			
+			spawnDimension = Integer.parseInt(location[5]);
+			spawnLocation = Vec3.createVectorHelper(x, y, z); 
+			spawnEye1 = a; 
+			spawnEye2 = b;
+			spawnBlock = MyTownDatasource.instance.getBlock(spawnDimension, (int)x >> 4, (int)z >> 4);
+		}
+		else
+		{
+			spawnDimension = 0;
+			spawnLocation = null;
+			spawnEye1 = 0;
+			spawnEye2 = 0;
+			spawnBlock = null;
+		}
 	}
 	
 	public void sendTownInfo(ICommandSender pl, boolean adminInfo)
