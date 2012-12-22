@@ -14,9 +14,9 @@ import ee.lutsu.alpha.mc.mytown.Entities.Resident;
 import ee.lutsu.alpha.mc.mytown.Entities.Resident.Rank;
 import ee.lutsu.alpha.mc.mytown.Entities.Town;
 
+import net.minecraft.command.ICommandSender;
+import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.server.MinecraftServer;
-import net.minecraft.src.EntityPlayer;
-import net.minecraft.src.ICommandSender;
 
 public class MyTownEveryone 
 {

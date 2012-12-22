@@ -1,13 +1,20 @@
 package ee.lutsu.alpha.mc.mytown.event;
 
-import java.lang.reflect.Field;
 import java.util.logging.Level;
 
+import net.minecraft.block.Block;
+import net.minecraft.block.BlockRail;
+import net.minecraft.entity.player.EntityPlayer;
+import net.minecraftforge.event.ForgeSubscribe;
+import net.minecraftforge.event.ServerChatEvent;
+import net.minecraftforge.event.entity.living.LivingEvent.LivingUpdateEvent;
+import net.minecraftforge.event.entity.minecart.MinecartCollisionEvent;
+import net.minecraftforge.event.entity.player.AttackEntityEvent;
+import net.minecraftforge.event.entity.player.EntityInteractEvent;
+import net.minecraftforge.event.entity.player.EntityItemPickupEvent;
+import net.minecraftforge.event.entity.player.PlayerInteractEvent;
+import net.minecraftforge.event.entity.player.PlayerInteractEvent.Action;
 import cpw.mods.fml.common.IPlayerTracker;
-import cpw.mods.fml.common.network.IChatListener;
-
-import ee.lutsu.alpha.mc.mytown.ChatChannel;
-import ee.lutsu.alpha.mc.mytown.Formatter;
 import ee.lutsu.alpha.mc.mytown.Log;
 import ee.lutsu.alpha.mc.mytown.MyTown;
 import ee.lutsu.alpha.mc.mytown.MyTownDatasource;
@@ -18,31 +25,6 @@ import ee.lutsu.alpha.mc.mytown.Entities.Town;
 import ee.lutsu.alpha.mc.mytown.Entities.TownBlock;
 import ee.lutsu.alpha.mc.mytown.Entities.TownSettingCollection.Permissions;
 import ee.lutsu.alpha.mc.mytown.commands.CmdChat;
-import net.minecraft.server.MinecraftServer;
-import net.minecraft.src.Block;
-import net.minecraft.src.BlockRail;
-import net.minecraft.src.EntityMinecart;
-import net.minecraft.src.EntityPlayer;
-import net.minecraft.src.Item;
-import net.minecraft.src.NetHandler;
-import net.minecraft.src.Packet3Chat;
-import net.minecraft.src.TileEntity;
-import net.minecraft.src.WorldInfo;
-import net.minecraftforge.event.Event;
-import net.minecraftforge.event.Event.Result;
-import net.minecraftforge.event.EventPriority;
-import net.minecraftforge.event.ForgeSubscribe;
-import net.minecraftforge.event.ServerChatEvent;
-import net.minecraftforge.event.entity.EntityEvent.EnteringChunk;
-import net.minecraftforge.event.entity.EntityJoinWorldEvent;
-import net.minecraftforge.event.entity.living.LivingAttackEvent;
-import net.minecraftforge.event.entity.living.LivingEvent.LivingUpdateEvent;
-import net.minecraftforge.event.entity.minecart.MinecartCollisionEvent;
-import net.minecraftforge.event.entity.player.AttackEntityEvent;
-import net.minecraftforge.event.entity.player.EntityInteractEvent;
-import net.minecraftforge.event.entity.player.EntityItemPickupEvent;
-import net.minecraftforge.event.entity.player.PlayerInteractEvent;
-import net.minecraftforge.event.entity.player.PlayerInteractEvent.Action;
 
 public class PlayerEvents implements IPlayerTracker
 {
@@ -78,20 +60,6 @@ public class PlayerEvents implements IPlayerTracker
 				ev.entityPlayer.sendChatToPlayer(Term.ErrPermCannotAccessHere.toString());
 			else
 				ev.entityPlayer.sendChatToPlayer(Term.ErrPermCannotBuildHere.toString());
-				
-			ev.setCanceled(true);
-			
-			// TODO: Remove. Fixed in Forge 1.4.5
-			try
-			{
-				Field f = Event.class.getDeclaredField("isCanceled");
-				f.setAccessible(true);
-				f.set(ev, true);
-			}
-			catch(Exception e)
-			{
-				Log.severe("Failed Forge 1.4.2 PlayerInteractEvent bug workaround", e);
-			}
 		}	
 	}
 	

@@ -1,6 +1,6 @@
 package ru.tehkode.permissions;
 
-import net.minecraft.src.EntityPlayer;
+import net.minecraft.entity.player.EntityPlayer;
 
 public interface IPermissions 
 {

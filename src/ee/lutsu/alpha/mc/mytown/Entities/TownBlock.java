@@ -11,9 +11,7 @@ import ee.lutsu.alpha.mc.mytown.Entities.Resident.Rank;
 import ee.lutsu.alpha.mc.mytown.Entities.TownSettingCollection.Permissions;
 
 import net.minecraft.server.MinecraftServer;
-import net.minecraft.src.Entity;
-import net.minecraft.src.TileEntity;
-import net.minecraft.src.World;
+import net.minecraft.world.World;
 
 public class TownBlock
 {

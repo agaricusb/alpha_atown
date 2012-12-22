@@ -1,9 +1,9 @@
 package ee.lutsu.alpha.mc.mytown;
 
+import net.minecraft.command.ICommandSender;
+import net.minecraft.entity.player.EntityPlayer;
 import cpw.mods.fml.common.Loader;
 import cpw.mods.fml.common.ModContainer;
-import net.minecraft.src.EntityPlayer;
-import net.minecraft.src.ICommandSender;
 import ee.lutsu.alpha.mc.mytown.Entities.Resident;
 import ru.tehkode.permissions.IPermissions;
 

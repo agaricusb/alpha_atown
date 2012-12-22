@@ -3,7 +3,7 @@ package ee.lutsu.alpha.mc.mytown.Entities;
 import java.util.LinkedList;
 import java.util.List;
 
-import net.minecraft.src.ItemStack;
+import net.minecraft.item.ItemStack;
 
 public class ItemIdRange 
 {

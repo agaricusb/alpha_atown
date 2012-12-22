@@ -2,8 +2,6 @@ package ee.lutsu.alpha.mc.mytown;
 
 import java.util.logging.Level;
 
-import net.minecraft.src.EntityPlayer;
-
 import ee.lutsu.alpha.mc.mytown.Entities.Resident;
 
 public class Formatter 

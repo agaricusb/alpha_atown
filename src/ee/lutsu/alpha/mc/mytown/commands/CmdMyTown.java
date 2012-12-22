@@ -4,13 +4,14 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.logging.Level;
 
+import net.minecraft.command.CommandBase;
+import net.minecraft.command.ICommandSender;
+
 import ee.lutsu.alpha.mc.mytown.CommandException;
 import ee.lutsu.alpha.mc.mytown.Formatter;
 import ee.lutsu.alpha.mc.mytown.Log;
 import ee.lutsu.alpha.mc.mytown.Permissions;
 import ee.lutsu.alpha.mc.mytown.Term;
-import net.minecraft.src.CommandBase;
-import net.minecraft.src.ICommandSender;
 
 public class CmdMyTown extends CommandBase
 {

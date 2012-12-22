@@ -1,7 +1,7 @@
 package ee.lutsu.alpha.mc.mytown.event.prot;
 
-import net.minecraft.src.Entity;
-import net.minecraft.src.TileEntity;
+import net.minecraft.entity.Entity;
+import net.minecraft.tileentity.TileEntity;
 
 public abstract class ProtBase 
 {

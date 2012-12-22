@@ -8,13 +8,11 @@ import java.util.Map.Entry;
 import java.util.concurrent.BrokenBarrierException;
 import java.util.logging.Level;
 
-import com.google.common.base.Joiner;
+import net.minecraft.command.ICommandSender;
+import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.util.Vec3;
 
-import net.minecraft.src.Entity;
-import net.minecraft.src.EntityPlayer;
-import net.minecraft.src.ICommandSender;
-import net.minecraft.src.TileEntity;
-import net.minecraft.src.Vec3;
+import com.google.common.base.Joiner;
 
 import ee.lutsu.alpha.mc.mytown.CommandException;
 import ee.lutsu.alpha.mc.mytown.Formatter;

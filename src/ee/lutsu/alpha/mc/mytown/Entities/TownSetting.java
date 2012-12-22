@@ -4,8 +4,6 @@ import java.util.Map;
 
 import ee.lutsu.alpha.mc.mytown.Entities.TownSettingCollection.Permissions;
 
-import net.minecraft.src.ConvertingProgressUpdate;
-
 public class TownSetting 
 {
 	private String name;

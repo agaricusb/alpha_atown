@@ -5,6 +5,8 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 
+import net.minecraft.entity.Entity;
+
 import ee.lutsu.alpha.mc.mytown.Log;
 import ee.lutsu.alpha.mc.mytown.MyTownDatasource;
 import ee.lutsu.alpha.mc.mytown.Entities.Resident;
@@ -12,12 +14,6 @@ import ee.lutsu.alpha.mc.mytown.Entities.Town;
 import ee.lutsu.alpha.mc.mytown.Entities.TownBlock;
 import ee.lutsu.alpha.mc.mytown.Entities.TownSettingCollection.Permissions;
 import ee.lutsu.alpha.mc.mytown.event.ProtectionEvents;
-
-import net.minecraft.src.Entity;
-import net.minecraft.src.EntityItem;
-import net.minecraft.src.EntityMinecart;
-import net.minecraft.src.ItemStack;
-import net.minecraft.src.Vec3;
 
 public class PortalGun extends ProtBase
 {

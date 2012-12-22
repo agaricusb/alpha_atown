@@ -4,7 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map.Entry;
 
-import net.minecraft.src.ICommandSender;
+import net.minecraft.command.ICommandSender;
 
 import com.google.common.base.Joiner;
 
