@@ -11,7 +11,7 @@ import ee.lutsu.alpha.mc.mytown.ChatChannel;
 import ee.lutsu.alpha.mc.mytown.MyTownDatasource;
 import ee.lutsu.alpha.mc.mytown.Permissions;
 import ee.lutsu.alpha.mc.mytown.Term;
-import ee.lutsu.alpha.mc.mytown.Entities.Resident;
+import ee.lutsu.alpha.mc.mytown.entities.Resident;
 
 public class CmdChannel extends CommandBase
 {

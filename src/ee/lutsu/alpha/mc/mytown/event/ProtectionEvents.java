@@ -11,9 +11,10 @@ import cpw.mods.fml.common.TickType;
 
 import ee.lutsu.alpha.mc.mytown.Log;
 import ee.lutsu.alpha.mc.mytown.MyTownDatasource;
-import ee.lutsu.alpha.mc.mytown.Entities.Resident;
-import ee.lutsu.alpha.mc.mytown.Entities.Town;
+import ee.lutsu.alpha.mc.mytown.entities.Resident;
+import ee.lutsu.alpha.mc.mytown.entities.Town;
 import ee.lutsu.alpha.mc.mytown.event.prot.BuildCraft;
+import ee.lutsu.alpha.mc.mytown.event.prot.Creeper;
 import ee.lutsu.alpha.mc.mytown.event.prot.MiningLaser;
 import ee.lutsu.alpha.mc.mytown.event.prot.PortalGun;
 import ee.lutsu.alpha.mc.mytown.event.prot.ProtBase;
@@ -37,7 +38,8 @@ public class ProtectionEvents implements ITickHandler
 	{
 		PortalGun.instance,
 		MiningLaser.instance,
-		SteveCarts.instance
+		SteveCarts.instance,
+		Creeper.instance
 	};
 	
 	public static ProtBase[] tileProtections = new ProtBase[]

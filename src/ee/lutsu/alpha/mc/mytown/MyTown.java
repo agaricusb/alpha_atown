@@ -25,19 +25,21 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.logging.Level;
 
-import ee.lutsu.alpha.mc.mytown.Entities.ItemIdRange;
-import ee.lutsu.alpha.mc.mytown.Entities.Resident;
-import ee.lutsu.alpha.mc.mytown.Entities.Town;
-import ee.lutsu.alpha.mc.mytown.Entities.TownSettingCollection;
-import ee.lutsu.alpha.mc.mytown.Entities.TownSettingCollection.ISettingsSaveHandler;
 import ee.lutsu.alpha.mc.mytown.commands.*;
+import ee.lutsu.alpha.mc.mytown.entities.ItemIdRange;
+import ee.lutsu.alpha.mc.mytown.entities.Resident;
+import ee.lutsu.alpha.mc.mytown.entities.Town;
+import ee.lutsu.alpha.mc.mytown.entities.TownSettingCollection;
+import ee.lutsu.alpha.mc.mytown.entities.TownSettingCollection.ISettingsSaveHandler;
 import ee.lutsu.alpha.mc.mytown.event.*;
 import ee.lutsu.alpha.mc.mytown.event.prot.BuildCraft;
+import ee.lutsu.alpha.mc.mytown.event.prot.Creeper;
 import ee.lutsu.alpha.mc.mytown.event.prot.MiningLaser;
 import ee.lutsu.alpha.mc.mytown.event.prot.PortalGun;
 import ee.lutsu.alpha.mc.mytown.event.prot.SteveCarts;
 import ee.lutsu.alpha.mc.mytown.sql.Database;
 import ee.lutsu.alpha.mc.mytown.sql.MyTownDB;
+import net.minecraft.command.ICommandSender;
 import net.minecraft.command.ServerCommandManager;
 import net.minecraft.item.Item;
 import net.minecraft.server.MinecraftServer;
@@ -64,7 +66,7 @@ public class MyTown
 	public TownSettingCollection serverWildSettings = new TownSettingCollection(true, true);
 	public TownSettingCollection serverSettings = new TownSettingCollection(true, false);
 	public Map<Integer, TownSettingCollection> worldWildSettings = new HashMap<Integer, TownSettingCollection>();
-	public LinkedList<ItemIdRange> carts = null;
+	public LinkedList<ItemIdRange> carts = null, safeItems = null;
 	
     @Mod.Instance("MyTown")
     public static MyTown instance;
@@ -115,6 +117,8 @@ public class MyTown
     	mgr.registerCommand(new CmdMyTown());
     	mgr.registerCommand(new CmdMyTownAdmin());
     	mgr.registerCommand(new CmdChannel());
+    	mgr.registerCommand(new CmdGamemode());
+    	mgr.registerCommand(new CmdWrk());
     	
 		for(ChatChannel c : ChatChannel.values())
 			mgr.registerCommand(new CmdChat(c));
@@ -173,27 +177,27 @@ public class MyTown
         if (prop.value != null && !prop.value.equals(""))
         	TermTranslator.load(new File(CONFIG_FOLDER + prop.value), "custom", true);
         
-        prop = config.get("General", "IgnoreOps", "true");
+        prop = config.get("General", "IgnoreOps", true);
         prop.comment = "Should ops be bypassed from protections";
         Resident.ignoreOps = prop.getBoolean(true);
         
-        prop = config.get("General", "BlocksPerResident", "16");
+        prop = config.get("General", "BlocksPerResident", 16);
         prop.comment = "How many town block each resident gives";
         Town.perResidentBlocks = prop.getInt(16);
         
-        prop = config.get("General", "MinDistanceFromAnotherTown", "50");
+        prop = config.get("General", "MinDistanceFromAnotherTown", 50);
         prop.comment = "How many blocks(chunks) apart have the town blocks be";
         Town.minDistanceFromOtherTown = prop.getInt(50);
         
-        prop = config.get("General", "AllowTownMemberPvp", "false");
+        prop = config.get("General", "AllowTownMemberPvp", false);
         prop.comment = "First check. Can one town member hit a member of the same town? Anywhere. Also called friendlyfire";
         Resident.allowMemberToMemberPvp = prop.getBoolean(false);
         
-        prop = config.get("General", "AllowPvpInTown", "false");
+        prop = config.get("General", "AllowPvpInTown", false);
         prop.comment = "Second check. Can anyone hit anyone in town? For PVP only. Does NOT turn friendly fire on";
         Town.allowFullPvp = prop.getBoolean(false);
         
-        prop = config.get("General", "AllowMemberKillNonMember", "true");
+        prop = config.get("General", "AllowMemberKillNonMember", true);
         prop.comment = "Third check. Can a member of the town kill someone who doesn't belong to his town?";
         Town.allowMemberToForeignPvp = prop.getBoolean(true);
         
@@ -201,6 +205,10 @@ public class MyTown
         prop = config.get("General", "CartItemIds", String.valueOf(items.indexOf(Item.minecartEmpty)) + ";" + String.valueOf(items.indexOf(Item.minecartPowered)) + ";" + String.valueOf(items.indexOf(Item.minecartCrate)));
         prop.comment = "Defines the cart id's which can be placed on a rail with carts perm on";
         carts = ItemIdRange.parseList(Arrays.asList(prop.value.split(";")));
+
+        prop = config.get("General", "SafeItemIds", "");
+        prop.comment = "Defines the item id's which don't do anything on right click (red matter?)";
+        safeItems = ItemIdRange.parseList(Arrays.asList(prop.value.split(";")));
     }
     
     private void loadDatabaseConfigs(Configuration config)
@@ -244,11 +252,11 @@ public class MyTown
     {
         Property prop; 
         
-        prop = config.get("Chat", "FormatChat", "true");
+        prop = config.get("Chat", "FormatChat", true);
         prop.comment = "Should the chat be formatted";
         Formatter.formatChat = prop.getBoolean(true);
         
-        prop = config.get("Chat", "LocalDistance", "160");
+        prop = config.get("Chat", "LocalDistance", 160);
         prop.comment = "How many blocks far does the local chat sound";
         ChatChannel.localChatDistance = prop.getInt(160);
     }
@@ -257,25 +265,29 @@ public class MyTown
     {
         Property prop; 
         
-        prop = config.get("ProtEx", "Enabled", "false");
+        prop = config.get("ProtEx", "Enabled", true);
         prop.comment = "Run the extra protections";
-        ProtectionEvents.instance.enabled = prop.getBoolean(false);
+        ProtectionEvents.instance.enabled = prop.getBoolean(true);
         
-        prop = config.get("ProtEx", "LaserCheck", "false");
+        prop = config.get("ProtEx", "LaserCheck", false);
         prop.comment = "Check for mining laser bypass";
         MiningLaser.instance.enabled = prop.getBoolean(false);
         
-        prop = config.get("ProtEx", "PortalGunCheck", "false");
+        prop = config.get("ProtEx", "PortalGunCheck", false);
         prop.comment = "Check for portal gun balls flying in foreign towns";
         PortalGun.instance.enabled = prop.getBoolean(false);
         
-        prop = config.get("ProtEx", "SteveRailerCheck", "false");
+        prop = config.get("ProtEx", "SteveRailerCheck", false);
         prop.comment = "Check for steve carts with railers";
         SteveCarts.instance.enabled = prop.getBoolean(false);
         
-        prop = config.get("ProtEx", "BuildCraftCheck", "false");
+        prop = config.get("ProtEx", "BuildCraftCheck", false);
         prop.comment = "Check for quarrys, fillers, builder";
         BuildCraft.instance.enabled = prop.getBoolean(false);
+        
+        prop = config.get("ProtEx", "CreeperExplosionCheck", true);
+        prop.comment = "Check for creepers if they can explode";
+        Creeper.instance.enabled = prop.getBoolean(true);
     }
     
     private void loadPerms(Configuration config)
@@ -330,13 +342,13 @@ public class MyTown
     	}
     	
     	TownSettingCollection set = new TownSettingCollection(false, true);
-    	set.tag = w;
+    	set.tag = new Integer(w);
     	set.setParent(serverWildSettings);
     	set.saveHandler = new ISettingsSaveHandler()
         {
 			public void save(TownSettingCollection sender, Object tag) 
 			{
-				int w = (int)tag;
+				int w = (Integer)tag;
 				MyTown.instance.config.get("WildPerms", "Dim_" + String.valueOf(w), "").value = sender.serialize();
 				MyTown.instance.config.save();
 			}

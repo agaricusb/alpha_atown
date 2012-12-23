@@ -1,6 +1,6 @@
 package ee.lutsu.alpha.mc.mytown;
 
-import ee.lutsu.alpha.mc.mytown.Entities.Resident.Rank;
+import ee.lutsu.alpha.mc.mytown.entities.Resident.Rank;
 
 public enum ChatChannel
 {

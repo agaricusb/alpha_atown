@@ -1,13 +1,19 @@
-package ee.lutsu.alpha.mc.mytown.Entities;
+package ee.lutsu.alpha.mc.mytown.entities;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.logging.Level;
+
+import net.minecraft.command.ICommandSender;
+import net.minecraft.entity.player.EntityPlayer;
 
 import com.google.common.base.Joiner;
 
 import ee.lutsu.alpha.mc.mytown.CommandException;
+import ee.lutsu.alpha.mc.mytown.Formatter;
 import ee.lutsu.alpha.mc.mytown.MyTownDatasource;
 import ee.lutsu.alpha.mc.mytown.Term;
+import ee.lutsu.alpha.mc.mytown.entities.Resident.Rank;
 
 public class Nation 
 {
@@ -89,7 +95,9 @@ public class Nation
 	{
 		if (t.nation() != this || !towns.contains(t))
 			throw new CommandException(Term.TownErrNationNotPartOfNation);
-
+		if (t == capital)
+			throw new CommandException(Term.TownErrNationCantRemoveCapital);
+		
 		t.setNation(null);
 		towns.remove(t);
 		save();
@@ -133,8 +141,6 @@ public class Nation
 				
 				if (t != null)
 				{
-					t.sqlSetExtraBlocks(t.extraBlocks() + nationAddsBlocks + nationAddsBlocksPerResident * t.residents().size());
-					
 					t.setNation(n);
 					n.towns.add(t);
 				}
@@ -173,5 +179,50 @@ public class Nation
 			ex.add("eb:" + String.valueOf(extraBlocks));
 		
 		return Joiner.on(";").join(ex);
+	}
+	
+	public void sendNotification(Level lvl, String msg)
+	{
+		String formatted = Formatter.townNotification(lvl, msg);
+		for (Town t : towns)
+		{
+			for(Resident r : t.residents())
+			{
+				if (!r.isOnline())
+					continue;
+	
+				r.onlinePlayer.sendChatToPlayer(formatted);
+			}
+		}
+	}
+	
+	public void sendNationInfo(ICommandSender pl)
+	{
+		Nation n = this;
+		
+		List<String> names = new ArrayList<String>();
+		int b1 = 0, b2 = 0, m1 = 0;
+		for (Town t : n.towns())
+		{
+			b1 += t.blocks().size();
+			b2 += t.totalBlocks();
+			m1 += t.residents().size();
+			names.add(String.format("§b%s[%s]", t.name(), t.residents().size()));
+		}
+		String tNames = Joiner.on("§2, ").join(names);
+		
+		String nationColor = "§2";
+		if (pl instanceof EntityPlayer)
+		{
+			Resident target = MyTownDatasource.instance.getOrMakeResident((EntityPlayer)pl);
+			if (target.town() == null || target.town().nation() != n)
+				nationColor = "§4"; 
+		}
+		
+		pl.sendChatToPlayer(Term.NationStatusName.toString(nationColor, n.name()));
+		
+		pl.sendChatToPlayer(Term.NationStatusGeneral.toString(b1, b2, m1));
+		pl.sendChatToPlayer(Term.NationStatusCapital.toString(n.capital() != null ? n.capital().name() : "?"));
+		pl.sendChatToPlayer(Term.NationStatusTowns.toString(tNames));
 	}
 }

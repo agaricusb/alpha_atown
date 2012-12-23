@@ -6,7 +6,7 @@ import java.util.Iterator;
 
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.server.MinecraftServer;
-import ee.lutsu.alpha.mc.mytown.Entities.*;
+import ee.lutsu.alpha.mc.mytown.entities.*;
 import ee.lutsu.alpha.mc.mytown.sql.MyTownDB;
 
 public class MyTownDatasource extends MyTownDB 

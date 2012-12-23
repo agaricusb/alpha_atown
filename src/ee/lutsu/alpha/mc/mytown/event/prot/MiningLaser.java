@@ -14,10 +14,10 @@ import net.minecraft.util.Vec3;
 
 import ee.lutsu.alpha.mc.mytown.Log;
 import ee.lutsu.alpha.mc.mytown.MyTownDatasource;
-import ee.lutsu.alpha.mc.mytown.Entities.Resident;
-import ee.lutsu.alpha.mc.mytown.Entities.Town;
-import ee.lutsu.alpha.mc.mytown.Entities.TownBlock;
-import ee.lutsu.alpha.mc.mytown.Entities.TownSettingCollection.Permissions;
+import ee.lutsu.alpha.mc.mytown.entities.Resident;
+import ee.lutsu.alpha.mc.mytown.entities.Town;
+import ee.lutsu.alpha.mc.mytown.entities.TownBlock;
+import ee.lutsu.alpha.mc.mytown.entities.TownSettingCollection.Permissions;
 import ee.lutsu.alpha.mc.mytown.event.ProtectionEvents;
 
 public class MiningLaser extends ProtBase
@@ -31,7 +31,7 @@ public class MiningLaser extends ProtBase
 	@Override
 	public void load() throws Exception
 	{
-		clLaser = Class.forName("ic2.common.EntityMiningLaser");
+		clLaser = Class.forName("ic2.core.item.tool.EntityMiningLaser");
 		fOwner = clLaser.getDeclaredField("owner");
 		fTickInAir = clLaser.getDeclaredField("ticksInAir");
 		fExplosive = clLaser.getDeclaredField("explosive");
@@ -51,7 +51,7 @@ public class MiningLaser extends ProtBase
 	@Override
 	public String update(Entity e) throws Exception
 	{
-		if ((int)e.posX == (int)e.prevPosX && (int)e.posZ == (int)e.prevPosZ) // didn't move
+		if ((int)e.posX == (int)e.prevPosX && (int)e.posY == (int)e.prevPosY && (int)e.posZ == (int)e.prevPosZ) // didn't move
 			return null;
 		
 		fTickInAir.setAccessible(true);
@@ -134,10 +134,10 @@ public class MiningLaser extends ProtBase
         			z = (int)var3.blockZ;
         		}
         		
-        		if (!res.canInteract(x - explosionRadius, y, z, Permissions.Build) || 
-    				!res.canInteract(x + explosionRadius, y, z, Permissions.Build) ||
-    				!res.canInteract(x, y, z - explosionRadius, Permissions.Build) ||
-    				!res.canInteract(x, y, z + explosionRadius, Permissions.Build))
+        		if (!res.canInteract(x - explosionRadius, y, z - explosionRadius, Permissions.Build) || 
+    				!res.canInteract(x - explosionRadius, y, z + explosionRadius, Permissions.Build) ||
+    				!res.canInteract(x + explosionRadius, y, z - explosionRadius, Permissions.Build) ||
+    				!res.canInteract(x + explosionRadius, y, z + explosionRadius, Permissions.Build))
         			return "Explosion would hit a protected town";
         	}
         }

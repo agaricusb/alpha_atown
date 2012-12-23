@@ -1,4 +1,4 @@
-package ee.lutsu.alpha.mc.mytown.Entities;
+package ee.lutsu.alpha.mc.mytown.entities;
 
 import java.util.LinkedList;
 import java.util.List;

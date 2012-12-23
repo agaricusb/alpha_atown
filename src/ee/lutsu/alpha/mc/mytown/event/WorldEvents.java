@@ -1,7 +1,7 @@
 package ee.lutsu.alpha.mc.mytown.event;
 
 import ee.lutsu.alpha.mc.mytown.MyTown;
-import ee.lutsu.alpha.mc.mytown.Entities.TownSettingCollection;
+import ee.lutsu.alpha.mc.mytown.entities.TownSettingCollection;
 import net.minecraftforge.event.ForgeSubscribe;
 import net.minecraftforge.event.world.WorldEvent.Unload;
 

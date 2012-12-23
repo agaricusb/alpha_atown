@@ -19,6 +19,12 @@ public enum Term
 	
 	MinecartMessedWith("Someone is messing with your towns minecart"),
 	
+	// nation status
+	NationStatusName("§6--------[[ %s%s§6 ]]--------"),
+	NationStatusGeneral("§2Size: §b%s§2/§b%s §2Members: §b%s"),
+	NationStatusCapital("§2Capital: §b%s"),
+	NationStatusTowns("§2Towns: §b%s"),
+	
 	// status
 	TownStatusName("§6--------[[ %s%s§6 ]]--------"),
 	TownStatusGeneral("§2Town blocks: §b%s§2/§b%s §2Nation: §b%s"),
@@ -138,9 +144,11 @@ public enum Term
 	
 	TownCmdAccept("accept"),
 	TownCmdAcceptDesc("Accept a town invitation"),
+	TownCmdAcceptDesc2("Accept a nation invitation"),
 	
 	TownCmdDeny("deny"),
 	TownCmdDenyDesc("Deny a town invitation"),
+	TownCmdDenyDesc2("Deny a nation invitation"),
 	
 	// nation commands
 	TownCmdNation("nation"),
@@ -152,15 +160,9 @@ public enum Term
 	TownCmdNationDel("delete"),
 	TownCmdNationDelDesc("Deletes your nation"),
 	
-	TownCmdNationInvite("invite"),
+	TownCmdNationInvite("invite"), // use /t accept & reject
 	TownCmdNationInviteArgs("name"),
 	TownCmdNationInviteDesc("Invites a town to your nation"),
-	
-	TownCmdNationAccept("accept"),
-	TownCmdNationAcceptDesc("Accepts a nation invitation"),
-	
-	TownCmdNationReject("reject"),
-	TownCmdNationRejectDesc("Rejects a nation invitation"),
 	
 	TownCmdNationLeave("leave"),
 	TownCmdNationLeaveDesc("Leave the nation"),
@@ -172,6 +174,15 @@ public enum Term
 	TownCmdNationTransfer("transfer"),
 	TownCmdNationTransferArgs("name"),
 	TownCmdNationTransferDesc("Transfers the capitol to a member town"),
+
+	TownCmdNationInfo("info"),
+	TownCmdNationInfoArgs("[name]"),
+	TownCmdNationInfoDesc("Shows info about a nation"),
+	
+	TownCmdNationList("list"),
+	TownCmdNationListStart("§aNations§f: %s"),
+	TownCmdNationListEntry("%s[%s]"),
+	TownCmdNationListDesc("Lists all nations"),
 	
 	// admin commands
 	TownadmCmdReload("reload"),
@@ -196,6 +207,10 @@ public enum Term
 	TownadmCmdExtra("extra"),
 	TownadmCmdExtraArgs("townname count"),
 	TownadmCmdExtraDesc("Adds or removes extra blocks in a town"),
+	
+	TownadmCmdClaim("claim"),
+	TownadmCmdClaimArgs("townname [playername] [x.y:x.y[:dim]]"),
+	TownadmCmdClaimDesc("Sets the current (or specified) plot to the town (and player)"),
 
 	// Town errors
 	ErrCannotAccessCommand("You cannot access this command"),
@@ -218,6 +233,7 @@ public enum Term
 	TownErrInvitationInTown("The player is already in a town"),
 	
 	TownErrPlayerNotInYourTown("The player is not in your town"),
+	TownErrPlayerDoesntHaveAccessToTownManagement("The player can't access town management by perm nodes"),
 	TownErrCannotDoWithYourself("You cannot do this with yourself"),
 	TownErrPlayerIsAlreadyMayor("The player is already a mayor"),
 	TownErrPlayerIsAlreadyAssistant("The player is already an assistant"),
@@ -231,6 +247,7 @@ public enum Term
 	
 	TownErrYouDontHavePendingInvitations("You don't have any pending invitation"),
 	TownErrNotFound("Town named %s cannot be found"),
+	TownErrSpawnNotSet("Town spawn isn't set"),
 	
 	// Globals
 	TownBroadcastCreated("%s has just founded a new town called %s"),
@@ -287,13 +304,33 @@ public enum Term
 	TownSpawnReset("Your spawn has been reset. Please set a new one"),
 	
 	// nation
-	NationBroadcastCreated("The town of %s grew into the nation of %s"),
-	NationBroadcastDeleted("The nation of %s has fallen"),
+	NationBroadcastCreated("§eThe town of %s grew into the nation of %s"),
+	NationBroadcastDeleted("§eThe nation of %s has fallen"),
+	NationTownJoinedNation("The town %s has joined the nation"),
 	
+	NationLeft("§aYou left the nation of %s"),
+	NationNowCapital("§aYour town was made the capital of %s"),
+	
+	NationDeleteConfirmation("§aAre you sure? Use \"... delete yes\" to delete your nation"),
+	NationCapitalTransfered("§aCapital transfered to %s"),
+	TownKickedFromNation("§aTown '%s' kicked out of the nation"),
+	NationInvitation("§a%s would like you to join his nation %s. Use /t §2accept §aor /t §4deny §ato reply"),
+	NationInvitedPlayer("§aSent the town invitation to %s of %s"),
+	NationPlayerDeniedInvitation("You have denied the invitation"),
+	
+	TownErrNationNotFound("Cannot find the nation by the name '%s'"),
 	TownErrAlreadyInNation("This town is already part of a nation"),
 	TownErrNationNameInUse("Name already in use"),
 	TownErrNationNameCannotBeEmpty("Cannot set a empty name"),
+	TownErrNationSelfNotPartOfNation("Your're not part of any nation"),
 	TownErrNationNotPartOfNation("That town isn't part of this nation"),
+	TownErrNationNoMayorOnline("The town of %s has no mayors currently online. Try again later"),
+	TownErrNationCannotKickSelf("You cannot kick your own town"),
+	TownErrNationCannotTransferSelf("You are already the capital"),
+	TownErrNationYouDontHavePendingInvitations("You don't have any pending invitation"),
+	TownErrNationInvitingSelf("Why are you inviting your own town?"),
+	TownErrNationCantRemoveCapital("Cannot remove the capital town"),
+	TownErrCannotDeleteInNation("Cannot delete the town when in a nation"),
 	
 	// permissions - town command
 	TownCmdPerm("perm"),
@@ -307,7 +344,7 @@ public enum Term
 
 	// permissions - town admin command
 	TownadmCmdPerm("perm"),
-	TownadmCmdPermArgs("town|plot|server|wild|wild:# [force|(set key [val])]"),
+	TownadmCmdPermArgs("town|plot|server|wild|wild:# [(force [key])|(set key [val])]"),
 	TownadmCmdPermArgsServer("server"),
 	TownadmCmdPermArgsWild("wild"),
 	TownadmCmdPermArgsWild2("wild:"),
@@ -316,7 +353,7 @@ public enum Term
 	TownadmCmdPermDesc("Shows, sets or forces the permissions"),
 	
 	// per general
-	PermForced("§aAll child nodes have been updated to inherit from the node '§2%s§a'"),
+	PermForced("§aAll childs have been updated to inherit from the node '§2%s§a' for perm '§2%s§a'"),
 	PermSetDone("§aPermission '§2%s§a' set for the node '§2%s§a'"),
 	
 	TownPlotAssigned("§aPlot assigned to '%s'"),

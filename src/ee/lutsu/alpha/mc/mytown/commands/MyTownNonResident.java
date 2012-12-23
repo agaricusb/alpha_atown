@@ -9,9 +9,9 @@ import ee.lutsu.alpha.mc.mytown.Formatter;
 import ee.lutsu.alpha.mc.mytown.MyTownDatasource;
 import ee.lutsu.alpha.mc.mytown.Permissions;
 import ee.lutsu.alpha.mc.mytown.Term;
-import ee.lutsu.alpha.mc.mytown.Entities.Resident;
-import ee.lutsu.alpha.mc.mytown.Entities.Resident.Rank;
-import ee.lutsu.alpha.mc.mytown.Entities.Town;
+import ee.lutsu.alpha.mc.mytown.entities.Resident;
+import ee.lutsu.alpha.mc.mytown.entities.Town;
+import ee.lutsu.alpha.mc.mytown.entities.Resident.Rank;
 import ee.lutsu.alpha.mc.mytown.event.PlayerEvents;
 
 import net.minecraft.command.ICommandSender;
@@ -56,7 +56,7 @@ public class MyTownNonResident
 					((EntityPlayer)obj).sendChatToPlayer(msg);
 				}
 				
-				t.sendTownInfo(cs, res.isOp());
+				t.sendTownInfo(cs, res.shouldShowTownBlocks());
 			}
 		}
 		else if (args[0].equalsIgnoreCase(Term.TownCmdAccept.toString()))

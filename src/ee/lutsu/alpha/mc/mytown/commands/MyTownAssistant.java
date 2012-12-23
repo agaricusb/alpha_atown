@@ -9,14 +9,15 @@ import ee.lutsu.alpha.mc.mytown.Formatter;
 import ee.lutsu.alpha.mc.mytown.MyTownDatasource;
 import ee.lutsu.alpha.mc.mytown.Permissions;
 import ee.lutsu.alpha.mc.mytown.Term;
-import ee.lutsu.alpha.mc.mytown.Entities.Resident;
-import ee.lutsu.alpha.mc.mytown.Entities.TownBlock;
-import ee.lutsu.alpha.mc.mytown.Entities.Resident.Rank;
+import ee.lutsu.alpha.mc.mytown.entities.Resident;
+import ee.lutsu.alpha.mc.mytown.entities.TownBlock;
+import ee.lutsu.alpha.mc.mytown.entities.Resident.Rank;
 import ee.lutsu.alpha.mc.mytown.event.PlayerEvents;
 
 import net.minecraft.command.ICommandSender;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.server.MinecraftServer;
+import net.minecraft.util.Vec3;
 import net.minecraftforge.event.entity.EntityEvent.EnteringChunk;
 
 public class MyTownAssistant 
@@ -40,6 +41,7 @@ public class MyTownAssistant
 			cs.sendChatToPlayer(Formatter.formatCommand(Term.TownCmdUnclaim.toString(), Term.TownCmdUnclaimArgs.toString(), Term.TownCmdUnclaimDesc.toString(), color));
 			cs.sendChatToPlayer(Formatter.formatCommand(Term.TownCmdInvite.toString(), Term.TownCmdInviteArgs.toString(), Term.TownCmdInviteDesc.toString(), color));
 			cs.sendChatToPlayer(Formatter.formatCommand(Term.TownCmdKick.toString(), Term.TownCmdKickArgs.toString(), Term.TownCmdKickDesc.toString(), color));
+			cs.sendChatToPlayer(Formatter.formatCommand(Term.TownCmdSetSpawn.toString(), "", Term.TownCmdSetSpawnDesc.toString(), color));
 			cs.sendChatToPlayer(Formatter.formatCommand(Term.TownCmdPlot.toString(), Term.TownCmdPlotArgs.toString(), Term.TownCmdPlotDesc.toString(), color));
 		}
 		else if (args[0].equalsIgnoreCase(Term.TownCmdClaim.toString()))
@@ -225,6 +227,22 @@ public class MyTownAssistant
 				b.setOwner(target);
 				cs.sendChatToPlayer(Term.TownPlotAssigned.toString(target.name()));
 			}
+		}
+		else if (args[0].equalsIgnoreCase(Term.TownCmdSetSpawn.toString()))
+		{
+			if (!Permissions.canAccess(res, "mytown.cmd.setspawn")) { cs.sendChatToPlayer(Term.ErrCannotAccessCommand.toString()); return; }
+			
+			TownBlock b = MyTownDatasource.instance.getBlock(res.onlinePlayer.dimension, res.onlinePlayer.chunkCoordX, res.onlinePlayer.chunkCoordZ);
+			
+			if (b == null || b.town() == null)
+				throw new CommandException(Term.ErrPermPlotNotInTown);
+			if (b.town() != res.town())
+				throw new CommandException(Term.ErrPermPlotNotInYourTown);
+			
+			Vec3 vec = Vec3.createVectorHelper(res.onlinePlayer.posX, res.onlinePlayer.posY, res.onlinePlayer.posZ);
+			res.town().setSpawn(b, vec, res.onlinePlayer.rotationPitch, res.onlinePlayer.rotationYaw);
+			
+			cs.sendChatToPlayer(Term.TownSpawnSet.toString());
 		}
 	}
 }

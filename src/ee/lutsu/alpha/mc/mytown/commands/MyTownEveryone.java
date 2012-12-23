@@ -1,18 +1,22 @@
 package ee.lutsu.alpha.mc.mytown.commands;
 
+import java.util.AbstractMap;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.TreeMap;
+import java.util.TreeSet;
 
 import ee.lutsu.alpha.mc.mytown.CommandException;
 import ee.lutsu.alpha.mc.mytown.Formatter;
 import ee.lutsu.alpha.mc.mytown.MyTownDatasource;
 import ee.lutsu.alpha.mc.mytown.Permissions;
 import ee.lutsu.alpha.mc.mytown.Term;
-import ee.lutsu.alpha.mc.mytown.Entities.Resident;
-import ee.lutsu.alpha.mc.mytown.Entities.Resident.Rank;
-import ee.lutsu.alpha.mc.mytown.Entities.Town;
+import ee.lutsu.alpha.mc.mytown.entities.Resident;
+import ee.lutsu.alpha.mc.mytown.entities.Town;
+import ee.lutsu.alpha.mc.mytown.entities.Resident.Rank;
 
 import net.minecraft.command.ICommandSender;
 import net.minecraft.entity.player.EntityPlayer;
@@ -36,6 +40,7 @@ public class MyTownEveryone
 				cs.sendChatToPlayer(Formatter.formatCommand(Term.TownCmdList.toString(), "", Term.TownCmdListDesc.toString(), color));
 				cs.sendChatToPlayer(Formatter.formatCommand(Term.TownCmdRes.toString(), Term.TownCmdResArgs.toString(), Term.TownCmdResDesc.toString(), null));
 				cs.sendChatToPlayer(Formatter.formatCommand(Term.TownCmdFriend.toString(), Term.TownCmdFriendArgs.toString(), Term.TownCmdFriendDesc.toString(), color));
+				cs.sendChatToPlayer(Formatter.formatCommand(Term.TownCmdSpawn.toString(), Term.TownCmdSpawnArgs.toString(), Term.TownCmdSpawnDesc.toString(), color));
 			}
 			else if (args.length > 0 && args[0].equalsIgnoreCase(Term.TownCmdMap.toString()))
 			{
@@ -66,7 +71,7 @@ public class MyTownEveryone
 					if (t == null)
 						throw new CommandException(Term.TownErrNotFound, args[1]);
 					
-					t.sendTownInfo(cs, res.isOp());
+					t.sendTownInfo(cs, res.shouldShowTownBlocks());
 				}
 				else
 					cs.sendChatToPlayer(Formatter.formatCommand(Term.TownCmdInfo.toString(), Term.TownCmdInfoArgs.toString(), Term.TownCmdInfoDesc.toString(), color));
@@ -94,6 +99,33 @@ public class MyTownEveryone
 				}
 				else
 					cs.sendChatToPlayer(Formatter.formatCommand(Term.TownCmdFriend.toString(), Term.TownCmdFriendArgs.toString(), Term.TownCmdFriendDesc.toString(), color));
+			}
+			else if (args.length > 0 && args[0].equals(Term.TownCmdSpawn.toString()))
+			{
+				Town target = null;
+				if (args.length < 2)
+				{
+					if (!Permissions.canAccess(cs, "mytown.cmd.spawn.own")) { cs.sendChatToPlayer(Term.ErrCannotAccessCommand.toString()); return; }
+					
+					if (res.town() == null)
+						throw new CommandException(Term.ErrPermYouDontHaveTown);
+					
+					target = res.town();
+				}
+				else
+				{
+					if (!Permissions.canAccess(cs, "mytown.cmd.spawn.other")) { cs.sendChatToPlayer(Term.ErrCannotAccessCommand.toString()); return; }
+					
+					Town t = MyTownDatasource.instance.getTown(args[1]);
+					if (t == null)
+						throw new CommandException(Term.TownErrNotFound, args[1]);
+					
+					target = t;
+				}
+				if (target.spawnBlock == null || target.getSpawn() == null)
+					throw new CommandException(Term.TownErrSpawnNotSet);
+				
+				res.sendToTownSpawn(target);
 			}
 		}
 		else
@@ -125,17 +157,24 @@ public class MyTownEveryone
 		{
 			if (!Permissions.canAccess(cs, "mytown.cmd.list")) { cs.sendChatToPlayer(Term.ErrCannotAccessCommand.toString()); return; }
 			
-			TreeMap<String, Town> sorted = new TreeMap<String, Town>();
-			for (Town t : MyTownDatasource.instance.towns)
-				sorted.put(t.name(), t);
+			TreeSet<Town> sorted = new TreeSet<Town>(new Comparator<Town>()
+			{
+				@Override
+				public int compare(Town arg0, Town arg1)
+				{
+					return Integer.compare(arg1.residents().size(), arg0.residents().size());
+				}
+			});
+			
+			sorted.addAll(MyTownDatasource.instance.towns);
 			
 			StringBuilder sb = new StringBuilder();
 			sb.append(Term.TownCmdListStart.toString(""));
 			int i = 0;
 			
-			for(Map.Entry<String, Town> e : sorted.entrySet())
+			for (Town e : sorted)
 			{
-				String n = Term.TownCmdListEntry.toString(e.getValue().name(), e.getValue().residents().size());
+				String n = Term.TownCmdListEntry.toString(e.name(), e.residents().size());
 				if (i > 0)
 				{
 					sb.append(", ");
@@ -144,6 +183,7 @@ public class MyTownEveryone
 					{
 						cs.sendChatToPlayer(sb.toString());
 						sb.setLength(0);
+						i = 0;
 					}
 				}
 				i++;

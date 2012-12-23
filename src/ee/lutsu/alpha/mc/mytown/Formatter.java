@@ -2,7 +2,7 @@ package ee.lutsu.alpha.mc.mytown;
 
 import java.util.logging.Level;
 
-import ee.lutsu.alpha.mc.mytown.Entities.Resident;
+import ee.lutsu.alpha.mc.mytown.entities.Resident;
 
 public class Formatter 
 {

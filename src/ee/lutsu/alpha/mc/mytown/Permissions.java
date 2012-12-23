@@ -4,7 +4,7 @@ import net.minecraft.command.ICommandSender;
 import net.minecraft.entity.player.EntityPlayer;
 import cpw.mods.fml.common.Loader;
 import cpw.mods.fml.common.ModContainer;
-import ee.lutsu.alpha.mc.mytown.Entities.Resident;
+import ee.lutsu.alpha.mc.mytown.entities.Resident;
 import ru.tehkode.permissions.IPermissions;
 
 public class Permissions

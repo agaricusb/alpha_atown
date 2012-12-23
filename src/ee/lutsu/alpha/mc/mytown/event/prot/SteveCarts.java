@@ -10,13 +10,14 @@ import net.minecraft.entity.item.EntityMinecart;
 import net.minecraft.util.Vec3;
 
 import ee.lutsu.alpha.mc.mytown.ChatChannel;
+import ee.lutsu.alpha.mc.mytown.ChunkCoord;
 import ee.lutsu.alpha.mc.mytown.Formatter;
 import ee.lutsu.alpha.mc.mytown.Log;
 import ee.lutsu.alpha.mc.mytown.MyTown;
 import ee.lutsu.alpha.mc.mytown.MyTownDatasource;
-import ee.lutsu.alpha.mc.mytown.Entities.Town;
-import ee.lutsu.alpha.mc.mytown.Entities.TownBlock;
 import ee.lutsu.alpha.mc.mytown.commands.CmdChat;
+import ee.lutsu.alpha.mc.mytown.entities.Town;
+import ee.lutsu.alpha.mc.mytown.entities.TownBlock;
 
 public class SteveCarts extends ProtBase
 {
@@ -47,7 +48,7 @@ public class SteveCarts extends ProtBase
 	@Override
 	public String update(Entity e) throws Exception
 	{
-		if ((int)e.posX == (int)e.prevPosX && (int)e.posZ == (int)e.prevPosZ) // didn't move
+		if ((int)e.posX == (int)e.prevPosX && (int)e.posY == (int)e.prevPosY && (int)e.posZ == (int)e.prevPosZ) // didn't move
 			return null;
 		
 		fWorkModules.setAccessible(true);
@@ -73,7 +74,7 @@ public class SteveCarts extends ProtBase
 			return null; // none found
 		
 		Vec3 next = (Vec3)mGetNextblock.invoke(module);
-		TownBlock b = MyTownDatasource.instance.getBlock(e.dimension, ((int)next.xCoord) >> 4, ((int)next.zCoord) >> 4);
+		TownBlock b = MyTownDatasource.instance.getBlock(e.dimension, ChunkCoord.getCoord(next.xCoord), ChunkCoord.getCoord(next.zCoord));
 		
 		if (railerModules.size() > 0) // railer
 		{

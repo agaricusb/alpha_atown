@@ -7,9 +7,10 @@ import java.util.List;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.tileentity.TileEntity;
 
+import ee.lutsu.alpha.mc.mytown.ChunkCoord;
 import ee.lutsu.alpha.mc.mytown.MyTown;
 import ee.lutsu.alpha.mc.mytown.MyTownDatasource;
-import ee.lutsu.alpha.mc.mytown.Entities.TownBlock;
+import ee.lutsu.alpha.mc.mytown.entities.TownBlock;
 import ee.lutsu.alpha.mc.mytown.event.ProtectionEvents;
 
 public class BuildCraft extends ProtBase
@@ -96,10 +97,10 @@ public class BuildCraft extends ProtBase
 		int by = fxy.getInt(box);
 		int bz = fxz.getInt(box);
 		
-		int fx = ax >> 4;
-		int fz = az >> 4;
-		int tx = bx >> 4;
-		int tz = bz >> 4;
+		int fx = ChunkCoord.getCoord(ax);
+		int fz = ChunkCoord.getCoord(az);
+		int tx = ChunkCoord.getCoord(bx);
+		int tz = ChunkCoord.getCoord(bz);
 		
 		for (int z = fz; z <= tz; z++)
 		{

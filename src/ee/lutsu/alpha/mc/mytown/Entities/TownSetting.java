@@ -1,8 +1,8 @@
-package ee.lutsu.alpha.mc.mytown.Entities;
+package ee.lutsu.alpha.mc.mytown.entities;
 
 import java.util.Map;
 
-import ee.lutsu.alpha.mc.mytown.Entities.TownSettingCollection.Permissions;
+import ee.lutsu.alpha.mc.mytown.entities.TownSettingCollection.Permissions;
 
 public class TownSetting 
 {
@@ -43,9 +43,9 @@ public class TownSetting
 		else if (instanceOf == String.class)
 			value = from;
 		else if (instanceOf == int.class)
-			value = Integer.parseInt(from);
+			value = new Integer(Integer.parseInt(from));
 		else if (instanceOf == boolean.class)
-			value = from.equalsIgnoreCase("1") || from.equalsIgnoreCase("on") || from.equalsIgnoreCase("active") || from.equalsIgnoreCase("yes") || from.equalsIgnoreCase("true");
+			value = new Boolean(from.equalsIgnoreCase("1") || from.equalsIgnoreCase("on") || from.equalsIgnoreCase("active") || from.equalsIgnoreCase("yes") || from.equalsIgnoreCase("true"));
 		
 		else if (instanceOf == Permissions.class)
 			value = Permissions.parse(from);
@@ -62,9 +62,9 @@ public class TownSetting
 		else if (instanceOf == String.class)
 			return (String)value;
 		else if (instanceOf == int.class)
-			return value.toString();
+			return ((Integer)value).toString();
 		else if (instanceOf == boolean.class)
-			return (boolean)value ? "1" : "0";
+			return (Boolean)value ? "1" : "0";
 		
 		else if (instanceOf == Permissions.class)
 			return ((Permissions)value).getShort();
@@ -80,11 +80,11 @@ public class TownSetting
 	
 	public boolean getEffBoolean()
 	{
-		return (boolean)effectiveValue;
+		return (Boolean)effectiveValue;
 	}
 	
 	public int getEffInt()
 	{
-		return (int)effectiveValue;
+		return (Integer)effectiveValue;
 	}
 }

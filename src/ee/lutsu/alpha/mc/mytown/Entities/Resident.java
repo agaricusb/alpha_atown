@@ -1,4 +1,4 @@
-package ee.lutsu.alpha.mc.mytown.Entities;
+package ee.lutsu.alpha.mc.mytown.entities;
 
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
@@ -9,12 +9,13 @@ import java.util.List;
 import com.google.common.base.Joiner;
 
 import ee.lutsu.alpha.mc.mytown.ChatChannel;
+import ee.lutsu.alpha.mc.mytown.ChunkCoord;
 import ee.lutsu.alpha.mc.mytown.Log;
 import ee.lutsu.alpha.mc.mytown.MyTown;
 import ee.lutsu.alpha.mc.mytown.MyTownDatasource;
 import ee.lutsu.alpha.mc.mytown.Permissions;
 import ee.lutsu.alpha.mc.mytown.Term;
-import ee.lutsu.alpha.mc.mytown.Entities.TownSettingCollection.ISettingsSaveHandler;
+import ee.lutsu.alpha.mc.mytown.entities.TownSettingCollection.ISettingsSaveHandler;
 import net.minecraft.command.ICommandSender;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.item.EntityMinecart;
@@ -23,6 +24,7 @@ import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.util.ChunkCoordinates;
+import net.minecraft.util.Vec3;
 import net.minecraft.world.storage.WorldInfo;
 import net.minecraftforge.event.ForgeSubscribe;
 import net.minecraftforge.event.entity.EntityEvent.EnteringChunk;
@@ -127,14 +129,19 @@ public class Resident
 		};
 	}
 	
-	public boolean isOp()
+	public boolean shouldShowTownBlocks()
 	{
-		if (opCheck < System.currentTimeMillis())
-		{
-			isOp = MinecraftServer.getServer().getConfigurationManager().getOps().contains(name.trim().toLowerCase());
-			opCheck = System.currentTimeMillis() + 5 * 1000;
-		}
-		return isOp;
+		return Permissions.canAccess(this, "mytown.adm.showblocks");
+	}
+	
+	public boolean canByPassCheck(TownSettingCollection.Permissions level)
+	{
+		return Permissions.canAccess(this, "mytown.adm.bypass." + level.toString().toLowerCase());
+	}
+	
+	public boolean pvpBypass()
+	{
+		return Permissions.canAccess(this, "mytown.adm.bypass.pvp");
 	}
 	
 	public boolean canInteract(int chunkX, int chunkZ, TownSettingCollection.Permissions askedFor)
@@ -146,13 +153,19 @@ public class Resident
 	
 	public boolean canInteract(TownBlock block, TownSettingCollection.Permissions askedFor)
 	{
-		if (ignoreOps && isOp())
-			return true;
-
+		boolean b = canInteractSub(block, askedFor);
+		if (!b && canByPassCheck(askedFor))
+			b = true;
+		
+		return b;
+	}
+	
+	private boolean canInteractSub(TownBlock block, TownSettingCollection.Permissions askedFor)
+	{
 		if (block == null || block.town() == null)
 			return MyTown.instance.getWorldWildSettings(onlinePlayer.dimension).outsiderRights.compareTo(askedFor) >= 0;
 		
-		if (block.owner() == this) // plot owner
+		if (block.owner() == this || (block.town() == town() && rank() != Rank.Resident)) // plot owner
 			return true;
 		
 		if (block.owner() != null && block.owner().friends.contains(this)) // friends
@@ -185,7 +198,7 @@ public class Resident
 	
 	public boolean canInteract(int x, int y, int z, TownSettingCollection.Permissions askedFor)
 	{
-		TownBlock targetBlock = MyTownDatasource.instance.getBlock(onlinePlayer.dimension, x >> 4, z >> 4);
+		TownBlock targetBlock = MyTownDatasource.instance.getBlock(onlinePlayer.dimension, ChunkCoord.getCoord(x), ChunkCoord.getCoord(z));
 		return canInteract(targetBlock, y, askedFor);
 	}
 	
@@ -207,12 +220,11 @@ public class Resident
 	
 	public boolean canAttack(Entity e)
 	{
-		if (ignoreOps && isOp())
-			return true;
-		
-
 		if (e instanceof EntityPlayer)
 		{
+			if (pvpBypass())
+				return true;
+			
 			// disable friendly fire
 			if (!allowMemberToMemberPvp && town() != null && MyTownDatasource.instance.getOrMakeResident((EntityPlayer)e).town() == town())
 				return false;
@@ -333,8 +345,8 @@ public class Resident
 		
 		MyTownDatasource source = MyTownDatasource.instance;
 		
-		int pX = ((int)onlinePlayer.posX) >> 4;
-		int pZ = ((int)onlinePlayer.posZ) >> 4;
+		int pX = ChunkCoord.getCoord(onlinePlayer.posX);
+		int pZ = ChunkCoord.getCoord(onlinePlayer.posZ);
 		TownBlock block = checkYMovement;
 		
 		if (block == null)
@@ -351,7 +363,7 @@ public class Resident
 		else if (block != null && block.town() != null)
 		{
 			// entered town or another town
-			if (!canByPassBounce() && !canInteract(block, (int)onlinePlayer.posY, TownSettingCollection.Permissions.Enter))
+			if (!canInteract(block, (int)onlinePlayer.posY, TownSettingCollection.Permissions.Enter))
 			{
 				beingBounced = true;
 				try
@@ -359,8 +371,8 @@ public class Resident
 					onlinePlayer.sendChatToPlayer(Term.TownYouCannotEnter.toString(block.town().name()));
 					bounceBack();
 					
-					pX = ((int)onlinePlayer.posX) >> 4;
-					pZ = ((int)onlinePlayer.posZ) >> 4;
+					pX = ChunkCoord.getCoord(onlinePlayer.posX);
+					pZ = ChunkCoord.getCoord(onlinePlayer.posZ);
 					
 					TownBlock block2 = source.getBlock(onlinePlayer.dimension, pX, pZ);
 					if (block2 != null && block2.town() != null && !canInteract(block2, (int)onlinePlayer.posY, TownSettingCollection.Permissions.Enter))
@@ -452,6 +464,42 @@ public class Resident
 		}
 	}
 	
+	public void sendToTownSpawn(Town t)
+	{
+		if (!(onlinePlayer instanceof EntityPlayerMP))
+			throw new RuntimeException("Cannot move a non-player");
+		
+		if (t.spawnBlock == null || t.getSpawn() == null)
+			throw new RuntimeException("Town doesn't have a spawn");
+		
+		EntityPlayerMP pl = (EntityPlayerMP)onlinePlayer;
+		
+		if (pl.dimension != t.getSpawnDimension())
+			MinecraftServer.getServer().getConfigurationManager().transferPlayerToDimension(pl, t.getSpawnDimension());
+
+		Vec3 pos = t.getSpawn();
+		pl.playerNetServerHandler.setPlayerLocation(pos.xCoord, pos.yCoord, pos.zCoord, t.getSpawnEye2(), t.getSpawnEye1());
+	}
+	
+	public void sendToServerSpawn()
+	{
+		if (!(onlinePlayer instanceof EntityPlayerMP))
+			throw new RuntimeException("Cannot move a non-player");
+
+		EntityPlayerMP pl = (EntityPlayerMP)onlinePlayer;
+		
+		if (pl.dimension != 0)
+			MinecraftServer.getServer().getConfigurationManager().transferPlayerToDimension(pl, 0);
+
+		WorldInfo info = pl.worldObj.getWorldInfo();
+		int y = pl.worldObj.getHeightValue(info.getSpawnX(), info.getSpawnZ());
+		
+		if (info.getSpawnY() > 0 && info.getSpawnY() != pl.worldObj.provider.getAverageGroundLevel())
+			y = info.getSpawnY();
+
+		pl.setPositionAndUpdate(info.getSpawnX(), y, info.getSpawnZ());
+	}
+	
 	public void save()
 	{
 		MyTownDatasource.instance.saveResident(this);
@@ -474,11 +522,11 @@ public class Resident
 		}
 		else
 		{
-			int cX = ((int)onlinePlayer.posX) >> 4;
-			int cZ = ((int)onlinePlayer.posZ) >> 4;
-			int pcX = ((int)prevX) >> 4;
-			int pcZ = ((int)prevZ) >> 4;
-			
+			int cX = ChunkCoord.getCoord(onlinePlayer.posX);
+			int cZ = ChunkCoord.getCoord(onlinePlayer.posZ);
+			int pcX = ChunkCoord.getCoord(prevX);
+			int pcZ = ChunkCoord.getCoord(prevZ);
+
 			if (prevDimension != onlinePlayer.dimension || cX != pcX || cZ != pcZ)
 			{
 				checkYMovement = null;
@@ -565,10 +613,5 @@ public class Resident
 		}
 		else
 			return false;
-	}
-	
-	public boolean canByPassBounce()
-	{
-		return isOp();
 	}
 }

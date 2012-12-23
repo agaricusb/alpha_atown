@@ -1,4 +1,4 @@
-package ee.lutsu.alpha.mc.mytown.Entities;
+package ee.lutsu.alpha.mc.mytown.entities;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -136,13 +136,17 @@ public class TownSettingCollection
 		return set.effectiveValue;
 	}
 	
-	public void forceChildsToInherit()
+	public void forceChildsToInherit(String perm) throws CommandException
 	{
 		for (TownSettingCollection child : childs)
 		{
-			child.clearValues();
+			if (perm == null || perm.equals(""))
+				child.clearValues();
+			else
+				child.setValue(perm, null);
+			
 			child.refreshSelf();
-			child.forceChildsToInherit();
+			child.forceChildsToInherit(perm);
 			child.save();
 		}
 	}
@@ -279,6 +283,7 @@ public class TownSettingCollection
 	public boolean allowStevecartsMiners;
 	public boolean allowBuildcraftMiners;
 	public boolean allowClaimingNextTo;
+	public boolean disableCreepers;
 	
 	public boolean yCheckOn;
 	public int yCheckFrom;
@@ -308,6 +313,8 @@ public class TownSettingCollection
 			allowBuildcraftMiners = set.getEffBoolean();
 		else if (set.getSerializationKey().equals("closeclaim"))
 			allowClaimingNextTo = set.getEffBoolean();
+		else if (set.getSerializationKey().equals("creepoff"))
+			disableCreepers = set.getEffBoolean();
 		
 		else if (set.getSerializationKey().equals("yon"))
 			yCheckOn = set.getEffBoolean();
@@ -332,6 +339,7 @@ public class TownSettingCollection
 		settings.add(new TownSetting("Allow stevescarts miners", 		"steveminer", 	false, 				true, 				"boolean:yes/no", 							boolean.class));
 		settings.add(new TownSetting("Allow quarrys,filler,builders", 	"bc",		 	false, 				true, 				"boolean:yes/no", 							boolean.class));
 		settings.add(new TownSetting("Allow claiming next to", 			"closeclaim",	false, 				null, 				"boolean:yes/no", 							boolean.class));
+		settings.add(new TownSetting("Disable creeper explosion",		"creepoff",		false, 				null, 				"boolean:yes/no", 							boolean.class));
 		
 		settings.add(new TownSetting("Height enabled", 					"yon",	 		false, 				null, 				"boolean:yes/no", 							boolean.class));
 		settings.add(new TownSetting("Height check from", 				"yfrom",	 	0, 					null,				"int:0-255", 								int.class));

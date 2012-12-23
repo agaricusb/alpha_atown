@@ -16,11 +16,11 @@ import com.google.common.base.Joiner;
 import ee.lutsu.alpha.mc.mytown.ChatChannel;
 import ee.lutsu.alpha.mc.mytown.MyTown;
 import ee.lutsu.alpha.mc.mytown.MyTownDatasource;
-import ee.lutsu.alpha.mc.mytown.Entities.Nation;
-import ee.lutsu.alpha.mc.mytown.Entities.Resident;
-import ee.lutsu.alpha.mc.mytown.Entities.Town;
-import ee.lutsu.alpha.mc.mytown.Entities.TownBlock;
-import ee.lutsu.alpha.mc.mytown.Entities.Resident.Rank;
+import ee.lutsu.alpha.mc.mytown.entities.Nation;
+import ee.lutsu.alpha.mc.mytown.entities.Resident;
+import ee.lutsu.alpha.mc.mytown.entities.Town;
+import ee.lutsu.alpha.mc.mytown.entities.TownBlock;
+import ee.lutsu.alpha.mc.mytown.entities.Resident.Rank;
 
 public abstract class MyTownDB extends Database {
 
@@ -157,7 +157,7 @@ public abstract class MyTownDB extends Database {
     	if (dbVersion > 2)
     		return;
     	
-		PreparedStatement statement = prepare("alter table " + prefix + "residents ADD Friends TEXT default ''");      
+		PreparedStatement statement = prepare("alter table " + prefix + "residents ADD Friends TEXT");      
 		statement.executeUpdate();
 		
 		dbVersion++;

@@ -1,4 +1,4 @@
-package ee.lutsu.alpha.mc.mytown.Entities;
+package ee.lutsu.alpha.mc.mytown.entities;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -14,13 +14,14 @@ import net.minecraft.util.Vec3;
 
 import com.google.common.base.Joiner;
 
+import ee.lutsu.alpha.mc.mytown.ChunkCoord;
 import ee.lutsu.alpha.mc.mytown.CommandException;
 import ee.lutsu.alpha.mc.mytown.Formatter;
 import ee.lutsu.alpha.mc.mytown.MyTown;
 import ee.lutsu.alpha.mc.mytown.MyTownDatasource;
 import ee.lutsu.alpha.mc.mytown.Term;
-import ee.lutsu.alpha.mc.mytown.Entities.Resident.Rank;
-import ee.lutsu.alpha.mc.mytown.Entities.TownSettingCollection.ISettingsSaveHandler;
+import ee.lutsu.alpha.mc.mytown.entities.Resident.Rank;
+import ee.lutsu.alpha.mc.mytown.entities.TownSettingCollection.ISettingsSaveHandler;
 
 public class Town 
 {
@@ -57,11 +58,12 @@ public class Town
 	public void setNation(Nation n) { nation = n; } // used internally only
 	public TownSettingCollection settings = new TownSettingCollection();
 	
+	public int getSpawnDimension() { return spawnDimension; }
 	public Vec3 getSpawn() { return spawnLocation; }
 	public float getSpawnEye1() { return spawnEye1; }
 	public float getSpawnEye2() { return spawnEye2; }
-	public void setSpawn(TownBlock b, Vec3 loc, float eye1, float eye2) { spawnBlock = b; spawnLocation = loc; spawnEye1 = eye1; spawnEye2 = eye2; save(); }
-	public void resetSpawn() { spawnLocation = null; spawnEye1 = 0; spawnEye2 = 0; save(); }
+	public void setSpawn(TownBlock b, Vec3 loc, float eye1, float eye2) { spawnBlock = b; spawnDimension = b.worldDimension(); spawnLocation = loc; spawnEye1 = eye1; spawnEye2 = eye2; save(); }
+	public void resetSpawn() { spawnBlock = null; spawnLocation = null; spawnDimension = 0; spawnEye1 = 0; spawnEye2 = 0; save(); }
 	
 	public Town(String pName, Resident creator, TownBlock home) throws CommandException
 	{
@@ -191,7 +193,13 @@ public class Town
 	
 	public void addBlock(TownBlock block) throws CommandException
 	{
-		canAddBlock(block, false);
+		addBlock(block, false);
+	}
+	
+	public void addBlock(TownBlock block, boolean bypassChecks) throws CommandException
+	{
+		if (!bypassChecks)
+			canAddBlock(block, false);
 		
 		block.setTown(this);
 		blocks.add(block);
@@ -212,7 +220,7 @@ public class Town
 	{
 		for(TownBlock block : b)
 		{
-			if (spawnBlock == b)
+			if (spawnBlock == block)
 				resetSpawn();
 			
 			block.setTown(null);
@@ -254,8 +262,11 @@ public class Town
 			save(); // saves block owner to null
 	}
 	
-	public void deleteTown()
+	public void deleteTown() throws CommandException
 	{
+		if (nation() != null)
+			throw new CommandException(Term.TownErrCannotDeleteInNation);
+		
 		for(Resident res : residents)
 			res.setTown(null);
 
@@ -301,21 +312,25 @@ public class Town
 	public void deserializeExtra(String val)
 	{
 		String[] parts = val.split(";");
-		settings.deserialize(parts[0]);
+		if (parts.length > 0)
+			settings.deserialize(parts[0]);
+		
 		if (parts.length > 1 && parts[1].trim().length() > 0)
 		{
 			String[] location = parts[1].split("/");
-			double x = Double.parseDouble(location[0]);
-			double y = Double.parseDouble(location[1]);
-			double z = Double.parseDouble(location[2]);
-			float a = Float.parseFloat(location[3]);
-			float b = Float.parseFloat(location[4]);
+			spawnDimension = Integer.parseInt(location[0]);
 			
-			spawnDimension = Integer.parseInt(location[5]);
+			double x = Double.parseDouble(location[1]);
+			double y = Double.parseDouble(location[2]);
+			double z = Double.parseDouble(location[3]);
+			float a = Float.parseFloat(location[4]);
+			float b = Float.parseFloat(location[5]);
+			
+			
 			spawnLocation = Vec3.createVectorHelper(x, y, z); 
 			spawnEye1 = a; 
 			spawnEye2 = b;
-			spawnBlock = MyTownDatasource.instance.getBlock(spawnDimension, (int)x >> 4, (int)z >> 4);
+			spawnBlock = MyTownDatasource.instance.getBlock(spawnDimension, ChunkCoord.getCoord(x), ChunkCoord.getCoord(z));
 		}
 		else
 		{
@@ -389,7 +404,7 @@ public class Town
 		
 		pl.sendChatToPlayer(Term.TownStatusName.toString(townColor, t.name()));
 		
-		pl.sendChatToPlayer(Term.TownStatusGeneral.toString(t.blocks().size(), String.valueOf(t.allowedBlocksWOExtra()) + extraBlocks, t.nation() == null ? "none" : t.nation().name()));
+		pl.sendChatToPlayer(Term.TownStatusGeneral.toString(t.blocks().size(), String.valueOf(t.totalBlocks()), t.nation() == null ? "none" : t.nation().name()));
 		if (blocks_list.length() > 0)
 			pl.sendChatToPlayer(blocks_list.toString());
 		

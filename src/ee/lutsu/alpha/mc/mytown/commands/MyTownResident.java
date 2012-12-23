@@ -13,11 +13,11 @@ import ee.lutsu.alpha.mc.mytown.MyTown;
 import ee.lutsu.alpha.mc.mytown.MyTownDatasource;
 import ee.lutsu.alpha.mc.mytown.Permissions;
 import ee.lutsu.alpha.mc.mytown.Term;
-import ee.lutsu.alpha.mc.mytown.Entities.Resident;
-import ee.lutsu.alpha.mc.mytown.Entities.TownBlock;
-import ee.lutsu.alpha.mc.mytown.Entities.TownSettingCollection;
-import ee.lutsu.alpha.mc.mytown.Entities.Resident.Rank;
-import ee.lutsu.alpha.mc.mytown.Entities.Town;
+import ee.lutsu.alpha.mc.mytown.entities.Resident;
+import ee.lutsu.alpha.mc.mytown.entities.Town;
+import ee.lutsu.alpha.mc.mytown.entities.TownBlock;
+import ee.lutsu.alpha.mc.mytown.entities.TownSettingCollection;
+import ee.lutsu.alpha.mc.mytown.entities.Resident.Rank;
 
 public class MyTownResident 
 {
@@ -35,7 +35,7 @@ public class MyTownResident
 		{
 			if (!Permissions.canAccess(res, "mytown.cmd.info")) { cs.sendChatToPlayer(Term.ErrCannotAccessCommand.toString()); return; }
 			
-			res.town().sendTownInfo(res.onlinePlayer, res.isOp());
+			res.town().sendTownInfo(res.onlinePlayer, res.shouldShowTownBlocks());
 		}
 		else
 		{
@@ -106,9 +106,9 @@ public class MyTownResident
 					}
 					else if (action.equalsIgnoreCase(Term.TownCmdPermArgs2Force.toString()))
 					{
-						if (!Permissions.canAccess(cs, "mytown.cmd.perm.force." + node)) { cs.sendChatToPlayer(Term.ErrCannotAccessCommand.toString()); return; }
+						if (!Permissions.canAccess(cs, "mytown.cmd.perm.force." + node + "." + (args.length > 3 ? args[3] : "all"))) { cs.sendChatToPlayer(Term.ErrCannotAccessCommand.toString()); return; }
 						
-						flushPermissions(cs, res, node);
+						flushPermissions(cs, res, node, args.length > 3 ? args[3] : null);
 					}
 					else
 						cs.sendChatToPlayer(Formatter.formatCommand(Term.TownCmdPerm.toString(), Term.TownCmdPermArgs.toString(), Term.TownCmdPermDesc.toString(), color));
@@ -164,7 +164,7 @@ public class MyTownResident
 		set.show(sender, title);
 	}
 	
-	private static void flushPermissions(ICommandSender sender, Resident res, String node) throws CommandException
+	private static void flushPermissions(ICommandSender sender, Resident res, String node, String perm) throws CommandException
 	{
 		TownSettingCollection set = getPermNode(node, res);
 		
@@ -174,8 +174,8 @@ public class MyTownResident
 		if (node.equalsIgnoreCase(Term.TownCmdPermArgsTown.toString()) && res.rank() == Rank.Resident)
 			throw new CommandException(Term.ErrPermRankNotEnough);
 		
-		set.forceChildsToInherit();
-		sender.sendChatToPlayer(Term.PermForced.toString(node));
+		set.forceChildsToInherit(perm);
+		sender.sendChatToPlayer(Term.PermForced.toString(node, perm == null || perm.equals("") ? "all" : perm));
 	}
 	
 	private static void setPermissions(ICommandSender sender, Resident res, String node, String key, String val) throws CommandException

@@ -1,4 +1,4 @@
-package ee.lutsu.alpha.mc.mytown.Entities;
+package ee.lutsu.alpha.mc.mytown.entities;
 
 import java.security.acl.Owner;
 import java.util.HashMap;
@@ -7,8 +7,8 @@ import java.util.Map.Entry;
 import java.util.jar.Attributes.Name;
 
 import ee.lutsu.alpha.mc.mytown.MyTownDatasource;
-import ee.lutsu.alpha.mc.mytown.Entities.Resident.Rank;
-import ee.lutsu.alpha.mc.mytown.Entities.TownSettingCollection.Permissions;
+import ee.lutsu.alpha.mc.mytown.entities.Resident.Rank;
+import ee.lutsu.alpha.mc.mytown.entities.TownSettingCollection.Permissions;
 
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.world.World;
