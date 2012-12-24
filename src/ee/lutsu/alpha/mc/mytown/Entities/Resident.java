@@ -416,9 +416,6 @@ public class Resident
 				}
 			}
 		}
-		
-		if (mapMode)
-			sendLocationMap(onlinePlayer.dimension, pX, pZ);
 	}
 	
 	public void bounceBack()
@@ -531,6 +528,9 @@ public class Resident
 			{
 				checkYMovement = null;
 				checkLocation();
+				
+				if (mapMode)
+					sendLocationMap(onlinePlayer.dimension, cX, cZ);
 			}
 			else if (checkYMovement != null && onlinePlayer.posY != prevY)
 				checkLocation();

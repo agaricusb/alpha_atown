@@ -16,6 +16,7 @@ import ee.lutsu.alpha.mc.mytown.entities.Town;
 import ee.lutsu.alpha.mc.mytown.event.prot.BuildCraft;
 import ee.lutsu.alpha.mc.mytown.event.prot.Creeper;
 import ee.lutsu.alpha.mc.mytown.event.prot.MiningLaser;
+import ee.lutsu.alpha.mc.mytown.event.prot.Mobs;
 import ee.lutsu.alpha.mc.mytown.event.prot.PortalGun;
 import ee.lutsu.alpha.mc.mytown.event.prot.ProtBase;
 import ee.lutsu.alpha.mc.mytown.event.prot.SteveCarts;
@@ -39,7 +40,8 @@ public class ProtectionEvents implements ITickHandler
 		PortalGun.instance,
 		MiningLaser.instance,
 		SteveCarts.instance,
-		Creeper.instance
+		Creeper.instance,
+		Mobs.instance
 	};
 	
 	public static ProtBase[] tileProtections = new ProtBase[]

@@ -35,6 +35,7 @@ import ee.lutsu.alpha.mc.mytown.event.*;
 import ee.lutsu.alpha.mc.mytown.event.prot.BuildCraft;
 import ee.lutsu.alpha.mc.mytown.event.prot.Creeper;
 import ee.lutsu.alpha.mc.mytown.event.prot.MiningLaser;
+import ee.lutsu.alpha.mc.mytown.event.prot.Mobs;
 import ee.lutsu.alpha.mc.mytown.event.prot.PortalGun;
 import ee.lutsu.alpha.mc.mytown.event.prot.SteveCarts;
 import ee.lutsu.alpha.mc.mytown.sql.Database;
@@ -288,6 +289,10 @@ public class MyTown
         prop = config.get("ProtEx", "CreeperExplosionCheck", true);
         prop.comment = "Check for creepers if they can explode";
         Creeper.instance.enabled = prop.getBoolean(true);
+        
+        prop = config.get("ProtEx", "MobPositionCheck", true);
+        prop.comment = "Check for mobs if they can be at a protected area";
+        Mobs.instance.enabled = prop.getBoolean(true);
     }
     
     private void loadPerms(Configuration config)

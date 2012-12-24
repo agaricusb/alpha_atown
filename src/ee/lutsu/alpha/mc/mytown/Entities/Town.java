@@ -330,7 +330,7 @@ public class Town
 			spawnLocation = Vec3.createVectorHelper(x, y, z); 
 			spawnEye1 = a; 
 			spawnEye2 = b;
-			spawnBlock = MyTownDatasource.instance.getBlock(spawnDimension, ChunkCoord.getCoord(x), ChunkCoord.getCoord(z));
+			spawnBlock = MyTownDatasource.instance.getOrMakeBlock(spawnDimension, ChunkCoord.getCoord(x), ChunkCoord.getCoord(z));
 		}
 		else
 		{

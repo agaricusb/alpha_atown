@@ -88,7 +88,9 @@ public class MyTownAssistant
 						}
 						catch(CommandException e)
 						{
-							MyTownDatasource.instance.unloadBlock(b);
+							if (b != null && b.town() == null)
+								MyTownDatasource.instance.unloadBlock(b);
+							
 							throw e;
 						}
 					}

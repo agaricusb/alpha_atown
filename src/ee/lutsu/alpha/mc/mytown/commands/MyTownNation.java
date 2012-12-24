@@ -116,28 +116,6 @@ public class MyTownNation
 				cs.sendChatToPlayer(Formatter.formatCommand(Term.TownCmdAccept.toString(), "", Term.TownCmdAcceptDesc2.toString(), color));
 				cs.sendChatToPlayer(Formatter.formatCommand(Term.TownCmdDeny.toString(), "", Term.TownCmdDenyDesc2.toString(), color));
 			}
-			else if (!args[0].equalsIgnoreCase(Term.TownCmdNation.toString()))
-				return;
-			else if (args[1].equalsIgnoreCase(Term.TownCmdNationNew.toString()))
-			{
-				if (!Permissions.canAccess(res, "mytown.cmd.nationnew")) { cs.sendChatToPlayer(Term.ErrCannotAccessCommand.toString()); return; }
-				
-				if (args.length == 3)
-				{
-					String name = args[2];
-					Nation n = new Nation(name, town);
-					
-					String msg = Term.NationBroadcastCreated.toString(town.name(), n.name());
-					for(Object obj : MinecraftServer.getServer().getConfigurationManager().playerEntityList)
-					{
-						((EntityPlayer)obj).sendChatToPlayer(msg);
-					}
-					
-					town.sendTownInfo(cs, res.shouldShowTownBlocks());
-				}
-				else
-					cs.sendChatToPlayer(Formatter.formatCommand(Term.TownCmdNation.toString() + " " + Term.TownCmdNationNew.toString(), Term.TownCmdNationNewArgs.toString(), Term.TownCmdNationNewDesc.toString(), color));
-			}
 			else if (args[0].equalsIgnoreCase(Term.TownCmdAccept.toString()))
 			{
 				if (!Permissions.canAccess(res, "mytown.cmd.nationaccept")) { cs.sendChatToPlayer(Term.ErrCannotAccessCommand.toString()); return; }
@@ -160,6 +138,28 @@ public class MyTownNation
 				town.pendingNationInvitation = null;
 
 				cs.sendChatToPlayer(Term.NationPlayerDeniedInvitation.toString());
+			}
+			else if (!args[0].equalsIgnoreCase(Term.TownCmdNation.toString()))
+				return;
+			else if (args[1].equalsIgnoreCase(Term.TownCmdNationNew.toString()))
+			{
+				if (!Permissions.canAccess(res, "mytown.cmd.nationnew")) { cs.sendChatToPlayer(Term.ErrCannotAccessCommand.toString()); return; }
+				
+				if (args.length == 3)
+				{
+					String name = args[2];
+					Nation n = new Nation(name, town);
+					
+					String msg = Term.NationBroadcastCreated.toString(town.name(), n.name());
+					for(Object obj : MinecraftServer.getServer().getConfigurationManager().playerEntityList)
+					{
+						((EntityPlayer)obj).sendChatToPlayer(msg);
+					}
+					
+					town.sendTownInfo(cs, res.shouldShowTownBlocks());
+				}
+				else
+					cs.sendChatToPlayer(Formatter.formatCommand(Term.TownCmdNation.toString() + " " + Term.TownCmdNationNew.toString(), Term.TownCmdNationNewArgs.toString(), Term.TownCmdNationNewDesc.toString(), color));
 			}
 		}
 		else if (nation.capital() == res.town()) // capitol city - invite, delete, kick, transfer

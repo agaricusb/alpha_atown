@@ -284,6 +284,7 @@ public class TownSettingCollection
 	public boolean allowBuildcraftMiners;
 	public boolean allowClaimingNextTo;
 	public boolean disableCreepers;
+	public boolean disableMobs;
 	
 	public boolean yCheckOn;
 	public int yCheckFrom;
@@ -315,6 +316,8 @@ public class TownSettingCollection
 			allowClaimingNextTo = set.getEffBoolean();
 		else if (set.getSerializationKey().equals("creepoff"))
 			disableCreepers = set.getEffBoolean();
+		else if (set.getSerializationKey().equals("mobsoff"))
+			disableMobs = set.getEffBoolean();
 		
 		else if (set.getSerializationKey().equals("yon"))
 			yCheckOn = set.getEffBoolean();
@@ -340,6 +343,7 @@ public class TownSettingCollection
 		settings.add(new TownSetting("Allow quarrys,filler,builders", 	"bc",		 	false, 				true, 				"boolean:yes/no", 							boolean.class));
 		settings.add(new TownSetting("Allow claiming next to", 			"closeclaim",	false, 				null, 				"boolean:yes/no", 							boolean.class));
 		settings.add(new TownSetting("Disable creeper explosion",		"creepoff",		false, 				null, 				"boolean:yes/no", 							boolean.class));
+		settings.add(new TownSetting("Disable mobs",					"mobsoff",		false, 				null, 				"boolean:yes/no", 							boolean.class));
 		
 		settings.add(new TownSetting("Height enabled", 					"yon",	 		false, 				null, 				"boolean:yes/no", 							boolean.class));
 		settings.add(new TownSetting("Height check from", 				"yfrom",	 	0, 					null,				"int:0-255", 								int.class));
