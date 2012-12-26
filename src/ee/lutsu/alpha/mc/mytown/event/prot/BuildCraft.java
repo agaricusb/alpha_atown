@@ -19,7 +19,7 @@ public class BuildCraft extends ProtBase
 	public List<TileEntity> checkedEntitys = new ArrayList<TileEntity>();
 
 	Class clQuarry = null, clFiller, clBuilder, clBox;
-	Field fBoxQ, fBoxF, fBoxB, fmx, fmy, fmz, fxx, fxy, fxz, fBoxInit, fQuarryOwner;
+	Field fBoxQ, fBoxF, fBoxB, fmx, fmy, fmz, fxx, fxy, fxz, fBoxInit, fQuarryOwner, fQuarryBuilderDone;
 	
 	public void reload()
 	{
@@ -37,6 +37,7 @@ public class BuildCraft extends ProtBase
 		
 		fBoxQ = clQuarry.getField("box");
 		fQuarryOwner = clQuarry.getField("placedBy");
+		fQuarryBuilderDone = clQuarry.getField("builderDone");
 		fBoxF = clFiller.getField("box");
 		fBoxB = clBuilder.getField("box");
 		
@@ -88,6 +89,9 @@ public class BuildCraft extends ProtBase
 		boolean init = (boolean)fBoxInit.getBoolean(box);
 		if (!init)
 			return "-";
+		
+		if (clazz == clQuarry && fQuarryBuilderDone.getBoolean(e)) // only check quarrys in builder mode
+			return null;
 		
 		int ax = fmx.getInt(box);
 		int ay = fmy.getInt(box);

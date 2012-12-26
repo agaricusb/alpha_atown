@@ -30,14 +30,14 @@ public class SteveCarts extends ProtBase
 	@Override
 	public void load() throws Exception
 	{
-		clSteveCart = Class.forName("vswe.stevescarts.entMCBase");
+		clSteveCart = Class.forName("vswe.stevescarts.Carts.entMCBase");
 		fWorkModules = clSteveCart.getDeclaredField("workModules");
 
-		Class c = Class.forName("vswe.stevescarts.workModuleBase");
+		Class c = Class.forName("vswe.stevescarts.Modules.Works.workModuleBase");
 		mGetNextblock = c.getDeclaredMethod("getNextblock");
 
-		clRailer = Class.forName("vswe.stevescarts.workModuleRailer");
-		clMiner = Class.forName("vswe.stevescarts.workModuleMiner");
+		clRailer = Class.forName("vswe.stevescarts.Modules.Works.workModuleRailer");
+		clMiner = Class.forName("vswe.stevescarts.Modules.Works.workModuleMiner");
 	}
 	
 	@Override

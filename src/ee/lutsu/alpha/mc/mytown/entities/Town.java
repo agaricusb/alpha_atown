@@ -216,10 +216,13 @@ public class Town
 		res.save();
 	}
 	
-	public void removeBlocks(List<TownBlock> b)
+	public void removeBlocks(List<TownBlock> b) throws CommandException
 	{
 		for(TownBlock block : b)
 		{
+			if (block.town() == null || block.town() != this)
+				throw new CommandException(Term.TownErrAlreadyClaimed);
+			
 			if (spawnBlock == block)
 				resetSpawn();
 			
@@ -230,8 +233,11 @@ public class Town
 		save();
 	}
 	
-	public void removeBlock(TownBlock block)
+	public void removeBlock(TownBlock block) throws CommandException
 	{
+		if (block.town() == null || block.town() != this)
+			throw new CommandException(Term.TownErrAlreadyClaimed);
+		
 		if (spawnBlock == block)
 			resetSpawn();
 		
@@ -326,11 +332,18 @@ public class Town
 			float a = Float.parseFloat(location[4]);
 			float b = Float.parseFloat(location[5]);
 			
-			
 			spawnLocation = Vec3.createVectorHelper(x, y, z); 
 			spawnEye1 = a; 
 			spawnEye2 = b;
-			spawnBlock = MyTownDatasource.instance.getOrMakeBlock(spawnDimension, ChunkCoord.getCoord(x), ChunkCoord.getCoord(z));
+			
+			for (TownBlock r : blocks)
+			{
+				if (r.equals(spawnDimension, (int)x, (int)z))
+					spawnBlock = r;
+			}
+			
+			if (spawnBlock == null)
+				spawnLocation = null;
 		}
 		else
 		{
