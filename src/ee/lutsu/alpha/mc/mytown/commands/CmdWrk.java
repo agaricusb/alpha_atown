@@ -1,6 +1,8 @@
 package ee.lutsu.alpha.mc.mytown.commands;
 
+import ee.lutsu.alpha.mc.mytown.Log;
 import ee.lutsu.alpha.mc.mytown.Permissions;
+import ee.lutsu.alpha.mc.mytown.ext.Mffs;
 import net.minecraft.command.CommandBase;
 import net.minecraft.command.ICommandSender;
 import net.minecraft.entity.player.EntityPlayer;
@@ -35,6 +37,12 @@ public class CmdWrk extends CommandBase
 			
 			MinecraftServer.getServer().getCommandManager().executeCommand(cs, "/pex user " + name + " group set " + grp);
 			MinecraftServer.getServer().getConfigurationManager().removeOp(name);
+			if (Mffs.check())
+			{
+				Mffs.removeAdminBypass(name);
+				Log.info("User " + name + " removed from MFFS bypass");
+				pl.sendChatToPlayer("Removed from MFFS bypass");
+			}
 			
 			if (mode != EnumGameType.SURVIVAL)
 				pl.sendGameTypeToPlayer(EnumGameType.SURVIVAL);
@@ -45,6 +53,13 @@ public class CmdWrk extends CommandBase
 			
 			MinecraftServer.getServer().getCommandManager().executeCommand(cs, "/pex user " + name + " group set " + grp);
 			MinecraftServer.getServer().getConfigurationManager().addOp(name);
+			
+			if (Mffs.check())
+			{
+				Mffs.grantAdminBypass(name);
+				Log.info("User " + name + " added to MFFS bypass");
+				pl.sendChatToPlayer("Granted MFFS bypass");
+			}
 			
 			if (mode != EnumGameType.CREATIVE)
 				pl.sendGameTypeToPlayer(EnumGameType.CREATIVE);

@@ -19,13 +19,13 @@ import ee.lutsu.alpha.mc.mytown.CommandException;
 import ee.lutsu.alpha.mc.mytown.Formatter;
 import ee.lutsu.alpha.mc.mytown.MyTown;
 import ee.lutsu.alpha.mc.mytown.MyTownDatasource;
+import ee.lutsu.alpha.mc.mytown.Permissions;
 import ee.lutsu.alpha.mc.mytown.Term;
 import ee.lutsu.alpha.mc.mytown.entities.Resident.Rank;
 import ee.lutsu.alpha.mc.mytown.entities.TownSettingCollection.ISettingsSaveHandler;
 
 public class Town 
 {
-	public static int perResidentBlocks = 16;
 	public static int minDistanceFromOtherTown = 5;
 	public static int dontSendCartNotification = 5000;
 	public static boolean allowFullPvp = false;
@@ -128,14 +128,67 @@ public class Town
 		};
 	}
 	
-	public int allowedBlocksWOExtra()
+	public Resident getFirstMayor()
 	{
-		return residents.size() * perResidentBlocks;
+		for (Resident r : residents)
+			if (r.rank() == Rank.Mayor)
+				return r;
+		
+		return null;
+	}
+	
+	public int blocksPerResident()
+	{
+		Resident mayor = getFirstMayor();
+		if (mayor == null)
+			return 1;
+		
+		if (Permissions.canAccess(mayor, "mytown.mayor.blocks.32"))
+			return 32;
+		if (Permissions.canAccess(mayor, "mytown.mayor.blocks.16"))
+			return 16;
+		if (Permissions.canAccess(mayor, "mytown.mayor.blocks.8"))
+			return 8;
+		if (Permissions.canAccess(mayor, "mytown.mayor.blocks.4"))
+			return 4;
+		if (Permissions.canAccess(mayor, "mytown.mayor.blocks.2"))
+			return 2;
+		
+		return 1;
+	}
+	
+	public int residentBlockMultiplier(Resident res)
+	{
+		if (res == null)
+			return 1;
+		
+		if (Permissions.canAccess(res, "mytown.resident.blocksmulti.10"))
+			return 10;
+		if (Permissions.canAccess(res, "mytown.resident.blocksmulti.8"))
+			return 8;
+		if (Permissions.canAccess(res, "mytown.resident.blocksmulti.4"))
+			return 4;
+		if (Permissions.canAccess(res, "mytown.resident.blocksmulti.2"))
+			return 2;
+		
+		return 1;
+	}
+
+	public int perResidentBlocks()
+	{
+		int b = 0;
+		int perRes = blocksPerResident();
+		for (Resident r : residents)
+		{
+			b += perRes * residentBlockMultiplier(r);
+		}
+		
+		return b;
 	}
 	
 	public int totalBlocks()
 	{
-		return allowedBlocksWOExtra() + extraBlocks + (nation() == null ? 0 : nation().getTotalExtraBlocks(this));
+		return perResidentBlocks() + extraBlocks + (nation() == null ? 0 : nation().getTotalExtraBlocks(this));
 	}
 	
 	public int freeBlocks()
@@ -336,9 +389,12 @@ public class Town
 			spawnEye1 = a; 
 			spawnEye2 = b;
 			
+			int cx = ChunkCoord.getCoord(x);
+			int cz = ChunkCoord.getCoord(z);
+			
 			for (TownBlock r : blocks)
 			{
-				if (r.equals(spawnDimension, (int)x, (int)z))
+				if (r.equals(spawnDimension, cx, cz))
 					spawnBlock = r;
 			}
 			

@@ -142,7 +142,7 @@ public class CmdChat extends CommandBase
 	{
 		String formatted = Formatter.formatChat(res, msg, null, ChatChannel.Local);
 		
-		int sentTo = sendChatToAround(res.onlinePlayer.dimension, res.onlinePlayer.posX, res.onlinePlayer.posY, res.onlinePlayer.posZ, formatted);
+		int sentTo = sendChatToAround(res.onlinePlayer.dimension, res.onlinePlayer.posX, res.onlinePlayer.posY, res.onlinePlayer.posZ, formatted, null);
 
 		if (sentTo < 2)
 			res.onlinePlayer.sendChatToPlayer(Term.ChatAloneInChannel.toString());
@@ -150,14 +150,14 @@ public class CmdChat extends CommandBase
 		return formatted;
 	}
 	
-	public static int sendChatToAround(int dim, double posX, double posY, double posZ, String msg)
+	public static int sendChatToAround(int dim, double posX, double posY, double posZ, String msg, EntityPlayer except)
 	{
 		int sentTo = 0;
 		int dsqr = ChatChannel.localChatDistance * ChatChannel.localChatDistance;
 		for(Object obj : MinecraftServer.getServer().getConfigurationManager().playerEntityList)
 		{
 			EntityPlayer pl = (EntityPlayer)obj;
-			if (pl.dimension == dim && pl.getDistanceSq(posX, posY, posZ) <= dsqr)
+			if (pl != except && pl.dimension == dim && pl.getDistanceSq(posX, posY, posZ) <= dsqr)
 			{
 				pl.sendChatToPlayer(msg);
 				sentTo++;

@@ -15,6 +15,7 @@ import ee.lutsu.alpha.mc.mytown.MyTown;
 import ee.lutsu.alpha.mc.mytown.MyTownDatasource;
 import ee.lutsu.alpha.mc.mytown.Permissions;
 import ee.lutsu.alpha.mc.mytown.Term;
+import ee.lutsu.alpha.mc.mytown.commands.CmdChat;
 import ee.lutsu.alpha.mc.mytown.entities.TownSettingCollection.ISettingsSaveHandler;
 import net.minecraft.command.ICommandSender;
 import net.minecraft.entity.Entity;
@@ -290,11 +291,19 @@ public class Resident
 			{
 				TownBlock b = MyTownDatasource.instance.getBlock(dim, x, z);
 				
-				if (z == cz && x == cx)
-					c = b == null || b.town() == null ? "§e_" : b.town() == town ? "§aO" : "§cX";
-				else
-					c = b == null || b.town() == null ? "§f_" : b.town() == town ? "§2O" : "§4X";
+				boolean mid = z == cz && x == cx;
+				boolean isTown = b != null && b.town() != null;
+				boolean ownTown = isTown && b.town() == town;
+				boolean takenPlot = ownTown && b.owner() != null;
+				boolean ownPlot = takenPlot && b.owner() == this;
 				
+				if (mid)
+					c = ownPlot ? "§e" : ownTown ? "§a" : isTown ? "§c" : "§f";
+				else
+					c = ownPlot ? "§6" : ownTown ? "§2" : isTown ? "§4" : "§7";
+				
+				c += takenPlot ? "X" : isTown ? "O" : "_";
+
 				sb.append(c);
 			}
 			onlinePlayer.sendChatToPlayer(sb.toString());
@@ -509,6 +518,15 @@ public class Resident
 	{
 		if (beingBounced)
 			return;
+		
+		if (teleportToSpawnStamp != 0)
+		{
+			if (teleportToSpawnStamp <= System.currentTimeMillis())
+				asyncEndSpawnTeleport();
+			else if ((int)onlinePlayer.posX != (int)prevX || (int)onlinePlayer.posZ != (int)prevZ || (int)onlinePlayer.posY != (int)prevY)
+				asyncResetSpawnTeleport();
+		}
+			
 					
 		wasfirstTick = false;
 		
@@ -613,5 +631,40 @@ public class Resident
 		}
 		else
 			return false;
+	}
+	
+	private long teleportToSpawnStamp = 0;
+	public static long teleportToSpawnWait = 1 * 60 * 1000; // 1 minute
+	public void asyncStartSpawnTeleport()
+	{
+		long takesTime = Permissions.canAccess(this, "mytown.adm.bypass.teleportwait") ? 0 : teleportToSpawnWait;
+		teleportToSpawnStamp = System.currentTimeMillis() + takesTime;
+		
+		if (takesTime > 0)
+		{
+			CmdChat.sendChatToAround(onlinePlayer.dimension, onlinePlayer.posX, onlinePlayer.posY, onlinePlayer.posZ, Term.SpawnCmdTeleportNearStarted.toString(name(), (int)Math.ceil(takesTime / 1000)), onlinePlayer);
+			onlinePlayer.sendChatToPlayer(Term.SpawnCmdTeleportStarted.toString((int)Math.ceil(takesTime / 1000)));
+		}
+	}
+	
+	private void asyncResetSpawnTeleport() // when the player moved
+	{
+		if (!isOnline())
+			return;
+		
+		teleportToSpawnStamp = 0;
+		onlinePlayer.sendChatToPlayer(Term.SpawnCmdTeleportReset.toString());
+	}
+	
+	private void asyncEndSpawnTeleport() // time out, move it
+	{
+		if (!isOnline())
+			return;
+		
+		teleportToSpawnStamp = 0;
+
+		sendToServerSpawn();
+		
+		onlinePlayer.sendChatToPlayer(Term.SpawnCmdTeleportEnded.toString());
 	}
 }

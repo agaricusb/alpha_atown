@@ -2,9 +2,12 @@ package ee.lutsu.alpha.mc.mytown.event.prot;
 
 import java.lang.reflect.Field;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.server.MinecraftServer;
 import net.minecraft.tileentity.TileEntity;
 
 import ee.lutsu.alpha.mc.mytown.ChunkCoord;
@@ -17,6 +20,8 @@ public class BuildCraft extends ProtBase
 {
 	public static BuildCraft instance = new BuildCraft();
 	public List<TileEntity> checkedEntitys = new ArrayList<TileEntity>();
+	public int tickRun = 0;
+	public boolean tickRunDone = false;
 
 	Class clQuarry = null, clFiller, clBuilder, clBox;
 	Field fBoxQ, fBoxF, fBoxB, fmx, fmy, fmz, fxx, fxy, fxz, fBoxInit, fQuarryOwner, fQuarryBuilderDone;
@@ -24,6 +29,8 @@ public class BuildCraft extends ProtBase
 	public void reload()
 	{
 		checkedEntitys.clear();
+		tickRunDone = false;
+		tickRun = 0;
 	}
 	
 	@Override
@@ -48,10 +55,25 @@ public class BuildCraft extends ProtBase
 		fxy = clBox.getField("yMax");
 		fxz = clBox.getField("zMax");
 		fBoxInit = clBox.getField("initialized");
+		
+		tickRunDone = false;
+		tickRun = 0;
 	}
 	
 	@Override
-	public boolean loaded() { return clBuilder != null; }
+	public boolean loaded() 
+	{ 
+		if (!tickRunDone)
+		{
+			if (tickRun > (MinecraftServer.getServer().worldServers.length * 20 * 60)) // skip for 1 minute
+				tickRunDone = true;
+			
+			tickRun++;
+		}
+		
+		return clBuilder != null;
+	}
+	
 	@Override
 	public boolean isEntityInstance(TileEntity e) 
 	{ 
@@ -63,6 +85,9 @@ public class BuildCraft extends ProtBase
 	@Override
 	public String update(TileEntity e) throws Exception
 	{
+		if (!tickRunDone)
+			return null;
+
 		if (checkedEntitys.contains(e))
 			return null;
 		
@@ -123,7 +148,10 @@ public class BuildCraft extends ProtBase
 						}
 					}
 					
-					return "Region will hit a an area which doesn't allow buildcraft block breakers";
+					String b = block == null || block.town() == null ? "wild" : block.town().name() + (block.owner() != null ? " owned by " + block.ownerDisplay() : "");
+					b = String.format("%s @ dim %s (%s,%s)", e.worldObj.provider.dimensionId, x, z);
+					
+					return "Region will hit " + b + " which doesn't allow buildcraft block breakers";
 				}
 			}
 		}

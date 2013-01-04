@@ -1,5 +1,7 @@
 package ee.lutsu.alpha.mc.mytown.commands;
 
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Comparator;
 import java.util.Map;
 import java.util.TreeMap;
@@ -57,8 +59,10 @@ public class MyTownNation
 		else if (args.length > 1 && args[0].equalsIgnoreCase(Term.TownCmdNation.toString()) && args[1].equalsIgnoreCase(Term.TownCmdNationList.toString()))
 		{
 			if (!Permissions.canAccess(cs, "mytown.cmd.nationlist")) { cs.sendChatToPlayer(Term.ErrCannotAccessCommand.toString()); return; }
+
+			ArrayList<Nation> sorted = new ArrayList<Nation>(MyTownDatasource.instance.nations);
 			
-			TreeSet<Nation> sorted = new TreeSet<Nation>(new Comparator<Nation>()
+			Collections.sort(sorted, new Comparator<Nation>()
 			{
 				@Override
 				public int compare(Nation arg0, Nation arg1)
@@ -67,10 +71,8 @@ public class MyTownNation
 				}
 			});
 			
-			sorted.addAll(MyTownDatasource.instance.nations);
-			
 			StringBuilder sb = new StringBuilder();
-			sb.append(Term.TownCmdNationListStart.toString(""));
+			sb.append(Term.TownCmdNationListStart.toString(sorted.size(), ""));
 			int i = 0;
 			
 			for (Nation e : sorted)
@@ -80,10 +82,10 @@ public class MyTownNation
 				{
 					sb.append(", ");
 					
-					if (sb.length() + n.length() >= 100)
+					if (sb.length() + n.length() > 70)
 					{
 						cs.sendChatToPlayer(sb.toString());
-						sb.setLength(0);
+						sb = new StringBuilder();
 						i = 0;
 					}
 				}

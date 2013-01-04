@@ -69,7 +69,7 @@ public enum Term
 	
 	TownCmdList("list"),
 	TownCmdListDesc("Lists all towns"),
-	TownCmdListStart("§aTowns§f: %s"),
+	TownCmdListStart("§aTowns [%s]§f: %s"),
 	TownCmdListEntry("%s[%s]"),
 	
 	TownCmdFriend("friend"),
@@ -180,7 +180,7 @@ public enum Term
 	TownCmdNationInfoDesc("Shows info about a nation"),
 	
 	TownCmdNationList("list"),
-	TownCmdNationListStart("§aNations§f: %s"),
+	TownCmdNationListStart("§aNations [%s]§f: %s"),
 	TownCmdNationListEntry("%s[%s]"),
 	TownCmdNationListDesc("Lists all nations"),
 	
@@ -379,6 +379,12 @@ public enum Term
 	ErrNotUsableByConsole("This command can't be run from console"),
 	ErrPlayerAlreadyInFriendList("The player '%s' is already in your friends list"),
 	ErrPlayerNotInFriendList("The player '%s' is not in your friends list"),
+	
+	// spawn command
+	SpawnCmdTeleportStarted("§aStarted casting the spawn teleport spell. It will take %s seconds"),
+	SpawnCmdTeleportNearStarted("§e%s started casting a %s second spawn teleport spell"),
+	SpawnCmdTeleportEnded("§aWhoooOooOooooOoo"),
+	SpawnCmdTeleportReset("§4Teleport spell casting interrupted"),
 	;
 	
 	public final String defaultVal;

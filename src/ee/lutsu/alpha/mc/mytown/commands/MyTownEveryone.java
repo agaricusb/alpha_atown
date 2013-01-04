@@ -2,6 +2,7 @@ package ee.lutsu.alpha.mc.mytown.commands;
 
 import java.util.AbstractMap;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
@@ -157,7 +158,9 @@ public class MyTownEveryone
 		{
 			if (!Permissions.canAccess(cs, "mytown.cmd.list")) { cs.sendChatToPlayer(Term.ErrCannotAccessCommand.toString()); return; }
 			
-			TreeSet<Town> sorted = new TreeSet<Town>(new Comparator<Town>()
+			ArrayList<Town> sorted = new ArrayList<Town>(MyTownDatasource.instance.towns);
+			
+			Collections.sort(sorted, new Comparator<Town>()
 			{
 				@Override
 				public int compare(Town arg0, Town arg1)
@@ -165,11 +168,9 @@ public class MyTownEveryone
 					return Integer.compare(arg1.residents().size(), arg0.residents().size());
 				}
 			});
-			
-			sorted.addAll(MyTownDatasource.instance.towns);
-			
+
 			StringBuilder sb = new StringBuilder();
-			sb.append(Term.TownCmdListStart.toString(""));
+			sb.append(Term.TownCmdListStart.toString(sorted.size(), ""));
 			int i = 0;
 			
 			for (Town e : sorted)
@@ -179,10 +180,10 @@ public class MyTownEveryone
 				{
 					sb.append(", ");
 					
-					if (sb.length() + n.length() >= 100)
+					if (sb.length() + n.length() > 70)
 					{
 						cs.sendChatToPlayer(sb.toString());
-						sb.setLength(0);
+						sb = new StringBuilder();
 						i = 0;
 					}
 				}

@@ -27,6 +27,7 @@ import java.util.logging.Level;
 
 import ee.lutsu.alpha.mc.mytown.commands.*;
 import ee.lutsu.alpha.mc.mytown.entities.ItemIdRange;
+import ee.lutsu.alpha.mc.mytown.entities.Nation;
 import ee.lutsu.alpha.mc.mytown.entities.Resident;
 import ee.lutsu.alpha.mc.mytown.entities.Town;
 import ee.lutsu.alpha.mc.mytown.entities.TownSettingCollection;
@@ -120,6 +121,7 @@ public class MyTown
     	mgr.registerCommand(new CmdChannel());
     	mgr.registerCommand(new CmdGamemode());
     	mgr.registerCommand(new CmdWrk());
+    	mgr.registerCommand(new CmdSpawn());
     	
 		for(ChatChannel c : ChatChannel.values())
 			mgr.registerCommand(new CmdChat(c));
@@ -182,9 +184,18 @@ public class MyTown
         prop.comment = "Should ops be bypassed from protections";
         Resident.ignoreOps = prop.getBoolean(true);
         
+        /*
         prop = config.get("General", "BlocksPerResident", 16);
         prop.comment = "How many town block each resident gives";
-        Town.perResidentBlocks = prop.getInt(16);
+        Town.perResidentBlocks = prop.getInt(16);*/
+        
+        prop = config.get("General", "NationAddsBlocks", 0);
+        prop.comment = "How many town blocks the town gets for being in a nation";
+        Nation.nationAddsBlocks = prop.getInt(0);
+        
+        prop = config.get("General", "NationAddsBlocksPerResident", 0);
+        prop.comment = "How many town blocks each resident gives if the town is in a nation";
+        Nation.nationAddsBlocksPerResident = prop.getInt(0);
         
         prop = config.get("General", "MinDistanceFromAnotherTown", 50);
         prop.comment = "How many blocks(chunks) apart have the town blocks be";

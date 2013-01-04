@@ -17,7 +17,7 @@ import ee.lutsu.alpha.mc.mytown.entities.Resident.Rank;
 
 public class Nation 
 {
-	public static int nationAddsBlocks = 32;
+	public static int nationAddsBlocks = 0;
 	public static int nationAddsBlocksPerResident = 0;
 	
 	private List<Town> towns = new ArrayList<Town>();
