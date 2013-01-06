@@ -414,10 +414,7 @@ public class Town
 	public void sendTownInfo(ICommandSender pl, boolean adminInfo)
 	{
 		Town t = this;
-		
-		String extraBlocks = t.extraBlocks() == 0 ? "" :
-			(t.extraBlocks() > 0 ? "+" : "-") + Math.abs(t.extraBlocks());
-		
+
 		StringBuilder mayors = new StringBuilder();
 		StringBuilder assistants = new StringBuilder();
 		StringBuilder residents = new StringBuilder();
@@ -427,19 +424,19 @@ public class Town
 			if (r.rank() == Rank.Mayor)
 			{
 				if (mayors.length() > 0)
-					mayors.append(", ");
+					mayors.append("§2, ");
 				mayors.append(Formatter.formatResidentName(r));
 			} 
 			else if (r.rank() == Rank.Assistant)
 			{
 				if (assistants.length() > 0)
-					assistants.append(", ");
+					assistants.append("§2, ");
 				assistants.append(Formatter.formatResidentName(r));
 			}
 			else if (r.rank() == Rank.Resident)
 			{
 				if (residents.length() > 0)
-					residents.append(", ");
+					residents.append("§2, ");
 				residents.append(Formatter.formatResidentName(r));
 			}
 		}

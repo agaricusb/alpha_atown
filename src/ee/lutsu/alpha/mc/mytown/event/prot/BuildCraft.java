@@ -149,7 +149,7 @@ public class BuildCraft extends ProtBase
 					}
 					
 					String b = block == null || block.town() == null ? "wild" : block.town().name() + (block.owner() != null ? " owned by " + block.ownerDisplay() : "");
-					b = String.format("%s @ dim %s (%s,%s)", e.worldObj.provider.dimensionId, x, z);
+					b = String.format("%s @ dim %s (%s,%s)", b, e.worldObj.provider.dimensionId, x, z);
 					
 					return "Region will hit " + b + " which doesn't allow buildcraft block breakers";
 				}

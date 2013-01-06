@@ -16,11 +16,70 @@ import ee.lutsu.alpha.mc.mytown.Term;
 import ee.lutsu.alpha.mc.mytown.entities.Resident;
 import ee.lutsu.alpha.mc.mytown.entities.Town;
 import ee.lutsu.alpha.mc.mytown.entities.TownBlock;
+import ee.lutsu.alpha.mc.mytown.entities.TownSetting;
 import ee.lutsu.alpha.mc.mytown.entities.TownSettingCollection;
 import ee.lutsu.alpha.mc.mytown.entities.Resident.Rank;
 
 public class MyTownResident 
 {
+	public static List<String> getAutoComplete(ICommandSender cs, String[] args)
+	{
+		ArrayList<String> list = new ArrayList<String>();
+
+		if (!(cs instanceof EntityPlayer)) // no commands for console
+			return list;
+		
+		Resident res = MyTownDatasource.instance.getOrMakeResident((EntityPlayer)cs);
+		if (res.town() == null)
+			return list;
+		
+		if (args.length == 1)
+		{
+			list.add(Term.TownCmdLeave.toString());
+			list.add(Term.TownCmdOnline.toString());
+			list.add(Term.TownCmdPerm.toString()); // /t perm town|res|plot [force|(set key [val])]
+		}
+		else if (args.length == 2 && args[0].equalsIgnoreCase(Term.TownCmdPerm.toString()))
+		{
+			list.add(Term.TownCmdPermArgsTown.toString());
+			list.add(Term.TownCmdPermArgsResident.toString());
+			list.add(Term.TownCmdPermArgsPlot.toString());
+		}
+		else if (args.length == 3 && args[0].equalsIgnoreCase(Term.TownCmdPerm.toString()))
+		{
+			list.add(Term.TownCmdPermArgs2Set.toString());
+			list.add(Term.TownCmdPermArgs2Force.toString());
+		}
+		else if (args.length == 4 && args[0].equalsIgnoreCase(Term.TownCmdPerm.toString()))
+		{
+			for (TownSetting s : MyTown.instance.serverSettings.settings)
+			{
+				list.add(s.getSerializationKey());
+			}
+		}
+		else if (args.length == 5 && args[0].equalsIgnoreCase(Term.TownCmdPerm.toString()) && args[2].equalsIgnoreCase(Term.TownCmdPermArgs2Set.toString()))
+		{
+			TownSetting s = MyTown.instance.serverSettings.getSetting(args[3]);
+			if (s != null)
+			{
+				Class c = s.getValueClass();
+				
+				if (c == TownSettingCollection.Permissions.class)
+				{
+					for (TownSettingCollection.Permissions p : TownSettingCollection.Permissions.values())
+						list.add(p.toString());
+				}
+				else if (c == boolean.class)
+				{
+					list.add("yes");
+					list.add("no");
+				}
+			}
+		}
+
+		return list;
+	}
+	
 	public static void handleCommand(ICommandSender cs, String[] args) throws CommandException
 	{
 		if (!(cs instanceof EntityPlayer)) // no commands for console
@@ -30,7 +89,7 @@ public class MyTownResident
 		if (res.town() == null)
 			return;
 		
-		String color = "f";
+		String color = "2";
 		if (args.length < 1)
 		{
 			if (!Permissions.canAccess(res, "mytown.cmd.info")) { cs.sendChatToPlayer(Term.ErrCannotAccessCommand.toString()); return; }
@@ -39,7 +98,7 @@ public class MyTownResident
 		}
 		else
 		{
-			if (args[0].equals("?") || args[0].equalsIgnoreCase(Term.CommandHelp.toString()))
+			if (args.length == 1 && (args[0].equals("?") || args[0].equalsIgnoreCase(Term.CommandHelp.toString())))
 			{
 				cs.sendChatToPlayer(Formatter.formatCommand(Term.TownCmdLeave.toString(), "", Term.TownCmdLeaveDesc.toString(), color));
 				cs.sendChatToPlayer(Formatter.formatCommand(Term.TownCmdOnline.toString(), "", Term.TownCmdOnlineDesc.toString(), color));
@@ -69,7 +128,7 @@ public class MyTownResident
 						continue;
 					
 					if (sb.length() > 0)
-						sb.append(", ");
+						sb.append("§2, ");
 					
 					sb.append(Formatter.formatResidentName(r));
 				}

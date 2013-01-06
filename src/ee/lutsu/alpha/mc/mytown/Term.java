@@ -28,17 +28,18 @@ public enum Term
 	// status
 	TownStatusName("§6--------[[ %s%s§6 ]]--------"),
 	TownStatusGeneral("§2Town blocks: §b%s§2/§b%s §2Nation: §b%s"),
-	TownStatusMayor("§2Mayor: §b%s"),
-	TownStatusAssistants("§2Assistants: §b%s"),
-	TownStatusResidents("§2Residents: §b%s"),
+	TownStatusMayor("§2Mayor: §f%s"),
+	TownStatusAssistants("§2Assistants: §f%s"),
+	TownStatusResidents("§2Residents: §f%s"),
 	
 	// resident status
-	ResStatusName("§6--------[[ §2%s§6 ]]--------"),
+	ResStatusName("§6--------[[ %s§6 ]]--------"),
+	ResStatusLocation("§2Location: §b%s @ dim %s (%s,%s,%s)"),
 	ResStatusGeneral1("§2Member from: §b%s"),
 	ResStatusGeneral2("§2Last online: §b%s"),
 	ResStatusTown("§2Member of: §b%s§2, §a%s"),
-	ResStatusFriends("§2Friends: %s"),
-	ResStatusFriends2("§2Friend of: %s"),
+	ResStatusFriends("§2Friends: §f%s"),
+	ResStatusFriends2("§2Friend of: §f%s"),
 	
 	// commands
 	TownCommand("mytown"),
@@ -52,7 +53,19 @@ public enum Term
 	
 	TownCommandDesc("§5MyTown §2- Be protected by towns"),
 	LineSeperator("§6--------[[ §5MyTown§6 ]]--------"),
+	
+	CommandHelpStart("§4Commands: "),
+	CommandHelpStartSub("§4%s commands: "),
 	CommandHelp("help"),
+	
+	CommandHelpAssistant("assistant"),
+	CommandHelpAssistantDesc("Show the town assistant commands"),
+	
+	CommandHelpMayor("mayor"),
+	CommandHelpMayorDesc("Show the town mayor commands"),
+	
+	CommandHelpNation("nation"),
+	CommandHelpNationDesc("Show the nation commands"),
 	
 	// all
 	TownCmdMap("map"),
@@ -70,7 +83,7 @@ public enum Term
 	TownCmdList("list"),
 	TownCmdListDesc("Lists all towns"),
 	TownCmdListStart("§aTowns [%s]§f: %s"),
-	TownCmdListEntry("%s[%s]"),
+	TownCmdListEntry("§f%s§a[%s]"),
 	
 	TownCmdFriend("friend"),
 	TownCmdFriendArgs("add|remove name"),
@@ -334,7 +347,7 @@ public enum Term
 	
 	// permissions - town command
 	TownCmdPerm("perm"),
-	TownCmdPermArgs("town|res|plot [force|(set key [val])]"),
+	TownCmdPermArgs("town|res|plot [force [key]|set key [val]]"),
 	TownCmdPermArgsTown("town"),
 	TownCmdPermArgsResident("res"),
 	TownCmdPermArgsPlot("plot"),

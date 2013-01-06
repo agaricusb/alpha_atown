@@ -21,6 +21,27 @@ import net.minecraftforge.event.entity.EntityEvent.EnteringChunk;
 
 public class MyTownNonResident 
 {
+	public static List<String> getAutoComplete(ICommandSender cs, String[] args)
+	{
+		ArrayList<String> list = new ArrayList<String>();
+
+		if (!(cs instanceof EntityPlayer)) // no commands for console
+			return list;
+		
+		Resident res = MyTownDatasource.instance.getOrMakeResident((EntityPlayer)cs);
+		if (res.town() != null)
+			return list;
+		
+		if (args.length == 1)
+		{
+			list.add(Term.TownCmdNew.toString());
+			list.add(Term.TownCmdAccept.toString());
+			list.add(Term.TownCmdDeny.toString());
+		}
+
+		return list;
+	}
+	
 	public static void handleCommand(ICommandSender cs, String[] args) throws CommandException
 	{
 		if (!(cs instanceof EntityPlayer)) // no commands for console
@@ -30,8 +51,8 @@ public class MyTownNonResident
 		if (res.town() != null)
 			return;
 		
-		String color = "f";
-		if (args.length < 1 || args[0].equals("?") || args[0].equalsIgnoreCase(Term.CommandHelp.toString()))
+		String color = "2";
+		if (args.length < 1 || (args.length == 1 && args[0].equals("?") || args[0].equalsIgnoreCase(Term.CommandHelp.toString())))
 		{
 			cs.sendChatToPlayer(Formatter.formatCommand(Term.TownCmdNew.toString(), Term.TownCmdNewArgs.toString(), Term.TownCmdNewDesc.toString(), color));
 			cs.sendChatToPlayer(Formatter.formatCommand(Term.TownCmdAccept.toString(), "", Term.TownCmdAcceptDesc.toString(), color));

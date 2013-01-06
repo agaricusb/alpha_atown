@@ -168,6 +168,9 @@ public class CmdChat extends CommandBase
 
 	public static void sendToChannel(Resident sender, String msg, ChatChannel channel)
 	{
+		if (msg == null || msg.trim().length() < 1)
+			return;
+		
 		String s;
 		if (channel == ChatChannel.Local)
 			s = sendLocalChat(sender, msg);

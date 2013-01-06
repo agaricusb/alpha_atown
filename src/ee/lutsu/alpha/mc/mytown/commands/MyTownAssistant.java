@@ -6,11 +6,14 @@ import java.util.logging.Level;
 
 import ee.lutsu.alpha.mc.mytown.CommandException;
 import ee.lutsu.alpha.mc.mytown.Formatter;
+import ee.lutsu.alpha.mc.mytown.MyTown;
 import ee.lutsu.alpha.mc.mytown.MyTownDatasource;
 import ee.lutsu.alpha.mc.mytown.Permissions;
 import ee.lutsu.alpha.mc.mytown.Term;
 import ee.lutsu.alpha.mc.mytown.entities.Resident;
 import ee.lutsu.alpha.mc.mytown.entities.TownBlock;
+import ee.lutsu.alpha.mc.mytown.entities.TownSetting;
+import ee.lutsu.alpha.mc.mytown.entities.TownSettingCollection;
 import ee.lutsu.alpha.mc.mytown.entities.Resident.Rank;
 import ee.lutsu.alpha.mc.mytown.event.PlayerEvents;
 
@@ -22,6 +25,61 @@ import net.minecraftforge.event.entity.EntityEvent.EnteringChunk;
 
 public class MyTownAssistant 
 {
+	public static List<String> getAutoComplete(ICommandSender cs, String[] args)
+	{
+		ArrayList<String> list = new ArrayList<String>();
+
+		if (!(cs instanceof EntityPlayer)) // no commands for console
+			return list;
+		
+		Resident res = MyTownDatasource.instance.getOrMakeResident((EntityPlayer)cs);
+		if (res.town() == null || (res.rank() != Rank.Mayor && res.rank() != Rank.Assistant))
+			return list;
+		
+		if (args.length == 1)
+		{
+			list.add(Term.TownCmdClaim.toString());
+			list.add(Term.TownCmdUnclaim.toString());
+			list.add(Term.TownCmdInvite.toString());
+			list.add(Term.TownCmdKick.toString());
+			list.add(Term.TownCmdSetSpawn.toString());
+			list.add(Term.TownCmdPlot.toString());
+		}
+		else if (args.length == 2 && (args[0].equals("?") || args[0].equalsIgnoreCase(Term.CommandHelp.toString())))
+		{
+			list.add(Term.CommandHelpAssistant.toString());
+		}
+		else if (args.length == 2 && (args[0].equalsIgnoreCase(Term.TownCmdClaim.toString()) || args[0].equalsIgnoreCase(Term.TownCmdUnclaim.toString())))
+		{
+			list.add(Term.TownCmdClaimArgs1.toString());
+		}
+		else if (args.length == 2 && args[0].equalsIgnoreCase(Term.TownCmdInvite.toString()))
+		{
+			for (Resident r : MyTownDatasource.instance.residents)
+			{
+				if (r.town() == null)
+					list.add(r.name());
+			}
+		}
+		else if (args.length == 2 && args[0].equalsIgnoreCase(Term.TownCmdKick.toString()))
+		{
+			for (Resident r : res.town().residents())
+			{
+				if (r != res && r.rank() != Rank.Mayor && (res.rank() == Rank.Mayor || r.rank() != Rank.Assistant))
+					list.add(r.name());
+			}
+		}
+		else if (args.length == 2 && args[0].equalsIgnoreCase(Term.TownCmdPlot.toString()))
+		{
+			for (Resident r : res.town().residents())
+			{
+				list.add(r.name());
+			}
+		}
+
+		return list;
+	}
+	
 	public static void handleCommand(ICommandSender cs, String[] args) throws CommandException
 	{
 		if (args.length < 1)
@@ -37,12 +95,19 @@ public class MyTownAssistant
 		String color = "6";
 		if (args[0].equals("?") || args[0].equalsIgnoreCase(Term.CommandHelp.toString()))
 		{
-			cs.sendChatToPlayer(Formatter.formatCommand(Term.TownCmdClaim.toString(), Term.TownCmdClaimArgs.toString(), Term.TownCmdClaimDesc.toString(), color));
-			cs.sendChatToPlayer(Formatter.formatCommand(Term.TownCmdUnclaim.toString(), Term.TownCmdUnclaimArgs.toString(), Term.TownCmdUnclaimDesc.toString(), color));
-			cs.sendChatToPlayer(Formatter.formatCommand(Term.TownCmdInvite.toString(), Term.TownCmdInviteArgs.toString(), Term.TownCmdInviteDesc.toString(), color));
-			cs.sendChatToPlayer(Formatter.formatCommand(Term.TownCmdKick.toString(), Term.TownCmdKickArgs.toString(), Term.TownCmdKickDesc.toString(), color));
-			cs.sendChatToPlayer(Formatter.formatCommand(Term.TownCmdSetSpawn.toString(), "", Term.TownCmdSetSpawnDesc.toString(), color));
-			cs.sendChatToPlayer(Formatter.formatCommand(Term.TownCmdPlot.toString(), Term.TownCmdPlotArgs.toString(), Term.TownCmdPlotDesc.toString(), color));
+			if (args.length < 2)
+			{
+				cs.sendChatToPlayer(Formatter.formatGroupCommand(Term.CommandHelp.toString(), Term.CommandHelpAssistant.toString(), Term.CommandHelpAssistantDesc.toString(), color));
+			}
+			else if (args[1].equalsIgnoreCase(Term.CommandHelpAssistant.toString()))
+			{
+				cs.sendChatToPlayer(Formatter.formatCommand(Term.TownCmdClaim.toString(), Term.TownCmdClaimArgs.toString(), Term.TownCmdClaimDesc.toString(), color));
+				cs.sendChatToPlayer(Formatter.formatCommand(Term.TownCmdUnclaim.toString(), Term.TownCmdUnclaimArgs.toString(), Term.TownCmdUnclaimDesc.toString(), color));
+				cs.sendChatToPlayer(Formatter.formatCommand(Term.TownCmdInvite.toString(), Term.TownCmdInviteArgs.toString(), Term.TownCmdInviteDesc.toString(), color));
+				cs.sendChatToPlayer(Formatter.formatCommand(Term.TownCmdKick.toString(), Term.TownCmdKickArgs.toString(), Term.TownCmdKickDesc.toString(), color));
+				cs.sendChatToPlayer(Formatter.formatCommand(Term.TownCmdSetSpawn.toString(), "", Term.TownCmdSetSpawnDesc.toString(), color));
+				cs.sendChatToPlayer(Formatter.formatCommand(Term.TownCmdPlot.toString(), Term.TownCmdPlotArgs.toString(), Term.TownCmdPlotDesc.toString(), color));
+			}
 		}
 		else if (args[0].equalsIgnoreCase(Term.TownCmdClaim.toString()))
 		{

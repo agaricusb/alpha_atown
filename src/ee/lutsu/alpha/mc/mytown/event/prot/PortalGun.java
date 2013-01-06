@@ -7,6 +7,7 @@ import java.util.ArrayList;
 
 import net.minecraft.entity.Entity;
 
+import ee.lutsu.alpha.mc.mytown.ChunkCoord;
 import ee.lutsu.alpha.mc.mytown.Log;
 import ee.lutsu.alpha.mc.mytown.MyTownDatasource;
 import ee.lutsu.alpha.mc.mytown.entities.Resident;
@@ -52,6 +53,22 @@ public class PortalGun extends ProtBase
 
 			    if (!r.canInteract(x, y, z, Permissions.Build))
 			    	return "Cannot shoot portals in this town";
+			}
+		}
+		else
+		{
+			for (int ii = 0; ii < 5; ii++)
+			{
+			    int x = (int)(e.motionX / 5.0D * ii + e.posX);
+			    int y = (int)(e.motionY / 5.0D * ii + e.posY);
+			    int z = (int)(e.motionZ / 5.0D * ii + e.posZ);
+
+			    int cx = ChunkCoord.getCoord(x);
+			    int cz = ChunkCoord.getCoord(z);
+			    
+				TownBlock b = MyTownDatasource.instance.getBlock(e.dimension, x, z);
+				if (b != null && b.town() != null)
+					return "Cannot use default portals in towns";
 			}
 		}
 

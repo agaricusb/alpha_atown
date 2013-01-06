@@ -19,7 +19,9 @@ import ee.lutsu.alpha.mc.mytown.event.prot.MiningLaser;
 import ee.lutsu.alpha.mc.mytown.event.prot.Mobs;
 import ee.lutsu.alpha.mc.mytown.event.prot.PortalGun;
 import ee.lutsu.alpha.mc.mytown.event.prot.ProtBase;
+import ee.lutsu.alpha.mc.mytown.event.prot.RedPower;
 import ee.lutsu.alpha.mc.mytown.event.prot.SteveCarts;
+import ee.lutsu.alpha.mc.mytown.event.prot.ThaumCraft;
 
 import net.minecraft.block.Block;
 import net.minecraft.entity.Entity;
@@ -34,6 +36,8 @@ public class ProtectionEvents implements ITickHandler
 	public static ProtectionEvents instance = new ProtectionEvents();
 	public Resident lastOwner = null;
 	public boolean enabled = false;
+	public ArrayList<Entity> toRemove = new ArrayList<Entity>();
+	public ArrayList<TileEntity> toRemoveTile = new ArrayList<TileEntity>();
 	
 	public static ProtBase[] entityProtections = new ProtBase[]
 	{
@@ -41,12 +45,14 @@ public class ProtectionEvents implements ITickHandler
 		MiningLaser.instance,
 		SteveCarts.instance,
 		Creeper.instance,
-		Mobs.instance
+		Mobs.instance,
+		ThaumCraft.instance
 	};
 	
 	public static ProtBase[] tileProtections = new ProtBase[]
 	{
-		BuildCraft.instance
+		BuildCraft.instance,
+		RedPower.instance
 	};
 
 	@Override
@@ -61,8 +67,9 @@ public class ProtectionEvents implements ITickHandler
 		Entity e = null;
 		TileEntity t = null;
 		String kill = null;
-		ArrayList<Entity> toRemove = new ArrayList<Entity>();
-		ArrayList<TileEntity> toRemoveTile = new ArrayList<TileEntity>();
+
+		toRemove.clear();
+		toRemoveTile.clear();
 		
 		try
 		{
@@ -150,7 +157,7 @@ public class ProtectionEvents implements ITickHandler
 		catch(Exception er)
 		{
 			String ms = e == null ? t == null ? "#unknown#" : t.toString() : e.toString();
-			throw new RuntimeException("Error in entity " + ms + " pre-update check", er);
+			Log.severe("Error in entity " + ms + " pre-update check", er);
 		}
 	}
 	

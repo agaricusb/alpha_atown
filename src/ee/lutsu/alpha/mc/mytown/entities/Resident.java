@@ -10,6 +10,7 @@ import com.google.common.base.Joiner;
 
 import ee.lutsu.alpha.mc.mytown.ChatChannel;
 import ee.lutsu.alpha.mc.mytown.ChunkCoord;
+import ee.lutsu.alpha.mc.mytown.Formatter;
 import ee.lutsu.alpha.mc.mytown.Log;
 import ee.lutsu.alpha.mc.mytown.MyTown;
 import ee.lutsu.alpha.mc.mytown.MyTownDatasource;
@@ -135,6 +136,11 @@ public class Resident
 		return Permissions.canAccess(this, "mytown.adm.showblocks");
 	}
 	
+	public boolean shouldShowPlayerLocation()
+	{
+		return Permissions.canAccess(this, "mytown.adm.showlocation");
+	}
+	
 	public boolean canByPassCheck(TownSettingCollection.Permissions level)
 	{
 		return Permissions.canAccess(this, "mytown.adm.bypass." + level.toString().toLowerCase());
@@ -197,10 +203,18 @@ public class Resident
 		return canInteract(targetBlock, askedFor);
 	}
 	
+	public boolean canInteract(int dimension, int x, int y, int z, TownSettingCollection.Permissions askedFor)
+	{
+		TownBlock targetBlock = MyTownDatasource.instance.getBlock(dimension, ChunkCoord.getCoord(x), ChunkCoord.getCoord(z));
+		if (targetBlock == null || targetBlock.town() == null)
+			return MyTown.instance.getWorldWildSettings(dimension).outsiderRights.compareTo(askedFor) >= 0;
+			
+		return canInteract(targetBlock, y, askedFor);
+	}
+	
 	public boolean canInteract(int x, int y, int z, TownSettingCollection.Permissions askedFor)
 	{
-		TownBlock targetBlock = MyTownDatasource.instance.getBlock(onlinePlayer.dimension, ChunkCoord.getCoord(x), ChunkCoord.getCoord(z));
-		return canInteract(targetBlock, y, askedFor);
+		return canInteract(onlinePlayer.dimension, x, y, z, askedFor);
 	}
 	
 	public boolean canInteract(Entity e)
@@ -562,7 +576,12 @@ public class Resident
 		}
 	}
 	
-	public void sendInfoTo(ICommandSender cs)
+	public String formattedName()
+	{
+		return prefix() + name() + postfix();
+	}
+	
+	public void sendInfoTo(ICommandSender cs, boolean adminInfo)
 	{
 		DateFormat format = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
 		
@@ -570,18 +589,22 @@ public class Resident
 		List<String> fnames2 = new ArrayList<String>();
 		
 		for (Resident r : friends)
-			fnames.add("§b" + r.name());
+			fnames.add(Formatter.formatResidentName(r));
 		
 		for (Resident r : MyTownDatasource.instance.residents)
 		{
 			if (r.friends.contains(this))
-				fnames2.add("§b" + r.name());
+				fnames2.add(Formatter.formatResidentName(r));
 		}
 		
 		String sFriends = Joiner.on("§2, ").join(fnames);
 		String sFriends2 = Joiner.on("§2, ").join(fnames2);
 		
-		cs.sendChatToPlayer(Term.ResStatusName.toString(name));
+		cs.sendChatToPlayer(Term.ResStatusName.toString(Formatter.formatResidentName(this)));
+		
+		if (adminInfo && isOnline())
+			cs.sendChatToPlayer(Term.ResStatusLocation.toString(location != null ? location.name() : "wild", onlinePlayer.dimension, (int)onlinePlayer.posX, (int)onlinePlayer.posY, (int)onlinePlayer.posZ));
+		
 		cs.sendChatToPlayer(Term.ResStatusGeneral1.toString(format.format(createdOn))); 
 		cs.sendChatToPlayer(Term.ResStatusGeneral2.toString(isOnline() ? "online" : format.format(lastLoginOn)));
 		cs.sendChatToPlayer(Term.ResStatusTown.toString(

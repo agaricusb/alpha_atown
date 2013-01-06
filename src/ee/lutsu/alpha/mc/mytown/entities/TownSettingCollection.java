@@ -116,7 +116,7 @@ public class TownSettingCollection
 		}
 	}
 	
-	private TownSetting getSetting(String key)
+	public TownSetting getSetting(String key)
 	{
 		for (TownSetting set : settings)
 		{

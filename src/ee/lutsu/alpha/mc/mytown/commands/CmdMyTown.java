@@ -1,11 +1,13 @@
 package ee.lutsu.alpha.mc.mytown.commands;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.logging.Level;
 
 import net.minecraft.command.CommandBase;
 import net.minecraft.command.ICommandSender;
+import net.minecraft.server.MinecraftServer;
 
 import ee.lutsu.alpha.mc.mytown.CommandException;
 import ee.lutsu.alpha.mc.mytown.Formatter;
@@ -73,4 +75,52 @@ public class CmdMyTown extends CommandBase
 		}
 	}
 
+    /**
+     * Adds the strings available in this command to the given list of tab completion options.
+     */
+    public List addTabCompletionOptions(ICommandSender cs, String[] args)
+    {
+        if (args.length < 1)
+        	return null;
+        
+        List<String> ret = new ArrayList<String>();
+        List<String> list = null;
+        
+        try
+        {
+	        list = MyTownEveryone.getAutoComplete(cs, args);
+	        if (list != null)
+	        	ret.addAll(list);
+	        
+	        list = MyTownResident.getAutoComplete(cs, args);
+	        if (list != null)
+	        	ret.addAll(list);
+	        
+	        list = MyTownAssistant.getAutoComplete(cs, args);
+	        if (list != null)
+	        	ret.addAll(list);
+	        
+	        list = MyTownMayor.getAutoComplete(cs, args);
+	        if (list != null)
+	        	ret.addAll(list);
+	        
+	        list = MyTownNonResident.getAutoComplete(cs, args);
+	        if (list != null)
+	        	ret.addAll(list);
+	        
+	        list = MyTownNation.getAutoComplete(cs, args);
+	        if (list != null)
+	        	ret.addAll(list);
+		}
+		catch(Throwable ex)
+		{
+			Log.log(Level.WARNING, String.format("Command execution error by %s", cs), ex);
+			cs.sendChatToPlayer(Formatter.commandError(Level.SEVERE, ex.toString()));
+		}
+        
+        if (ret.size() > 0)
+        	return CommandBase.getListOfStringsFromIterableMatchingLastWord(args, ret);
+        
+        return null;
+    }
 }

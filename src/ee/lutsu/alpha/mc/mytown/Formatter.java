@@ -27,8 +27,20 @@ public class Formatter
 	{
 		if (color == null)
 			color = "f";
+		
+		String arg = args == null || args.length() == 0 ? "" : " §3" + args;
 
-		return String.format("§%s/%s %s §7%s §%s- %s", color, Term.TownCommand, cmd, args, color, info);
+		return String.format("§%s    %s%s §7- %s", color, cmd, arg, info);
+	}
+	
+	public static String formatGroupCommand(String cmd, String args, String info, String color)
+	{
+		if (color == null)
+			color = "f";
+		
+		String arg = args == null || args.length() == 0 ? "" : " §3" + args;
+
+		return String.format("§%s +  %s%s §7- %s", color, cmd, arg, info);
 	}
 	
 	public static String formatAdminCommand(String cmd, String args, String info, String color)
@@ -75,8 +87,8 @@ public class Formatter
 	public static String formatResidentName(Resident r)
 	{
 		if (r.isOnline())
-			return String.format("[%s]", r.name());
+			return String.format("§f%s§4*", r.formattedName());
 		else
-			return String.format("%s", r.name());
+			return String.format("§f%s", r.formattedName());
 	}
 }

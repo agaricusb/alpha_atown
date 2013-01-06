@@ -29,6 +29,7 @@ public class TownSetting
 	public String getValueDescription() { return valueDesc; }
 	public String getSerializationKey() { return seriaKey; }
 	public String getValueType() { return instanceOf.getSimpleName(); }
+	public Class getValueClass() { return instanceOf; }
 	
 	public String getVisualValue()
 	{

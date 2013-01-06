@@ -38,12 +38,15 @@ import ee.lutsu.alpha.mc.mytown.event.prot.Creeper;
 import ee.lutsu.alpha.mc.mytown.event.prot.MiningLaser;
 import ee.lutsu.alpha.mc.mytown.event.prot.Mobs;
 import ee.lutsu.alpha.mc.mytown.event.prot.PortalGun;
+import ee.lutsu.alpha.mc.mytown.event.prot.RedPower;
 import ee.lutsu.alpha.mc.mytown.event.prot.SteveCarts;
+import ee.lutsu.alpha.mc.mytown.event.prot.ThaumCraft;
 import ee.lutsu.alpha.mc.mytown.sql.Database;
 import ee.lutsu.alpha.mc.mytown.sql.MyTownDB;
 import net.minecraft.command.ICommandSender;
 import net.minecraft.command.ServerCommandManager;
 import net.minecraft.item.Item;
+import net.minecraft.network.packet.Packet3Chat;
 import net.minecraft.server.MinecraftServer;
 import net.minecraftforge.common.Configuration;
 import net.minecraftforge.common.MinecraftForge;
@@ -271,6 +274,10 @@ public class MyTown
         prop = config.get("Chat", "LocalDistance", 160);
         prop.comment = "How many blocks far does the local chat sound";
         ChatChannel.localChatDistance = prop.getInt(160);
+        
+        prop = config.get("Chat", "MaxChatLength", 32767);
+        prop.comment = "How many characters can one chat packet contain. It's global.";
+        Packet3Chat.maxChatLength = prop.getInt(32767);
     }
     
     private void loadExtraProtectionConfig(Configuration config)
@@ -304,6 +311,14 @@ public class MyTown
         prop = config.get("ProtEx", "MobPositionCheck", true);
         prop.comment = "Check for mobs if they can be at a protected area";
         Mobs.instance.enabled = prop.getBoolean(true);
+        
+        prop = config.get("ProtEx", "ThaumCraft", false);
+        prop.comment = "Check for ThaumCraft 3 bypasses";
+        ThaumCraft.instance.enabled = prop.getBoolean(true);
+        
+        prop = config.get("ProtEx", "RedPower", false);
+        prop.comment = "Check for RedPower 2 bypasses";
+        RedPower.instance.enabled = prop.getBoolean(true);
     }
     
     private void loadPerms(Configuration config)
