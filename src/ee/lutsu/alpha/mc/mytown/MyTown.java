@@ -128,6 +128,8 @@ public class MyTown
     	
 		for(ChatChannel c : ChatChannel.values())
 			mgr.registerCommand(new CmdChat(c));
+		
+		Log.info("Loaded");
     }
 
     public void saveConfig()

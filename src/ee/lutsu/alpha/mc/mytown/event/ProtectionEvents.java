@@ -84,7 +84,8 @@ public class ProtectionEvents implements ITickHandler
 					if (prot.enabled && prot.isEntityInstance(e))
 					{
 						kill = prot.update(e);
-						break;
+						if (kill != null)
+							break;
 					}
 				}
 				
@@ -123,7 +124,8 @@ public class ProtectionEvents implements ITickHandler
 					if (prot.enabled && prot.isEntityInstance(t))
 					{
 						kill = prot.update(t);
-						break;
+						if (kill != null)
+							break;
 					}
 				}
 				
