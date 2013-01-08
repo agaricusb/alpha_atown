@@ -11,6 +11,7 @@ import net.minecraft.server.MinecraftServer;
 import net.minecraft.tileentity.TileEntity;
 
 import ee.lutsu.alpha.mc.mytown.ChunkCoord;
+import ee.lutsu.alpha.mc.mytown.Log;
 import ee.lutsu.alpha.mc.mytown.MyTown;
 import ee.lutsu.alpha.mc.mytown.MyTownDatasource;
 import ee.lutsu.alpha.mc.mytown.entities.TownBlock;
@@ -139,6 +140,9 @@ public class BuildCraft extends ProtBase
 			
 				if ((block != null && block.town() != null && !block.settings.allowBuildcraftMiners) || ((block == null || block.town() == null) && !MyTown.instance.getWorldWildSettings(e.worldObj.provider.dimensionId).allowBuildcraftMiners))
 				{
+					String b = block == null || block.town() == null ? "wild" : block.town().name() + (block.owner() != null ? " owned by " + block.ownerDisplay() : "");
+					b = String.format("%s @ dim %s (%s,%s)", b, e.worldObj.provider.dimensionId, x, z);
+					
 					if (clazz == clQuarry)
 					{
 						EntityPlayer pl = (EntityPlayer)fQuarryOwner.get(e);
@@ -146,11 +150,14 @@ public class BuildCraft extends ProtBase
 						{
 							ProtectionEvents.instance.lastOwner = MyTownDatasource.instance.getOrMakeResident(pl);
 						}
+						else
+						{
+							Log.severe(String.format("ERROR: Quarry %s,%s,%s,%s would've been popped - %s. Not popping because the placer is unknown.", e.worldObj.provider.dimensionId, e.xCoord, e.yCoord, e.zCoord, b));
+							return null; // some fluke, the quarry had to be here before
+						}
 					}
 					
-					String b = block == null || block.town() == null ? "wild" : block.town().name() + (block.owner() != null ? " owned by " + block.ownerDisplay() : "");
-					b = String.format("%s @ dim %s (%s,%s)", b, e.worldObj.provider.dimensionId, x, z);
-					
+
 					return "Region will hit " + b + " which doesn't allow buildcraft block breakers";
 				}
 			}
