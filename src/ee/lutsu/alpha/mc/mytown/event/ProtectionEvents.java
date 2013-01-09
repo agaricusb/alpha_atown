@@ -156,7 +156,7 @@ public class ProtectionEvents implements ITickHandler
 	            en.worldObj.setBlockWithNotify(en.xCoord, en.yCoord, en.zCoord, 0);
 			}
 		}
-		catch(Exception er)
+		catch (Exception er)
 		{
 			String ms = e == null ? t == null ? "#unknown#" : t.toString() : e.toString();
 			Log.severe("Error in entity " + ms + " pre-update check", er);
