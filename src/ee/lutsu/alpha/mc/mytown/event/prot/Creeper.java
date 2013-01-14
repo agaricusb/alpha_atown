@@ -3,8 +3,10 @@ package ee.lutsu.alpha.mc.mytown.event.prot;
 import java.lang.reflect.Field;
 
 import ee.lutsu.alpha.mc.mytown.ChunkCoord;
+import ee.lutsu.alpha.mc.mytown.MyTown;
 import ee.lutsu.alpha.mc.mytown.MyTownDatasource;
 import ee.lutsu.alpha.mc.mytown.entities.TownBlock;
+import ee.lutsu.alpha.mc.mytown.event.ProtBase;
 
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.monster.EntityCreeper;
@@ -12,7 +14,6 @@ import net.minecraft.entity.monster.EntityCreeper;
 public class Creeper extends ProtBase
 {
 	public static Creeper instance = new Creeper();
-	public String getMod() { return "Vanilla-Creeper"; }
 
     private Field fTimeSinceIgnited, fFuseTime, fExplosionRadius;
     
@@ -89,22 +90,22 @@ public class Creeper extends ProtBase
         
 		return null;
 	}
-	
+
 	private boolean canBlow(int dim, double x, double yFrom, double yTo, double z)
 	{
 		TownBlock b = MyTownDatasource.instance.getBlock(dim, ChunkCoord.getCoord(x), ChunkCoord.getCoord(z));
-		if (b == null || b.town() == null)
-			return true;
+		if (b != null && b.settings.yCheckOn)
+		{
+			if (yTo < b.settings.yCheckFrom || yFrom > b.settings.yCheckTo)
+				b = b.getFirstFullSidingClockwise(b.town());
+		}
 		
-		if (!b.settings.disableCreepers)
-			return true;
+		if (b == null || b.town() == null)
+			return !MyTown.instance.getWorldWildSettings(dim).disableCreepers;
 
-		if (!b.settings.yCheckOn)
-			return false;
-
-		if (b.settings.yCheckFrom < yTo && yFrom < b.settings.yCheckTo) // intersects
-			return false;
-		else
-			return true;
+		return !b.settings.disableCreepers;
 	}
+	
+	public String getMod() { return "VanillaCreeper"; }
+	public String getComment() { return "Town permission: disableCreepers"; }
 }

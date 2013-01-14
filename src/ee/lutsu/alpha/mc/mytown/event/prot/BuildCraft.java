@@ -15,6 +15,7 @@ import ee.lutsu.alpha.mc.mytown.Log;
 import ee.lutsu.alpha.mc.mytown.MyTown;
 import ee.lutsu.alpha.mc.mytown.MyTownDatasource;
 import ee.lutsu.alpha.mc.mytown.entities.TownBlock;
+import ee.lutsu.alpha.mc.mytown.event.ProtBase;
 import ee.lutsu.alpha.mc.mytown.event.ProtectionEvents;
 
 public class BuildCraft extends ProtBase
@@ -165,11 +166,7 @@ public class BuildCraft extends ProtBase
 		
 		return null;
 	}
-	
-	@Override
-	public String getMod() 
-	{
-		return "BuildCraft";
-	}
 
+	public String getMod() { return "BuildCraft"; }
+	public String getComment() { return "Town permission: allowBuildcraftMiners"; }
 }

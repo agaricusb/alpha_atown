@@ -281,9 +281,11 @@ public class TownSettingCollection
 	public boolean allowCartInteraction;
 	public boolean allowStevecartsRailers;
 	public boolean allowStevecartsMiners;
+	public boolean allowRailcraftBores;
 	public boolean allowBuildcraftMiners;
 	public boolean allowClaimingNextTo;
 	public boolean disableCreepers;
+	public boolean disableTNT;
 	public boolean disableMobs;
 	
 	public boolean yCheckOn;
@@ -310,12 +312,16 @@ public class TownSettingCollection
 			allowStevecartsRailers = set.getEffBoolean();
 		else if (set.getSerializationKey().equals("steveminer"))
 			allowStevecartsMiners = set.getEffBoolean();
+		else if (set.getSerializationKey().equals("rcbore"))
+			allowRailcraftBores = set.getEffBoolean();
 		else if (set.getSerializationKey().equals("bc"))
 			allowBuildcraftMiners = set.getEffBoolean();
 		else if (set.getSerializationKey().equals("closeclaim"))
 			allowClaimingNextTo = set.getEffBoolean();
 		else if (set.getSerializationKey().equals("creepoff"))
 			disableCreepers = set.getEffBoolean();
+		else if (set.getSerializationKey().equals("tntoff"))
+			disableTNT = set.getEffBoolean();
 		else if (set.getSerializationKey().equals("mobsoff"))
 			disableMobs = set.getEffBoolean();
 		
@@ -330,7 +336,7 @@ public class TownSettingCollection
 	public void reset()
 	{
 		settings.clear();
-
+		
 		//                             label                             key             default value       wild value          value limitation description                value conversion class
 		settings.add(new TownSetting("Town member rights", 				"town", 		Permissions.Build, 	null, 				"choice:" + Permissions.getValuesDesc(), 	Permissions.class));
 		settings.add(new TownSetting("Nation member rights", 			"nation", 		Permissions.Enter, 	null, 				"choice:" + Permissions.getValuesDesc(), 	Permissions.class));
@@ -340,9 +346,11 @@ public class TownSettingCollection
 		settings.add(new TownSetting("Allow cart interaction", 			"carts",	 	false, 				true, 				"boolean:yes/no", 							boolean.class));
 		settings.add(new TownSetting("Allow stevescarts railers", 		"steverailer", 	false, 				true, 				"boolean:yes/no", 							boolean.class));
 		settings.add(new TownSetting("Allow stevescarts miners", 		"steveminer", 	false, 				true, 				"boolean:yes/no", 							boolean.class));
+		settings.add(new TownSetting("Allow railcraft bores",	 		"rcbore", 		false, 				true, 				"boolean:yes/no", 							boolean.class));
 		settings.add(new TownSetting("Allow quarrys,filler,builders", 	"bc",		 	false, 				true, 				"boolean:yes/no", 							boolean.class));
 		settings.add(new TownSetting("Allow claiming next to", 			"closeclaim",	false, 				null, 				"boolean:yes/no", 							boolean.class));
-		settings.add(new TownSetting("Disable creeper explosion",		"creepoff",		false, 				null, 				"boolean:yes/no", 							boolean.class));
+		settings.add(new TownSetting("Disable creeper explosion",		"creepoff",		false, 				false, 				"boolean:yes/no", 							boolean.class));
+		settings.add(new TownSetting("Disable TNT explosion",			"tntoff",		true, 				false, 				"boolean:yes/no", 							boolean.class));
 		settings.add(new TownSetting("Disable mobs",					"mobsoff",		false, 				null, 				"boolean:yes/no", 							boolean.class));
 		
 		settings.add(new TownSetting("Height enabled", 					"yon",	 		false, 				null, 				"boolean:yes/no", 							boolean.class));

@@ -14,6 +14,7 @@ import ee.lutsu.alpha.mc.mytown.entities.Resident;
 import ee.lutsu.alpha.mc.mytown.entities.Town;
 import ee.lutsu.alpha.mc.mytown.entities.TownBlock;
 import ee.lutsu.alpha.mc.mytown.entities.TownSettingCollection.Permissions;
+import ee.lutsu.alpha.mc.mytown.event.ProtBase;
 import ee.lutsu.alpha.mc.mytown.event.ProtectionEvents;
 
 public class PortalGun extends ProtBase
@@ -75,9 +76,6 @@ public class PortalGun extends ProtBase
 		return null;
 	}
 	
-	@Override
-	public String getMod() 
-	{
-		return "PortalgunMod";
-	}
+	public String getMod() { return "PortalgunMod"; }
+	public String getComment() { return "Build check: EntityPortalBall. Disables non-owner balls completly in town"; }
 }

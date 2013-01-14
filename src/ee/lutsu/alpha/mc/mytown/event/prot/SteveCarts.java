@@ -18,6 +18,7 @@ import ee.lutsu.alpha.mc.mytown.MyTownDatasource;
 import ee.lutsu.alpha.mc.mytown.commands.CmdChat;
 import ee.lutsu.alpha.mc.mytown.entities.Town;
 import ee.lutsu.alpha.mc.mytown.entities.TownBlock;
+import ee.lutsu.alpha.mc.mytown.event.ProtBase;
 
 public class SteveCarts extends ProtBase
 {
@@ -78,18 +79,24 @@ public class SteveCarts extends ProtBase
 		
 		if (railerModules.size() > 0) // railer
 		{
-			if ((b == null && !MyTown.instance.getWorldWildSettings(e.dimension).allowStevecartsRailers) || (b != null && !b.settings.allowStevecartsRailers))
+			if (!canRoam(e.dimension, next.xCoord, next.yCoord - 1, next.yCoord + 1, next.zCoord, false))
 			{
-				blockAction((EntityMinecart)e, b);
+				blockAction((EntityMinecart)e);
 				return null;
 			}
 		}
 		
 		if (minerModules.size() > 0) // miner
 		{
-			if ((b == null && !MyTown.instance.getWorldWildSettings(e.dimension).allowStevecartsMiners) || (b != null && !b.settings.allowStevecartsMiners))
+			int radius = 3 + 1;
+			int y = (int)next.yCoord + 2;
+			
+			if (!canRoam(e.dimension, next.xCoord - radius, y - radius, y + radius, next.zCoord - radius, true) ||
+				!canRoam(e.dimension, next.xCoord - radius, y - radius, y + radius, next.zCoord + radius, true) ||
+				!canRoam(e.dimension, next.xCoord + radius, y - radius, y + radius, next.zCoord - radius, true) ||
+				!canRoam(e.dimension, next.xCoord + radius, y - radius, y + radius, next.zCoord + radius, true))
 			{
-				blockAction((EntityMinecart)e, b);
+				blockAction((EntityMinecart)e);
 				return null;
 			}
 		}
@@ -97,13 +104,27 @@ public class SteveCarts extends ProtBase
 		return null;
 	}
 	
-	private void blockAction(EntityMinecart e, TownBlock b) throws IllegalArgumentException, IllegalAccessException
+	private boolean canRoam(int dim, double x, double yFrom, double yTo, double z, boolean miner)
+	{
+		TownBlock b = MyTownDatasource.instance.getBlock(dim, ChunkCoord.getCoord(x), ChunkCoord.getCoord(z));
+		if (b != null && b.settings.yCheckOn)
+		{
+			if (yTo < b.settings.yCheckFrom || yFrom > b.settings.yCheckTo)
+				b = b.getFirstFullSidingClockwise(b.town());
+		}
+		
+		if (b == null || b.town() == null)
+			return (miner && MyTown.instance.getWorldWildSettings(dim).allowStevecartsMiners) || (!miner && MyTown.instance.getWorldWildSettings(dim).allowStevecartsRailers);
+
+		return (miner && b.settings.allowStevecartsMiners) || (!miner && b.settings.allowStevecartsRailers);
+	}
+	
+	private void blockAction(EntityMinecart e) throws IllegalArgumentException, IllegalAccessException
 	{
 		e.setDead();
 		e.dropCartAsItem();
 		
 		Log.severe(String.format("§4Stopped a steve cart found in %s @ dim %s, %s,%s,%s",
-				b == null || b.town() == null ? "wilderness" : b.town().name(),
 				e.dimension, (int)e.posX, (int)e.posY, (int)e.posZ));
 		
 		String msg = String.format("A steve cart broke @ %s,%s,%s because it wasn't allowed there", (int)e.posX, (int)e.posY, (int)e.posZ);
@@ -111,11 +132,8 @@ public class SteveCarts extends ProtBase
 		CmdChat.sendChatToAround(e.dimension, e.posX, e.posY, e.posZ, formatted, null);
 	}
 
-	@Override
-	public String getMod() 
-	{
-		return "StevesCarts";
-	}
+	public String getMod() { return "StevesCarts"; }
+	public String getComment() { return "Town permission: allowStevecartsMiners & allowStevecartsRailers"; }
 	/*
 	 * 		//fCargo.setAccessible(true);
 		//mIsValidForTrack.setAccessible(true);

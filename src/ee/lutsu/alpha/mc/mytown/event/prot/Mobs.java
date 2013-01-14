@@ -3,8 +3,10 @@ package ee.lutsu.alpha.mc.mytown.event.prot;
 import java.lang.reflect.Field;
 
 import ee.lutsu.alpha.mc.mytown.ChunkCoord;
+import ee.lutsu.alpha.mc.mytown.MyTown;
 import ee.lutsu.alpha.mc.mytown.MyTownDatasource;
 import ee.lutsu.alpha.mc.mytown.entities.TownBlock;
+import ee.lutsu.alpha.mc.mytown.event.ProtBase;
 import ee.lutsu.alpha.mc.mytown.event.ProtectionEvents;
 
 import net.minecraft.entity.Entity;
@@ -18,7 +20,7 @@ import net.minecraftforge.event.entity.EntityJoinWorldEvent;
 public class Mobs extends ProtBase
 {
 	public static Mobs instance = new Mobs();
-	public String getMod() { return "Vanilla-Mobs"; }
+
 	private boolean loaded = false;
 
 	@Override
@@ -65,19 +67,25 @@ public class Mobs extends ProtBase
 	
 	private boolean canBe(EntityMob mob)
 	{
-		TownBlock b = MyTownDatasource.instance.getBlock(mob.dimension, ChunkCoord.getCoord(mob.posX), ChunkCoord.getCoord(mob.posZ));
-		if (b == null || b.town() == null)
-			return true;
-		
-		if (!b.settings.disableMobs)
-			return true;
-
-		if (!b.settings.yCheckOn)
-			return false;
-
-		if (b.settings.yCheckFrom < mob.posY && mob.posY < b.settings.yCheckTo) // intersects
-			return false;
-		else
-			return true;
+		return canBe2(mob.dimension, mob.posX, mob.posY, mob.posY + 1, mob.posZ);
 	}
+	
+	private boolean canBe2(int dim, double x, double yFrom, double yTo, double z)
+	{
+		TownBlock b = MyTownDatasource.instance.getBlock(dim, ChunkCoord.getCoord(x), ChunkCoord.getCoord(z));
+		if (b != null && b.settings.yCheckOn)
+		{
+			if (yTo < b.settings.yCheckFrom || yFrom > b.settings.yCheckTo)
+				b = b.getFirstFullSidingClockwise(b.town());
+		}
+		
+		if (b == null || b.town() == null)
+			return !MyTown.instance.getWorldWildSettings(dim).disableMobs;
+
+		return !b.settings.disableMobs;
+	}
+	
+	
+	public String getMod() { return "MobLocation"; }
+	public String getComment() { return "Town permission: disableMobs"; }
 }

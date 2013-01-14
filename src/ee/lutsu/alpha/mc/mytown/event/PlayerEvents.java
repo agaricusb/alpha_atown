@@ -6,7 +6,18 @@ import net.minecraft.block.Block;
 import net.minecraft.block.BlockRail;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.player.EntityPlayerMP;
+import net.minecraft.inventory.IInventory;
 import net.minecraft.item.Item;
+import net.minecraft.item.ItemBlock;
+import net.minecraft.item.ItemBow;
+import net.minecraft.item.ItemEgg;
+import net.minecraft.item.ItemEnderEye;
+import net.minecraft.item.ItemExpBottle;
+import net.minecraft.item.ItemFishingRod;
+import net.minecraft.item.ItemFood;
+import net.minecraft.item.ItemMinecart;
+import net.minecraft.item.ItemPotion;
+import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.EnumMovingObjectType;
 import net.minecraft.util.MathHelper;
 import net.minecraft.util.MovingObjectPosition;
@@ -27,6 +38,7 @@ import ee.lutsu.alpha.mc.mytown.Log;
 import ee.lutsu.alpha.mc.mytown.MyTown;
 import ee.lutsu.alpha.mc.mytown.MyTownDatasource;
 import ee.lutsu.alpha.mc.mytown.Term;
+import ee.lutsu.alpha.mc.mytown.Utils;
 import ee.lutsu.alpha.mc.mytown.commands.CmdChat;
 import ee.lutsu.alpha.mc.mytown.entities.ItemIdRange;
 import ee.lutsu.alpha.mc.mytown.entities.Resident;
@@ -44,39 +56,73 @@ public class PlayerEvents implements IPlayerTracker
 		
 		Resident r = source().getOrMakeResident(ev.entityPlayer);
 		
-		if (ev.action == Action.RIGHT_CLICK_AIR) // buckets second call
+		if (!ProtectionEvents.instance.itemUsed(r))
 		{
-			if (ev.entityPlayer.getHeldItem() == null) // nothing in hand
-				return;
-			
-	        MovingObjectPosition var3 = getMovingObjectPositionFromPlayer(ev.entityPlayer.worldObj, ev.entityPlayer, true);
-	        if (var3 == null)
-	        	return;
-	        
-        	if ((var3.entityHit != null && !r.canAttack(var3.entityHit)) || (var3.entityHit == null && !r.canInteract(var3.blockX, var3.blockY, var3.blockZ, Permissions.Build)))
-        	{
-    			ev.setCanceled(true);
-    			return;
-        	}
+			ev.setCanceled(true);
+			r.onlinePlayer.stopUsingItem();
+			return;
 		}
-		
 		Permissions perm = Permissions.Build;
-		if (ev.action == Action.RIGHT_CLICK_BLOCK && ItemIdRange.contains(MyTown.instance.carts, ev.entityPlayer.getHeldItem()))
+		
+		if (ev.action == Action.RIGHT_CLICK_AIR) // entity or air click
+		{
+			if (ev.entityPlayer.getHeldItem() != null && ev.entityPlayer.getHeldItem().getItem() != null)
+			{
+				Item item = ev.entityPlayer.getHeldItem().getItem();
+				MovingObjectPosition pos = Utils.getMovingObjectPositionFromPlayer(r.onlinePlayer.worldObj, r.onlinePlayer, false);
+				if (pos == null)
+				{
+					if (item instanceof ItemBow || item instanceof ItemEgg || item instanceof ItemPotion || item instanceof ItemFishingRod || item instanceof ItemExpBottle || item instanceof ItemEnderEye)
+					{
+						perm = Permissions.Build;
+					}
+					else
+						return;
+					
+					ev = new PlayerInteractEvent(ev.entityPlayer, ev.action, (int)ev.entityPlayer.posX, (int)ev.entityPlayer.posY, (int)ev.entityPlayer.posZ, ev.face);
+				}
+				else
+				{
+					if (pos.typeOfHit == EnumMovingObjectType.ENTITY)
+						ev = new PlayerInteractEvent(ev.entityPlayer, ev.action, (int)pos.entityHit.posX, (int)pos.entityHit.posY, (int)pos.entityHit.posZ, ev.face);
+					else
+						ev = new PlayerInteractEvent(ev.entityPlayer, ev.action, pos.blockX, pos.blockY, pos.blockZ, ev.face);
+				}
+			}
+			else
+				return;
+		}
+		else if (ev.action == Action.RIGHT_CLICK_BLOCK && (ev.entityPlayer.getHeldItem() != null && ev.entityPlayer.getHeldItem().getItem() != null && ev.entityPlayer.getHeldItem().getItem() instanceof ItemMinecart))
 		{
 			int en = ev.entityPlayer.worldObj.getBlockId(ev.x , ev.y, ev.z);
 			if (Block.blocksList[en] instanceof BlockRail)
 			{
 				TownBlock targetBlock = MyTownDatasource.instance.getBlock(ev.entityPlayer.dimension, ChunkCoord.getCoord(ev.x), ChunkCoord.getCoord(ev.z));
-
+				if (targetBlock != null && targetBlock.settings.yCheckOn)
+				{
+					if (ev.y < targetBlock.settings.yCheckFrom || ev.y > targetBlock.settings.yCheckTo)
+						targetBlock = targetBlock.getFirstFullSidingClockwise(targetBlock.town());
+				}
+				
 				if ((targetBlock != null && targetBlock.town() != null && targetBlock.settings.allowCartInteraction) || ((targetBlock == null || targetBlock.town() == null) && MyTown.instance.getWorldWildSettings(ev.entityPlayer.dimension).allowCartInteraction))
 					return;
 			}
 		}
-		else if (ev.action == Action.RIGHT_CLICK_BLOCK && (ev.entityPlayer.getHeldItem() == null || ItemIdRange.contains(MyTown.instance.safeItems, ev.entityPlayer.getHeldItem())))
-			perm = Permissions.Access;
+		else if (ev.action == Action.RIGHT_CLICK_BLOCK)
+		{
+			if (!r.onlinePlayer.isSneaking())
+			{
+				TileEntity te = r.onlinePlayer.worldObj.getBlockTileEntity(ev.x , ev.y, ev.z);
+				if (te != null && te instanceof IInventory && ((IInventory)te).isUseableByPlayer(r.onlinePlayer))
+					perm = Permissions.Access;
+			}
+		}
+		/*else if (ev.action == Action.RIGHT_CLICK_BLOCK && (ev.entityPlayer.getHeldItem() == null || ev.entityPlayer.getHeldItem().getItem() == null || !(ev.entityPlayer.getHeldItem().getItem() instanceof ItemBlock)))
+			perm = Permissions.Access;*/
 
 		if (!r.canInteract(ev.x , ev.y, ev.z, perm))
 		{
+			r.onlinePlayer.stopUsingItem();
 			ev.setCanceled(true);
 			if (perm == Permissions.Access)
 				ev.entityPlayer.sendChatToPlayer(Term.ErrPermCannotAccessHere.toString());
@@ -84,30 +130,6 @@ public class PlayerEvents implements IPlayerTracker
 				ev.entityPlayer.sendChatToPlayer(Term.ErrPermCannotBuildHere.toString());
 		}	
 	}
-	
-    public static MovingObjectPosition getMovingObjectPositionFromPlayer(World par1World, EntityPlayer par2EntityPlayer, boolean par3)
-    {
-        float var4 = 1.0F;
-        float var5 = par2EntityPlayer.prevRotationPitch + (par2EntityPlayer.rotationPitch - par2EntityPlayer.prevRotationPitch) * var4;
-        float var6 = par2EntityPlayer.prevRotationYaw + (par2EntityPlayer.rotationYaw - par2EntityPlayer.prevRotationYaw) * var4;
-        double var7 = par2EntityPlayer.prevPosX + (par2EntityPlayer.posX - par2EntityPlayer.prevPosX) * (double)var4;
-        double var9 = par2EntityPlayer.prevPosY + (par2EntityPlayer.posY - par2EntityPlayer.prevPosY) * (double)var4 + 1.62D - (double)par2EntityPlayer.yOffset;
-        double var11 = par2EntityPlayer.prevPosZ + (par2EntityPlayer.posZ - par2EntityPlayer.prevPosZ) * (double)var4;
-        Vec3 var13 = par1World.getWorldVec3Pool().getVecFromPool(var7, var9, var11);
-        float var14 = MathHelper.cos(-var6 * 0.017453292F - (float)Math.PI);
-        float var15 = MathHelper.sin(-var6 * 0.017453292F - (float)Math.PI);
-        float var16 = -MathHelper.cos(-var5 * 0.017453292F);
-        float var17 = MathHelper.sin(-var5 * 0.017453292F);
-        float var18 = var15 * var16;
-        float var20 = var14 * var16;
-        double var21 = 5.0D;
-        if (par2EntityPlayer instanceof EntityPlayerMP)
-        {
-            var21 = ((EntityPlayerMP)par2EntityPlayer).theItemInWorldManager.getBlockReachDistance();
-        }
-        Vec3 var23 = var13.addVector((double)var18 * var21, (double)var17 * var21, (double)var20 * var21);
-        return par1World.rayTraceBlocks_do_do(var13, var23, par3, !par3);
-    }
 	
 	@ForgeSubscribe
 	public void pickup(EntityItemPickupEvent ev)

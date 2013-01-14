@@ -18,6 +18,7 @@ import ee.lutsu.alpha.mc.mytown.entities.Resident;
 import ee.lutsu.alpha.mc.mytown.entities.Town;
 import ee.lutsu.alpha.mc.mytown.entities.TownBlock;
 import ee.lutsu.alpha.mc.mytown.entities.TownSettingCollection.Permissions;
+import ee.lutsu.alpha.mc.mytown.event.ProtBase;
 import ee.lutsu.alpha.mc.mytown.event.ProtectionEvents;
 
 public class MiningLaser extends ProtBase
@@ -41,13 +42,7 @@ public class MiningLaser extends ProtBase
 	public boolean loaded() { return clLaser != null; }
 	@Override
 	public boolean isEntityInstance(Entity e) { return e.getClass() == clLaser; }
-	
-	@Override
-	public String getMod() 
-	{
-		return "IndustrialCraft2";
-	}
-	
+
 	@Override
 	public String update(Entity e) throws Exception
 	{
@@ -144,4 +139,7 @@ public class MiningLaser extends ProtBase
         
         return null;
 	}
+
+	public String getMod() { return "IndustrialCraft2"; }
+	public String getComment() { return "Build & PVP check: EntityMiningLaser"; }
 }

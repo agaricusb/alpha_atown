@@ -11,6 +11,7 @@ import cpw.mods.fml.common.TickType;
 
 import ee.lutsu.alpha.mc.mytown.Log;
 import ee.lutsu.alpha.mc.mytown.MyTownDatasource;
+import ee.lutsu.alpha.mc.mytown.Term;
 import ee.lutsu.alpha.mc.mytown.entities.Resident;
 import ee.lutsu.alpha.mc.mytown.entities.Town;
 import ee.lutsu.alpha.mc.mytown.event.prot.BuildCraft;
@@ -18,13 +19,18 @@ import ee.lutsu.alpha.mc.mytown.event.prot.Creeper;
 import ee.lutsu.alpha.mc.mytown.event.prot.MiningLaser;
 import ee.lutsu.alpha.mc.mytown.event.prot.Mobs;
 import ee.lutsu.alpha.mc.mytown.event.prot.PortalGun;
-import ee.lutsu.alpha.mc.mytown.event.prot.ProtBase;
+import ee.lutsu.alpha.mc.mytown.event.prot.RailCraft;
 import ee.lutsu.alpha.mc.mytown.event.prot.RedPower;
+import ee.lutsu.alpha.mc.mytown.event.prot.SingleBlockTools;
 import ee.lutsu.alpha.mc.mytown.event.prot.SteveCarts;
+import ee.lutsu.alpha.mc.mytown.event.prot.TNT;
 import ee.lutsu.alpha.mc.mytown.event.prot.ThaumCraft;
 
 import net.minecraft.block.Block;
 import net.minecraft.entity.Entity;
+import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.item.Item;
+import net.minecraft.item.ItemStack;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.world.World;
 import net.minecraftforge.event.ForgeSubscribe;
@@ -46,7 +52,9 @@ public class ProtectionEvents implements ITickHandler
 		SteveCarts.instance,
 		Creeper.instance,
 		Mobs.instance,
-		ThaumCraft.instance
+		ThaumCraft.instance,
+		TNT.instance,
+		RailCraft.instance
 	};
 	
 	public static ProtBase[] tileProtections = new ProtBase[]
@@ -54,6 +62,52 @@ public class ProtectionEvents implements ITickHandler
 		BuildCraft.instance,
 		RedPower.instance
 	};
+	
+	public static ProtBase[] toolProtections = new ProtBase[]
+	{
+		SingleBlockTools.instance,
+		ThaumCraft.instance
+	};
+	
+	public boolean itemUsed(Resident r)
+	{
+		try
+		{
+			String kill = null;
+			
+			ItemStack item = r.onlinePlayer.getHeldItem();
+			if (item == null)
+				return true;
+			
+			Item tool = item.getItem();
+			if (tool == null)
+				return true;
+			
+			kill = null;
+			for (ProtBase prot : toolProtections)
+			{
+				if (prot.enabled && prot.isEntityInstance(tool))
+				{
+					kill = prot.update(r, tool, item);
+					if (kill != null)
+						break;
+				}
+			}
+			
+			if (kill != null)
+			{
+				EntityPlayer pl = r.onlinePlayer;
+				Log.severe(String.format("Player %s tried to bypass at dim %d, %d,%d,%d using %s - %s", pl.username, pl.dimension, (int)pl.posX, (int)pl.posY, (int)pl.posZ, tool.toString(), kill));
+				pl.sendChatToPlayer("§4You cannot use that here - " + kill);
+				return false;
+			}
+		}
+		catch (Exception er)
+		{
+			Log.severe("Error in player " + r.onlinePlayer.toString() + " item use check", er);
+		}
+		return true;
+	}
 
 	@Override
 	public void tickStart(EnumSet<TickType> type, Object... tickData) 

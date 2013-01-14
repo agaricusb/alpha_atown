@@ -13,6 +13,7 @@ import ee.lutsu.alpha.mc.mytown.entities.Resident.Rank;
 import ee.lutsu.alpha.mc.mytown.entities.Town;
 import ee.lutsu.alpha.mc.mytown.entities.TownBlock;
 import ee.lutsu.alpha.mc.mytown.entities.TownSettingCollection.Permissions;
+import ee.lutsu.alpha.mc.mytown.event.ProtBase;
 import ee.lutsu.alpha.mc.mytown.event.ProtectionEvents;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityLiving;
@@ -111,6 +112,6 @@ public class RedPower extends ProtBase
 		return null;
 	}
 
-	@Override
 	public String getMod() { return "RedPower"; }
+	public String getComment() { return "Build check: TileFrameMoving & TileMotor"; }
 }

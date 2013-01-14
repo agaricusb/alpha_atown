@@ -230,7 +230,7 @@ public class Resident
 		if (e instanceof EntityItem)
 			return canInteract(targetBlock, (int)e.posY, TownSettingCollection.Permissions.Loot);
 		else
-			return canInteract(targetBlock, (int)e.posY, TownSettingCollection.Permissions.Access);
+			return canInteract(targetBlock, (int)e.posY, TownSettingCollection.Permissions.Build); // shears come here
 	}
 	
 	public boolean canAttack(Entity e)

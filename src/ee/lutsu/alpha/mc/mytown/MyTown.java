@@ -290,37 +290,27 @@ public class MyTown
         prop.comment = "Run the extra protections";
         ProtectionEvents.instance.enabled = prop.getBoolean(true);
         
-        prop = config.get("ProtEx", "LaserCheck", false);
-        prop.comment = "Check for mining laser bypass";
-        MiningLaser.instance.enabled = prop.getBoolean(false);
+        for (ProtBase prot : ProtectionEvents.entityProtections)
+        {
+            prop = config.get("ProtEx", prot.getMod(), false);
+            prop.comment = prot.getComment();
+            prot.enabled = prop.getBoolean(false);
+            
+        }
         
-        prop = config.get("ProtEx", "PortalGunCheck", false);
-        prop.comment = "Check for portal gun balls flying in foreign towns";
-        PortalGun.instance.enabled = prop.getBoolean(false);
+        for (ProtBase prot : ProtectionEvents.tileProtections)
+        {
+            prop = config.get("ProtEx", prot.getMod(), false);
+            prop.comment = prot.getComment();
+            prot.enabled = prop.getBoolean(false);
+        }
         
-        prop = config.get("ProtEx", "SteveRailerCheck", false);
-        prop.comment = "Check for steve carts with railers";
-        SteveCarts.instance.enabled = prop.getBoolean(false);
-        
-        prop = config.get("ProtEx", "BuildCraftCheck", false);
-        prop.comment = "Check for quarrys, fillers, builder";
-        BuildCraft.instance.enabled = prop.getBoolean(false);
-        
-        prop = config.get("ProtEx", "CreeperExplosionCheck", true);
-        prop.comment = "Check for creepers if they can explode";
-        Creeper.instance.enabled = prop.getBoolean(true);
-        
-        prop = config.get("ProtEx", "MobPositionCheck", true);
-        prop.comment = "Check for mobs if they can be at a protected area";
-        Mobs.instance.enabled = prop.getBoolean(true);
-        
-        prop = config.get("ProtEx", "ThaumCraft", false);
-        prop.comment = "Check for ThaumCraft 3 bypasses";
-        ThaumCraft.instance.enabled = prop.getBoolean(true);
-        
-        prop = config.get("ProtEx", "RedPower", false);
-        prop.comment = "Check for RedPower 2 bypasses";
-        RedPower.instance.enabled = prop.getBoolean(true);
+        for (ProtBase prot : ProtectionEvents.toolProtections)
+        {
+            prop = config.get("ProtEx", prot.getMod(), false);
+            prop.comment = prot.getComment();
+            prot.enabled = prop.getBoolean(false);
+        }
     }
     
     private void loadPerms(Configuration config)
