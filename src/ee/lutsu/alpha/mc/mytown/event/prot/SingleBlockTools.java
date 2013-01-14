@@ -3,6 +3,7 @@ package ee.lutsu.alpha.mc.mytown.event.prot;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 
+import ee.lutsu.alpha.mc.mytown.Log;
 import ee.lutsu.alpha.mc.mytown.MyTownDatasource;
 import ee.lutsu.alpha.mc.mytown.Term;
 import ee.lutsu.alpha.mc.mytown.Utils;
@@ -53,6 +54,12 @@ public class SingleBlockTools extends ProtBase
 			m = e.getClass().getDeclaredMethod("onItemUseFirst", ItemStack.class, EntityPlayer.class, World.class, int.class, int.class, int.class, int.class, float.class, float.class, float.class);
 		} 
 		catch (NoSuchMethodException e1) { }
+		catch (NoClassDefFoundError e1) 
+		{  
+			//Log.warning("Cannot check the item " + e.getClass().toString() + " for right click usage.");
+			return true;
+		} // cannot use reflection on this class!!
+		
 		return m != null;
 	}
 	
