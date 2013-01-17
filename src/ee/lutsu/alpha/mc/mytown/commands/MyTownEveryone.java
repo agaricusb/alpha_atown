@@ -135,6 +135,8 @@ public class MyTownEveryone
 			}
 			else if (args.length > 0 && args[0].equalsIgnoreCase(Term.TownCmdInfo.toString()))
 			{
+				if (!Permissions.canAccess(cs, "mytown.cmd.info")) { cs.sendChatToPlayer(Term.ErrCannotAccessCommand.toString()); return; }
+				
 				if (args.length == 2)
 				{
 					Town t = MyTownDatasource.instance.getTown(args[1]);
@@ -148,6 +150,8 @@ public class MyTownEveryone
 			}
 			else if (args.length > 0 && args[0].equalsIgnoreCase(Term.TownCmdFriend.toString()))
 			{
+				if (!Permissions.canAccess(cs, "mytown.cmd.friend")) { cs.sendChatToPlayer(Term.ErrCannotAccessCommand.toString()); return; }
+				
 				if (args.length == 3)
 				{
 					String cmd = args[1];
