@@ -134,7 +134,7 @@ public class RailCraft extends ProtBase
 
 	protected final ForgeDirection getFacing(Entity cart)
 	{
-		return ForgeDirection.getOrientation(cart.getDataWatcher().getWatchableObjectInt(5));
+		return ForgeDirection.getOrientation(cart.getDataWatcher().getWatchableObjectByte(5));
 	}
 
 	private boolean canBlow(int dim, double x, double yFrom, double yTo, double z)
