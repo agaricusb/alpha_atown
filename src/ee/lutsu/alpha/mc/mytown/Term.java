@@ -12,6 +12,7 @@ public enum Term
 	ChatListStart("Switch chat channel"),
 	ChatListEntry("   %s%s §f[%s%s§f]"),
 	ChatSwitch("Changed active channel to [%s%s§f] %s%s"),
+	ChatSwitchAlreadyIn("You are already in channel [%s%s§f] %s%s"),
 	
 	SevereLevel("SEVERE"),
 	WarningLevel("WARNING"),
@@ -400,7 +401,7 @@ public enum Term
 	SpawnCmdTeleportReset("§4Teleport spell casting interrupted"),
 	;
 	
-	public final String defaultVal;
+	public String defaultVal;
 	public static String language = null;
 	public static HashMap<String, HashMap<Term, String>> translations = new HashMap<String, HashMap<Term, String>>();
 	

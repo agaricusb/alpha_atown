@@ -128,7 +128,7 @@ public class SteveCarts extends ProtBase
 				e.dimension, (int)e.posX, (int)e.posY, (int)e.posZ));
 		
 		String msg = String.format("A steve cart broke @ %s,%s,%s because it wasn't allowed there", (int)e.posX, (int)e.posY, (int)e.posZ);
-		String formatted = Formatter.formatChatSystem(msg, "<MyTown> " + msg, ChatChannel.Local);
+		String formatted = Formatter.formatChatSystem(msg, ChatChannel.Local);
 		CmdChat.sendChatToAround(e.dimension, e.posX, e.posY, e.posZ, formatted, null);
 	}
 

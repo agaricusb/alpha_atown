@@ -56,10 +56,10 @@ public class Formatter
 		return String.format("[%s§f] %s", formatLevel(lvl), msg);
 	}
 	
-	public static String formatChat(Resident res, String line, String forgeFormatted, ChatChannel channel)
+	public static String formatChat(Resident res, String line, ChatChannel channel)
 	{
 		if (!formatChat)
-			return forgeFormatted;
+			return String.format("<%s>: %s", res.name(), line);
 
 		return Term.ChatFormat.toString()
 				.replace("$color$", channel.color)
@@ -70,10 +70,10 @@ public class Formatter
 				.replace("$postfix$", res.postfix());
 	}
 	
-	public static String formatChatSystem( String line, String forgeFormatted, ChatChannel channel)
+	public static String formatChatSystem(String line, ChatChannel channel)
 	{
 		if (!formatChat)
-			return forgeFormatted;
+			return "<§4Sys:MyTown§f>: " + line;
 
 		return Term.ChatFormat.toString()
 				.replace("$color$", channel.color)

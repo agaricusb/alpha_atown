@@ -33,7 +33,6 @@ import net.minecraftforge.event.entity.EntityEvent.EnteringChunk;
 
 public class Resident 
 {
-	public static boolean ignoreOps = false;
 	public static boolean allowMemberToMemberPvp = false;
 	public static int pickupSpamCooldown = 5000;
 	

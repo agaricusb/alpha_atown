@@ -43,6 +43,7 @@ import ee.lutsu.alpha.mc.mytown.event.prot.SteveCarts;
 import ee.lutsu.alpha.mc.mytown.event.prot.ThaumCraft;
 import ee.lutsu.alpha.mc.mytown.sql.Database;
 import ee.lutsu.alpha.mc.mytown.sql.MyTownDB;
+import net.minecraft.command.CommandBase;
 import net.minecraft.command.ICommandSender;
 import net.minecraft.command.ServerCommandManager;
 import net.minecraft.item.Item;
@@ -71,15 +72,31 @@ public class MyTown
 	public TownSettingCollection serverWildSettings = new TownSettingCollection(true, true);
 	public TownSettingCollection serverSettings = new TownSettingCollection(true, false);
 	public Map<Integer, TownSettingCollection> worldWildSettings = new HashMap<Integer, TownSettingCollection>();
-	public LinkedList<ItemIdRange> carts = null, safeItems = null;
+	public LinkedList<ItemIdRange> carts = null;
 	
     @Mod.Instance("MyTown")
     public static MyTown instance;
     public Configuration config = new Configuration(new File(CONFIG_FILE));
+    
+	public List<CommandBase> commands = new ArrayList<CommandBase>();
+	
+	private void addCommands()
+	{
+		commands.add(new CmdMyTown());
+		commands.add(new CmdMyTownAdmin());
+		commands.add(new CmdChannel());
+		commands.add(new CmdGamemode());
+		commands.add(new CmdWrk());
+		commands.add(new CmdSpawn());
+		
+		for(ChatChannel c : ChatChannel.values())
+			commands.add(new CmdChat(c));
+	}
 
     @Mod.PreInit
     public void preInit(FMLPreInitializationEvent ev)
     {
+    	addCommands();
         loadConfig();
     }
 
@@ -118,17 +135,8 @@ public class MyTown
     	TickRegistry.registerTickHandler(ProtectionEvents.instance, Side.SERVER);
     	MinecraftForge.EVENT_BUS.register(WorldEvents.instance);
     	
-    	ServerCommandManager mgr = (ServerCommandManager)MinecraftServer.getServer().getCommandManager();
-    	mgr.registerCommand(new CmdMyTown());
-    	mgr.registerCommand(new CmdMyTownAdmin());
-    	mgr.registerCommand(new CmdChannel());
-    	mgr.registerCommand(new CmdGamemode());
-    	mgr.registerCommand(new CmdWrk());
-    	mgr.registerCommand(new CmdSpawn());
-    	
-		for(ChatChannel c : ChatChannel.values())
-			mgr.registerCommand(new CmdChat(c));
-		
+    	loadCommandsConfig(config);
+
 		Log.info("Loaded");
     }
 
@@ -184,16 +192,7 @@ public class MyTown
         
         if (prop.value != null && !prop.value.equals(""))
         	TermTranslator.load(new File(CONFIG_FOLDER + prop.value), "custom", true);
-        
-        prop = config.get("General", "IgnoreOps", true);
-        prop.comment = "Should ops be bypassed from protections";
-        Resident.ignoreOps = prop.getBoolean(true);
-        
-        /*
-        prop = config.get("General", "BlocksPerResident", 16);
-        prop.comment = "How many town block each resident gives";
-        Town.perResidentBlocks = prop.getInt(16);*/
-        
+
         prop = config.get("General", "NationAddsBlocks", 0);
         prop.comment = "How many town blocks the town gets for being in a nation";
         Nation.nationAddsBlocks = prop.getInt(0);
@@ -219,13 +218,9 @@ public class MyTown
         Town.allowMemberToForeignPvp = prop.getBoolean(true);
         
         List items = Arrays.asList(Item.itemsList);
-        prop = config.get("General", "CartItemIds", String.valueOf(items.indexOf(Item.minecartEmpty)) + ";" + String.valueOf(items.indexOf(Item.minecartPowered)) + ";" + String.valueOf(items.indexOf(Item.minecartCrate)));
-        prop.comment = "Defines the cart id's which can be placed on a rail with carts perm on";
+        prop = config.get("General", "CartItemIds", "");
+        prop.comment = "Defines the cart id's which can be placed on a rail with carts perm on. Includes all cart-types.";
         carts = ItemIdRange.parseList(Arrays.asList(prop.value.split(";")));
-
-        prop = config.get("General", "SafeItemIds", "");
-        prop.comment = "Defines the item id's which don't do anything on right click (red matter?)";
-        safeItems = ItemIdRange.parseList(Arrays.asList(prop.value.split(";")));
     }
     
     private void loadDatabaseConfigs(Configuration config)
@@ -261,7 +256,7 @@ public class MyTown
         MyTownDatasource.instance.dbpath = prop.value;
         
         prop = config.get("Database", "Version", 0);
-        prop.comment = "The database version. DO NOT CHANGE! It's used internally.";
+        prop.comment = "The database version. Changed automatically when updates arrive.";
         MyTownDatasource.instance.dbVersion = prop.getInt();
     }
     
@@ -273,6 +268,10 @@ public class MyTown
         prop.comment = "Should the chat be formatted";
         Formatter.formatChat = prop.getBoolean(true);
         
+        prop = config.get("Chat", "ChatFormat", Term.ChatFormat.defaultVal);
+        prop.comment = "Chat format to be used";
+        Term.ChatFormat.defaultVal = prop.value;
+        
         prop = config.get("Chat", "LocalDistance", 160);
         prop.comment = "How many blocks far does the local chat sound";
         ChatChannel.localChatDistance = prop.getInt(160);
@@ -280,6 +279,13 @@ public class MyTown
         prop = config.get("Chat", "MaxChatLength", 32767);
         prop.comment = "How many characters can one chat packet contain. It's global.";
         Packet3Chat.maxChatLength = prop.getInt(32767);
+        
+        for (ChatChannel ch : ChatChannel.values())
+        {
+            prop = config.get("Chat", "Channel_" + ch.toString(), "");
+            prop.comment = "<enabled>;<name>;<abbrevation>;<color> like " + String.format("%s;%s;%s;%s", ch.enabled ? 1 : 0, ch.name, ch.abbrevation, ch.color);
+            ch.load(prop.value);
+        }
     }
     
     private void loadExtraProtectionConfig(Configuration config)
@@ -311,6 +317,21 @@ public class MyTown
             prop.comment = prot.getComment();
             prot.enabled = prop.getBoolean(false);
         }
+    }
+    
+    private void loadCommandsConfig(Configuration config)
+    {
+        Property prop; 
+    	ServerCommandManager mgr = (ServerCommandManager)MinecraftServer.getServer().getCommandManager();
+    	
+    	for (CommandBase cmd : commands)
+    	{
+            prop = config.get("Commands", "Enable_" + cmd.getCommandName(), true);
+            prop.comment = "Enable the " + cmd.getClass().getSimpleName() + " command?";
+            
+            if (prop.getBoolean(true))
+            	mgr.registerCommand(cmd);
+    	}
     }
     
     private void loadPerms(Configuration config)

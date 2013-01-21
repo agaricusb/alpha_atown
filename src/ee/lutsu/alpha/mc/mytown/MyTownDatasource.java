@@ -95,6 +95,23 @@ public class MyTownDatasource extends MyTownDB
 		return null;
 	}
 	
+	public TownBlock getPermBlockAtCoord(int world_dimension, int x, int y, int z)
+	{
+		return getPermBlockAtCoord(world_dimension, x, y, y, z);
+	}
+	
+	public TownBlock getPermBlockAtCoord(int world_dimension, int x, int yFrom, int yTo, int z)
+	{
+		TownBlock targetBlock = getBlock(world_dimension, ChunkCoord.getCoord(x), ChunkCoord.getCoord(z));
+		if (targetBlock != null && targetBlock.settings.yCheckOn)
+		{
+			if (yTo < targetBlock.settings.yCheckFrom || yFrom > targetBlock.settings.yCheckTo)
+				targetBlock = targetBlock.getFirstFullSidingClockwise(targetBlock.town());
+		}
+
+		return targetBlock;
+	}
+	
 	public Town getTown(String name)
 	{
 		for (Town res : towns)

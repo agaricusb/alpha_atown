@@ -44,7 +44,7 @@ public class CmdChat extends CommandBase
 	
 	public static String sendTownChat(Resident res, String msg)
 	{
-		String formatted = Formatter.formatChat(res, msg, null, ChatChannel.Town);
+		String formatted = Formatter.formatChat(res, msg, ChatChannel.Town);
 		
 		int sentTo = 0;
 		if (res.town() == null)
@@ -74,7 +74,7 @@ public class CmdChat extends CommandBase
 	
 	public static String sendNationChat(Resident res, String msg)
 	{
-		String formatted = Formatter.formatChat(res, msg, null, ChatChannel.Nation);
+		String formatted = Formatter.formatChat(res, msg, ChatChannel.Nation);
 		
 		int sentTo = 0;
 		if (res.town() == null)
@@ -122,7 +122,7 @@ public class CmdChat extends CommandBase
 			msg = msg.toLowerCase();
 		}
 
-		String formatted = Formatter.formatChat(res, msg, null, ch);
+		String formatted = Formatter.formatChat(res, msg, ch);
 		
 		int sentTo = 0;
 		for(Object obj : MinecraftServer.getServer().getConfigurationManager().playerEntityList)
@@ -140,7 +140,7 @@ public class CmdChat extends CommandBase
 	
 	public static String sendLocalChat(Resident res, String msg)
 	{
-		String formatted = Formatter.formatChat(res, msg, null, ChatChannel.Local);
+		String formatted = Formatter.formatChat(res, msg, ChatChannel.Local);
 		
 		int sentTo = sendChatToAround(res.onlinePlayer.dimension, res.onlinePlayer.posX, res.onlinePlayer.posY, res.onlinePlayer.posZ, formatted, null);
 
@@ -169,6 +169,9 @@ public class CmdChat extends CommandBase
 	public static void sendToChannel(Resident sender, String msg, ChatChannel channel)
 	{
 		if (msg == null || msg.trim().length() < 1)
+			return;
+		
+		if (!channel.enabled)
 			return;
 		
 		String s;

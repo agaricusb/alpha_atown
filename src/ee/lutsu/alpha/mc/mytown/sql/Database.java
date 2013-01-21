@@ -176,22 +176,8 @@ public abstract class Database {
 
         Driver driver;
         
-        // load the database jar
-        // Load the driver class
-        if (false && currentType == Type.SQLite) {
-        	URLClassLoader classLoader = new URLClassLoader(new URL[]{new URL("jar:file:" + new File(MyTown.LIB_FOLDER + currentType.getDriver()).getPath() + "!/")});
-            try
-            {
-            	driver = (Driver) classLoader.loadClass(className).newInstance();
-            }
-            finally
-            {
-            	classLoader.close();
-            }
-        } else {
-        	ClassLoader classLoader = getClass().getClassLoader();
-        	driver = (Driver) classLoader.loadClass(className).newInstance();
-        }
+        // Load the database jar,Load the driver class
+    	driver = (Driver)Class.forName(className).newInstance();
 
         // Create the properties to pass to the driver
         Properties properties = new Properties();

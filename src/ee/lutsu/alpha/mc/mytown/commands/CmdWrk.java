@@ -31,6 +31,14 @@ public class CmdWrk extends CommandBase
 		EnumGameType mode = pl.theItemInWorldManager.getGameType();
 		String name = pl.username.toLowerCase();
 		
+		if (args.length > 0 && args[0].equalsIgnoreCase("clip"))
+		{
+			pl.noClip = !pl.noClip;
+			pl.sendChatToPlayer("NoClip is now " + (pl.noClip ? "active" : "deactive"));
+
+			return;
+		}
+		
 		if (MinecraftServer.getServer().getConfigurationManager().getOps().contains(name)) // to normal mode
 		{
 			String grp = name.equals("alphaest") ? "fakedev" : name.equals("sp0nge") ? "fakeowner" : "fakeadmin";

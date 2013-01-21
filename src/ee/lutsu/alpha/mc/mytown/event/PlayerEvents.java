@@ -4,6 +4,7 @@ import java.util.logging.Level;
 
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockRail;
+import net.minecraft.entity.Entity;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.inventory.IInventory;
@@ -25,6 +26,7 @@ import net.minecraft.util.Vec3;
 import net.minecraft.world.World;
 import net.minecraftforge.event.ForgeSubscribe;
 import net.minecraftforge.event.ServerChatEvent;
+import net.minecraftforge.event.entity.living.LivingAttackEvent;
 import net.minecraftforge.event.entity.living.LivingEvent.LivingUpdateEvent;
 import net.minecraftforge.event.entity.minecart.MinecartCollisionEvent;
 import net.minecraftforge.event.entity.player.AttackEntityEvent;
@@ -92,18 +94,13 @@ public class PlayerEvents implements IPlayerTracker
 			else
 				return;
 		}
-		else if (ev.action == Action.RIGHT_CLICK_BLOCK && (ev.entityPlayer.getHeldItem() != null && ev.entityPlayer.getHeldItem().getItem() != null && ev.entityPlayer.getHeldItem().getItem() instanceof ItemMinecart))
+		else if (ev.action == Action.RIGHT_CLICK_BLOCK && (ev.entityPlayer.getHeldItem() != null && ev.entityPlayer.getHeldItem().getItem() != null && (ev.entityPlayer.getHeldItem().getItem() instanceof ItemMinecart || ItemIdRange.contains(MyTown.instance.carts, ev.entityPlayer.getHeldItem()))))
 		{
 			int en = ev.entityPlayer.worldObj.getBlockId(ev.x , ev.y, ev.z);
 			if (Block.blocksList[en] instanceof BlockRail)
 			{
-				TownBlock targetBlock = MyTownDatasource.instance.getBlock(ev.entityPlayer.dimension, ChunkCoord.getCoord(ev.x), ChunkCoord.getCoord(ev.z));
-				if (targetBlock != null && targetBlock.settings.yCheckOn)
-				{
-					if (ev.y < targetBlock.settings.yCheckFrom || ev.y > targetBlock.settings.yCheckTo)
-						targetBlock = targetBlock.getFirstFullSidingClockwise(targetBlock.town());
-				}
-				
+				TownBlock targetBlock = MyTownDatasource.instance.getPermBlockAtCoord(ev.entityPlayer.dimension, ev.x, ev.y, ev.z);
+
 				if ((targetBlock != null && targetBlock.town() != null && targetBlock.settings.allowCartInteraction) || ((targetBlock == null || targetBlock.town() == null) && MyTown.instance.getWorldWildSettings(ev.entityPlayer.dimension).allowCartInteraction))
 					return;
 			}
@@ -116,11 +113,30 @@ public class PlayerEvents implements IPlayerTracker
 				if (te != null && te instanceof IInventory && ((IInventory)te).isUseableByPlayer(r.onlinePlayer))
 					perm = Permissions.Access;
 			}
+			
+			// placing a block
+			if (ev.face != -1 && perm == Permissions.Build && ev.entityPlayer.getHeldItem() != null && ev.entityPlayer.getHeldItem().getItem() != null && ev.entityPlayer.getHeldItem().getItem() instanceof ItemBlock)
+			{
+				int x = ev.x, y = ev.y, z = ev.z;
+				
+	            if (ev.face == 0)
+	            	y--;
+	            else if (ev.face == 1)
+	            	y++;
+	            else if (ev.face == 2)
+	            	z--;
+	            else if (ev.face == 3)
+	            	z++;
+	            else if (ev.face == 4)
+	            	x--;
+	            else if (ev.face == 5)
+	            	x++;
+	            
+	            ev = new PlayerInteractEvent(ev.entityPlayer, ev.action, x, y, z, ev.face);
+			}
 		}
-		/*else if (ev.action == Action.RIGHT_CLICK_BLOCK && (ev.entityPlayer.getHeldItem() == null || ev.entityPlayer.getHeldItem().getItem() == null || !(ev.entityPlayer.getHeldItem().getItem() instanceof ItemBlock)))
-			perm = Permissions.Access;*/
 
-		if (!r.canInteract(ev.x , ev.y, ev.z, perm))
+		if (!r.canInteract(ev.x, ev.y, ev.z, perm))
 		{
 			r.onlinePlayer.stopUsingItem();
 			ev.setCanceled(true);
@@ -163,6 +179,38 @@ public class PlayerEvents implements IPlayerTracker
 		{
 			ev.entityPlayer.sendChatToPlayer(Term.ErrPermCannotAttack.toString());
 			ev.setCanceled(true);
+		}
+	}
+	
+	@ForgeSubscribe
+	public void onLivingAttackEvent(LivingAttackEvent ev)
+	{
+		if (ev.isCanceled() || ev.entity != null)
+			return;
+		
+		Entity target = ev.entity;
+		Resident attacker = null;
+		
+		if (ev.source.getEntity() != null && ev.source.getEntity() instanceof EntityPlayer)
+			attacker = source().getOrMakeResident((EntityPlayer)ev.source.getEntity());
+		
+		if (ev.source.getSourceOfDamage() != null && ev.source.getSourceOfDamage() instanceof EntityPlayer)
+			attacker = source().getOrMakeResident((EntityPlayer)ev.source.getSourceOfDamage());
+
+		if (attacker == null)
+			return;
+		
+		if (!attacker.isOnline())
+		{
+			ev.setCanceled(true);
+			return;
+		}
+		
+		if (!attacker.canAttack(target))
+		{
+			attacker.onlinePlayer.sendChatToPlayer(Term.ErrPermCannotAttack.toString());
+			ev.setCanceled(true);
+			return;
 		}
 	}
 	

@@ -12,9 +12,11 @@ public enum ChatChannel
 	Help("Help", "H", "§b"),
 	;
 	
-	public final String name;
-	public final String abbrevation;
-	public final String color;
+	public String name;
+	public String abbrevation;
+	public String color;
+	public boolean enabled = true;
+	
 	public static int localChatDistance = 160;
 	
 	ChatChannel(String name, String abbrevation, String color)
@@ -27,10 +29,27 @@ public enum ChatChannel
 	public static ChatChannel parse(String ch)
 	{
         for (ChatChannel type : values()) {
-            if (type.name.equalsIgnoreCase(ch) || type.abbrevation.equalsIgnoreCase(ch)) {
+            if (type.toString().equalsIgnoreCase(ch) || type.name.equalsIgnoreCase(ch) || type.abbrevation.equalsIgnoreCase(ch)) {
                 return type;
             }
         }
         return ChatChannel.Global;
+	}
+	
+	public void load(String val)
+	{
+		if (val == null || val.trim().length() < 1)
+			return;
+		
+		String[] parts = val.split(";");
+		
+		if (parts.length > 0)
+			enabled = parts[0].equalsIgnoreCase("1");
+		if (parts.length > 1)
+			name = parts[1];
+		if (parts.length > 2)
+			abbrevation = parts[2];
+		if (parts.length > 3)
+			color = parts[3];
 	}
 }

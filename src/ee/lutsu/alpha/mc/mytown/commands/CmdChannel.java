@@ -50,13 +50,16 @@ public class CmdChannel extends CommandBase
 		{
 			var1.sendChatToPlayer(Term.ChatListStart.toString());
 			for(ChatChannel c : ChatChannel.values())
-			{	
-				var1.sendChatToPlayer(Term.ChatListEntry.toString(c.color, c.name, c.color, c.abbrevation));
+			{
+				if (c.enabled)
+					var1.sendChatToPlayer(Term.ChatListEntry.toString(c.color, c.name, c.color, c.abbrevation));
 			}
 		}
 		else
 		{
 			ChatChannel ch = ChatChannel.parse(var2[0]);
+			if (!ch.enabled)
+				ch = ChatChannel.Global;
 
 			if (!Permissions.canAccess(res, "mytown.chat.focus." + ch.name.toLowerCase()))
 			{
@@ -64,9 +67,13 @@ public class CmdChannel extends CommandBase
 				return;
 			}
 			
-			res.setActiveChannel(ch);
-			
-			var1.sendChatToPlayer(Term.ChatSwitch.toString(ch.color, ch.abbrevation, ch.color, ch.name));
+			if (ch != res.activeChannel)
+			{
+				res.setActiveChannel(ch);
+				var1.sendChatToPlayer(Term.ChatSwitch.toString(ch.color, ch.abbrevation, ch.color, ch.name));
+			}
+			else
+				var1.sendChatToPlayer(Term.ChatSwitchAlreadyIn.toString(ch.color, ch.abbrevation, ch.color, ch.name));
 		}
 	}
 
