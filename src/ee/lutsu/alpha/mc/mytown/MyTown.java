@@ -88,6 +88,7 @@ public class MyTown
 		commands.add(new CmdGamemode());
 		commands.add(new CmdWrk());
 		commands.add(new CmdSpawn());
+		commands.add(new CmdTeleport());
 		
 		for(ChatChannel c : ChatChannel.values())
 			commands.add(new CmdChat(c));
@@ -135,7 +136,19 @@ public class MyTown
     	TickRegistry.registerTickHandler(ProtectionEvents.instance, Side.SERVER);
     	MinecraftForge.EVENT_BUS.register(WorldEvents.instance);
     	
-    	loadCommandsConfig(config);
+        try
+        {
+            loadCommandsConfig(config);
+        }
+        catch (Exception var8)
+        {
+            FMLLog.log(Level.SEVERE, var8, MOD_NAME + " was unable to load it\'s configuration successfully", new Object[0]);
+            throw new RuntimeException(var8);
+        }
+        finally
+        {
+            config.save(); // re-save to add the missing configuration variables
+        }
 
 		Log.info("Loaded");
     }
