@@ -1,12 +1,15 @@
 package ee.lutsu.alpha.mc.mytown;
 
 import java.util.logging.Level;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import ee.lutsu.alpha.mc.mytown.entities.Resident;
 
 public class Formatter 
 {
 	public static boolean formatChat = true;
+	private static final Pattern color_pattern = Pattern.compile("(?i)\\$([0-9A-FK-OR])");
 	
 	public static String formatLevel(Level lvl)
 	{
@@ -90,5 +93,23 @@ public class Formatter
 			return String.format("§f%s§4*", r.formattedName());
 		else
 			return String.format("§f%s", r.formattedName());
+	}
+	
+	public static String dollarToColorPrefix(String str)
+	{
+		if (str == null || str.equals(""))
+			return "";
+
+		Matcher m = color_pattern.matcher(str);
+		String s = str;
+		
+		while (m.find())
+		{
+			String color = m.group(1).toLowerCase();
+			s = m.replaceFirst("§" + color.charAt(0));
+			m = m.reset(s);
+		}
+		
+		return s + "§r";
 	}
 }

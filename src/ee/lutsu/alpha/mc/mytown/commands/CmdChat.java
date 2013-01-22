@@ -118,9 +118,7 @@ public class CmdChat extends CommandBase
 	public static String sendGlobalChat(Resident res, String msg, ChatChannel ch)
 	{
 		if (!Permissions.canAccess(res, "mytown.chat.allowcaps"))
-		{
 			msg = msg.toLowerCase();
-		}
 
 		String formatted = Formatter.formatChat(res, msg, ch);
 		
@@ -173,6 +171,9 @@ public class CmdChat extends CommandBase
 		
 		if (!channel.enabled)
 			return;
+		
+		if (Permissions.canAccess(sender, "mytown.chat.allowcolors"))
+			msg = Formatter.dollarToColorPrefix(msg);
 		
 		String s;
 		if (channel == ChatChannel.Local)

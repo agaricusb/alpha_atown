@@ -10,8 +10,10 @@ import cpw.mods.fml.common.ITickHandler;
 import cpw.mods.fml.common.TickType;
 
 import ee.lutsu.alpha.mc.mytown.Log;
+import ee.lutsu.alpha.mc.mytown.MyTown;
 import ee.lutsu.alpha.mc.mytown.MyTownDatasource;
 import ee.lutsu.alpha.mc.mytown.Term;
+import ee.lutsu.alpha.mc.mytown.entities.ItemIdRange;
 import ee.lutsu.alpha.mc.mytown.entities.Resident;
 import ee.lutsu.alpha.mc.mytown.entities.Town;
 import ee.lutsu.alpha.mc.mytown.event.prot.BuildCraft;
@@ -83,11 +85,17 @@ public class ProtectionEvents implements ITickHandler
 			if (tool == null)
 				return true;
 			
+			// Always allow the usage of cart type items
+			if (ItemIdRange.contains(MyTown.instance.carts, item))
+				return true;
+			
+			ProtBase lastCheck = null;
 			kill = null;
 			for (ProtBase prot : toolProtections)
 			{
 				if (prot.enabled && prot.isEntityInstance(tool))
 				{
+					lastCheck = prot;
 					kill = prot.update(r, tool, item);
 					if (kill != null)
 						break;
@@ -96,8 +104,10 @@ public class ProtectionEvents implements ITickHandler
 			
 			if (kill != null)
 			{
+				String sTool = String.format("[%s] %s", item.itemID + (item.isStackable() && item.getItemDamage() > 0 ? ":" + item.getItemDamage() : ""), tool.getItemName());
+				
 				EntityPlayer pl = r.onlinePlayer;
-				Log.severe(String.format("Player %s tried to bypass at dim %d, %d,%d,%d using %s - %s", pl.username, pl.dimension, (int)pl.posX, (int)pl.posY, (int)pl.posZ, tool.toString(), kill));
+				Log.severe(String.format("[%s]Player %s tried to bypass at dim %d, %d,%d,%d using %s - %s", lastCheck.getClass().getSimpleName(), pl.username, pl.dimension, (int)pl.posX, (int)pl.posY, (int)pl.posZ, sTool, kill));
 				pl.sendChatToPlayer("§4You cannot use that here - " + kill);
 				return false;
 			}

@@ -21,19 +21,21 @@ public class CmdGamemode extends CommandBase
 	@Override
 	public boolean canCommandSenderUseCommand(ICommandSender cs)
 	{
-		return cs instanceof EntityPlayer && (Permissions.canAccess(cs, "mytown.adm.cmd.gm") || MinecraftServer.getServer().getConfigurationManager().getOps().contains(cs.getCommandSenderName().toLowerCase()));
+		return cs instanceof MinecraftServer || (cs instanceof EntityPlayer && (Permissions.canAccess(cs, "mytown.adm.cmd.gm") || MinecraftServer.getServer().getConfigurationManager().getOps().contains(cs.getCommandSenderName().toLowerCase())));
 	}
 
 	@Override
 	public void processCommand(ICommandSender cs, String[] args)
 	{
-		EntityPlayerMP pl = (EntityPlayerMP)cs;
-		EnumGameType mode = pl.theItemInWorldManager.getGameType() == EnumGameType.SURVIVAL ? EnumGameType.CREATIVE : EnumGameType.SURVIVAL;
-		
-		if (args.length > 0)
-			mode = getGameModeFromCommand(cs, args[0]);
+		EntityPlayerMP pl = null;
 		if (args.length > 1)
 			pl = func_82359_c(cs, args[1]);
+		else
+			pl = getCommandSenderAsPlayer(cs);
+
+		EnumGameType mode = pl.theItemInWorldManager.getGameType() == EnumGameType.SURVIVAL ? EnumGameType.CREATIVE : EnumGameType.SURVIVAL;
+		if (args.length > 0)
+			mode = getGameModeFromCommand(cs, args[0]);
 		
         pl.sendGameTypeToPlayer(mode);
         pl.fallDistance = 0.0F;

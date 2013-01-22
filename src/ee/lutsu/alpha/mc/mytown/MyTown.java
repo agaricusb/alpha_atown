@@ -56,7 +56,7 @@ import net.minecraftforge.common.Property;
 @Mod(
         modid = "MyTown",
         name = "My Town",
-        version = "1.0.0"
+        version = "1.4.6.2"
 )
 @NetworkMod(
         clientSideRequired = false,
@@ -89,6 +89,8 @@ public class MyTown
 		commands.add(new CmdWrk());
 		commands.add(new CmdSpawn());
 		commands.add(new CmdTeleport());
+		commands.add(new CmdSetSpawn());
+		commands.add(new CmdOnline());
 		
 		for(ChatChannel c : ChatChannel.values())
 			commands.add(new CmdChat(c));
@@ -234,6 +236,10 @@ public class MyTown
         prop = config.get("General", "CartItemIds", "");
         prop.comment = "Defines the cart id's which can be placed on a rail with carts perm on. Includes all cart-types.";
         carts = ItemIdRange.parseList(Arrays.asList(prop.value.split(";")));
+        
+        prop = config.get("General", "SpawnTeleportTimeout", 60);
+        prop.comment = "How many seconds the /spawn teleport takes";
+        Resident.teleportToSpawnWaitSeconds = prop.getInt();
     }
     
     private void loadDatabaseConfigs(Configuration config)
@@ -340,7 +346,7 @@ public class MyTown
     	for (CommandBase cmd : commands)
     	{
             prop = config.get("Commands", "Enable_" + cmd.getCommandName(), true);
-            prop.comment = "Enable the " + cmd.getClass().getSimpleName() + " command?";
+            prop.comment = String.format("Should the %s [/%s] command be used?", cmd.getClass().getSimpleName(), cmd.getCommandName());
             
             if (prop.getBoolean(true))
             	mgr.registerCommand(cmd);

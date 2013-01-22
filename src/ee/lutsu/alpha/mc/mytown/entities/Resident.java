@@ -27,6 +27,7 @@ import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.util.ChunkCoordinates;
 import net.minecraft.util.Vec3;
+import net.minecraft.world.WorldServer;
 import net.minecraft.world.storage.WorldInfo;
 import net.minecraftforge.event.ForgeSubscribe;
 import net.minecraftforge.event.entity.EntityEvent.EnteringChunk;
@@ -404,7 +405,7 @@ public class Resident
 								name(), block2.town().name(),
 								onlinePlayer.dimension, onlinePlayer.posX, onlinePlayer.posY, onlinePlayer.posZ));
 						
-						sendToSpawn();
+						respawnPlayer();
 					}
 				}
 				finally
@@ -459,28 +460,38 @@ public class Resident
 			throw new RuntimeException("Cannot bounce non multiplayer players");
 	}
 	
-	public void sendToSpawn()
+	public void respawnPlayer()
 	{
 		if (!(onlinePlayer instanceof EntityPlayerMP))
 			throw new RuntimeException("Cannot move a non-player");
 		
-		if (this.onlinePlayer.dimension != 0)
-			MinecraftServer.getServer().getConfigurationManager().transferPlayerToDimension((EntityPlayerMP)this.onlinePlayer, 0);
+		EntityPlayerMP pl = (EntityPlayerMP)onlinePlayer;
 		
-		ChunkCoordinates c = onlinePlayer.getBedLocation();
+		if (pl.dimension != pl.worldObj.provider.getRespawnDimension(pl))
+			MinecraftServer.getServer().getConfigurationManager().transferPlayerToDimension(pl, pl.worldObj.provider.getRespawnDimension(pl));
+		
+		WorldServer world = MinecraftServer.getServer().worldServerForDimension(pl.dimension);
+		ChunkCoordinates c = pl.getBedLocation();
+		boolean forcedSpawn = pl.isSpawnForced();
 		
 		if (c != null)
-			((EntityPlayerMP)onlinePlayer).setPositionAndUpdate(c.posX, c.posY + 1, c.posZ);
+			c = EntityPlayer.verifyRespawnCoordinates(world, c, forcedSpawn);
+
+        if (c != null)
+            pl.setLocationAndAngles((double)((float)c.posX + 0.5F), (double)((float)c.posY + 0.1F), (double)((float)c.posZ + 0.5F), 0.0F, 0.0F);
 		else
 		{
-			WorldInfo info = onlinePlayer.worldObj.getWorldInfo();
-			int y = onlinePlayer.worldObj.getHeightValue(info.getSpawnX(), info.getSpawnZ());
-			
-			if (info.getSpawnY() > 0 && info.getSpawnY() != onlinePlayer.worldObj.provider.getAverageGroundLevel())
-				y = info.getSpawnY();
-
-			((EntityPlayerMP)onlinePlayer).setPositionAndUpdate(info.getSpawnX(), y, info.getSpawnZ());
+			pl.sendChatToPlayer(Term.NoBedMessage.toString());
+			WorldInfo info = world.getWorldInfo();
+			pl.setLocationAndAngles(info.getSpawnX() + 0.5F, info.getSpawnY() + 0.1F, info.getSpawnZ() + 0.5F, 0, 0);
 		}
+        
+        world.theChunkProviderServer.loadChunk((int)pl.posX >> 4, (int)pl.posZ >> 4);
+
+        while (!world.getCollidingBoundingBoxes(pl, pl.boundingBox).isEmpty())
+            pl.setPosition(pl.posX, pl.posY + 1.0D, pl.posZ);
+		
+		pl.playerNetServerHandler.setPlayerLocation(pl.posX, pl.posY, pl.posZ, pl.rotationYaw, pl.rotationPitch);
 	}
 	
 	public void sendToTownSpawn(Town t)
@@ -510,13 +521,16 @@ public class Resident
 		if (pl.dimension != 0)
 			MinecraftServer.getServer().getConfigurationManager().transferPlayerToDimension(pl, 0);
 
-		WorldInfo info = pl.worldObj.getWorldInfo();
-		int y = pl.worldObj.getHeightValue(info.getSpawnX(), info.getSpawnZ());
+		WorldServer world = MinecraftServer.getServer().worldServerForDimension(pl.dimension);
+		WorldInfo info = world.getWorldInfo();
+		pl.setLocationAndAngles(info.getSpawnX() + 0.5F, info.getSpawnY() + 0.1F, info.getSpawnZ() + 0.5F, 0, 0);
 		
-		if (info.getSpawnY() > 0 && info.getSpawnY() != pl.worldObj.provider.getAverageGroundLevel())
-			y = info.getSpawnY();
+        world.theChunkProviderServer.loadChunk((int)pl.posX >> 4, (int)pl.posZ >> 4);
 
-		pl.setPositionAndUpdate(info.getSpawnX(), y, info.getSpawnZ());
+        while (!world.getCollidingBoundingBoxes(pl, pl.boundingBox).isEmpty())
+            pl.setPosition(pl.posX, pl.posY + 1.0D, pl.posZ);
+        
+        pl.playerNetServerHandler.setPlayerLocation(pl.posX, pl.posY, pl.posZ, pl.rotationYaw, pl.rotationPitch);
 	}
 	
 	public void save()
@@ -656,10 +670,10 @@ public class Resident
 	}
 	
 	private long teleportToSpawnStamp = 0;
-	public static long teleportToSpawnWait = 1 * 60 * 1000; // 1 minute
+	public static long teleportToSpawnWaitSeconds = 1 * 60; // 1 minute
 	public void asyncStartSpawnTeleport()
 	{
-		long takesTime = Permissions.canAccess(this, "mytown.adm.bypass.teleportwait") ? 0 : teleportToSpawnWait;
+		long takesTime = Permissions.canAccess(this, "mytown.adm.bypass.teleportwait") ? 0 : teleportToSpawnWaitSeconds * 1000;
 		teleportToSpawnStamp = System.currentTimeMillis() + takesTime;
 		
 		if (takesTime > 0)

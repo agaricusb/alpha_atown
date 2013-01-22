@@ -23,7 +23,7 @@ public class CmdSpawn extends CommandBase
 	@Override
 	public boolean canCommandSenderUseCommand(ICommandSender cs)
 	{
-		return cs instanceof EntityPlayerMP && Permissions.canAccess(cs, "mytown.cmd.spawn");
+		return cs instanceof EntityPlayerMP && Permissions.canAccess(cs, "mytown.ecmd.spawn");
 	}
 
 	@Override

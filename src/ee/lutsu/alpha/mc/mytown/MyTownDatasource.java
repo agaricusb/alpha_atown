@@ -1,8 +1,10 @@
 package ee.lutsu.alpha.mc.mytown;
 
 import java.sql.PreparedStatement;
+import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.List;
 
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.server.MinecraftServer;
@@ -192,6 +194,18 @@ public class MyTownDatasource extends MyTownDB
 		}
 
 		return null;
+	}
+	
+	public List<Resident> getOnlineResidents()
+	{
+		ArrayList<Resident> ret = new ArrayList<Resident>();
+		for (Resident res : residents)
+		{
+			if (res.isOnline())
+				ret.add(res);
+		}
+		
+		return ret;
 	}
 	
 	public void unloadTown(Town t)

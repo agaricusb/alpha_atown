@@ -65,8 +65,10 @@ public class PlayerEvents implements IPlayerTracker
 			return;
 		}
 		Permissions perm = Permissions.Build;
+		int x = ev.x, y = ev.y, z = ev.z;
+		Action action = ev.action;
 		
-		if (ev.action == Action.RIGHT_CLICK_AIR) // entity or air click
+		if (action == Action.RIGHT_CLICK_AIR) // entity or air click
 		{
 			if (ev.entityPlayer.getHeldItem() != null && ev.entityPlayer.getHeldItem().getItem() != null)
 			{
@@ -81,35 +83,47 @@ public class PlayerEvents implements IPlayerTracker
 					else
 						return;
 					
-					ev = new PlayerInteractEvent(ev.entityPlayer, ev.action, (int)ev.entityPlayer.posX, (int)ev.entityPlayer.posY, (int)ev.entityPlayer.posZ, ev.face);
+					x = (int)ev.entityPlayer.posX;
+					y = (int)ev.entityPlayer.posY;
+					z = (int)ev.entityPlayer.posZ;
 				}
 				else
 				{
+					action = Action.RIGHT_CLICK_BLOCK;
 					if (pos.typeOfHit == EnumMovingObjectType.ENTITY)
-						ev = new PlayerInteractEvent(ev.entityPlayer, ev.action, (int)pos.entityHit.posX, (int)pos.entityHit.posY, (int)pos.entityHit.posZ, ev.face);
+					{
+						x = (int)pos.entityHit.posX;
+						y = (int)pos.entityHit.posY;
+						z = (int)pos.entityHit.posZ;
+					}
 					else
-						ev = new PlayerInteractEvent(ev.entityPlayer, ev.action, pos.blockX, pos.blockY, pos.blockZ, ev.face);
+					{
+						x = pos.blockX;
+						y = pos.blockY;
+						z = pos.blockZ;
+					}
 				}
 			}
 			else
 				return;
 		}
-		else if (ev.action == Action.RIGHT_CLICK_BLOCK && (ev.entityPlayer.getHeldItem() != null && ev.entityPlayer.getHeldItem().getItem() != null && (ev.entityPlayer.getHeldItem().getItem() instanceof ItemMinecart || ItemIdRange.contains(MyTown.instance.carts, ev.entityPlayer.getHeldItem()))))
+		
+		if (action == Action.RIGHT_CLICK_BLOCK && (ev.entityPlayer.getHeldItem() != null && ev.entityPlayer.getHeldItem().getItem() != null && (ev.entityPlayer.getHeldItem().getItem() instanceof ItemMinecart || ItemIdRange.contains(MyTown.instance.carts, ev.entityPlayer.getHeldItem()))))
 		{
-			int en = ev.entityPlayer.worldObj.getBlockId(ev.x , ev.y, ev.z);
+			int en = ev.entityPlayer.worldObj.getBlockId(x , y, z);
 			if (Block.blocksList[en] instanceof BlockRail)
 			{
-				TownBlock targetBlock = MyTownDatasource.instance.getPermBlockAtCoord(ev.entityPlayer.dimension, ev.x, ev.y, ev.z);
+				TownBlock targetBlock = MyTownDatasource.instance.getPermBlockAtCoord(ev.entityPlayer.dimension, x, y, z);
 
 				if ((targetBlock != null && targetBlock.town() != null && targetBlock.settings.allowCartInteraction) || ((targetBlock == null || targetBlock.town() == null) && MyTown.instance.getWorldWildSettings(ev.entityPlayer.dimension).allowCartInteraction))
 					return;
 			}
 		}
-		else if (ev.action == Action.RIGHT_CLICK_BLOCK)
+		else if (action == Action.RIGHT_CLICK_BLOCK)
 		{
 			if (!r.onlinePlayer.isSneaking())
 			{
-				TileEntity te = r.onlinePlayer.worldObj.getBlockTileEntity(ev.x , ev.y, ev.z);
+				TileEntity te = r.onlinePlayer.worldObj.getBlockTileEntity(x , y, z);
 				if (te != null && te instanceof IInventory && ((IInventory)te).isUseableByPlayer(r.onlinePlayer))
 					perm = Permissions.Access;
 			}
@@ -117,8 +131,6 @@ public class PlayerEvents implements IPlayerTracker
 			// placing a block
 			if (ev.face != -1 && perm == Permissions.Build && ev.entityPlayer.getHeldItem() != null && ev.entityPlayer.getHeldItem().getItem() != null && ev.entityPlayer.getHeldItem().getItem() instanceof ItemBlock)
 			{
-				int x = ev.x, y = ev.y, z = ev.z;
-				
 	            if (ev.face == 0)
 	            	y--;
 	            else if (ev.face == 1)
@@ -131,12 +143,10 @@ public class PlayerEvents implements IPlayerTracker
 	            	x--;
 	            else if (ev.face == 5)
 	            	x++;
-	            
-	            ev = new PlayerInteractEvent(ev.entityPlayer, ev.action, x, y, z, ev.face);
 			}
 		}
 
-		if (!r.canInteract(ev.x, ev.y, ev.z, perm))
+		if (!r.canInteract(x, y, z, perm))
 		{
 			r.onlinePlayer.stopUsingItem();
 			ev.setCanceled(true);
@@ -268,7 +278,7 @@ public class PlayerEvents implements IPlayerTracker
 			Log.warning(String.format("Player %s logged in at a enemy town %s (%s, %s, %s) with bouncing on. Sending to spawn.",
 					r.name(), r.location.name(),
 					player.posX, player.posY, player.posZ));
-			r.sendToSpawn();
+			r.respawnPlayer();
 		}
 		
 		if (r.town() != null)

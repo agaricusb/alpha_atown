@@ -13,6 +13,7 @@ public enum Term
 	ChatListEntry("   %s%s §f[%s%s§f]"),
 	ChatSwitch("Changed active channel to [%s%s§f] %s%s"),
 	ChatSwitchAlreadyIn("You are already in channel [%s%s§f] %s%s"),
+	NoBedMessage("You don't have a bed to spawn in"),
 	
 	SevereLevel("SEVERE"),
 	WarningLevel("WARNING"),
@@ -43,6 +44,10 @@ public enum Term
 	ResStatusFriends2("§2Friend of: §f%s"),
 	
 	// commands
+	OnlineCommand("online"),
+	OnlineCommandAliases(""),
+	OnlineCmdListStart("§aOnline [%s]§f: %s"),
+	
 	TownCommand("mytown"),
 	TownCommandAliases("t town"),
 	
