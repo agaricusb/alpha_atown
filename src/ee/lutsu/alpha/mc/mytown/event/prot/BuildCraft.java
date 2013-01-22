@@ -28,6 +28,7 @@ public class BuildCraft extends ProtBase
 	Class clQuarry = null, clFiller, clBuilder, clBox;
 	Field fBoxQ, fBoxF, fBoxB, fmx, fmy, fmz, fxx, fxy, fxz, fBoxInit, fQuarryOwner, fQuarryBuilderDone;
 	
+	@Override
 	public void reload()
 	{
 		checkedEntitys.clear();

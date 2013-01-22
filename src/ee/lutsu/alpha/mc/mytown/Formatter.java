@@ -62,7 +62,7 @@ public class Formatter
 	public static String formatChat(Resident res, String line, ChatChannel channel)
 	{
 		if (!formatChat)
-			return String.format("<%s>: %s", res.name(), line);
+			return String.format("<%s> %s", res.name(), line);
 
 		return Term.ChatFormat.toString()
 				.replace("$color$", channel.color)
@@ -76,7 +76,7 @@ public class Formatter
 	public static String formatChatSystem(String line, ChatChannel channel)
 	{
 		if (!formatChat)
-			return "<§4Sys:MyTown§f>: " + line;
+			return "<§4Sys:MyTown§f> " + line;
 
 		return Term.ChatFormat.toString()
 				.replace("$color$", channel.color)

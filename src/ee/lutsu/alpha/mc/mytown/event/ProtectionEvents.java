@@ -16,17 +16,7 @@ import ee.lutsu.alpha.mc.mytown.Term;
 import ee.lutsu.alpha.mc.mytown.entities.ItemIdRange;
 import ee.lutsu.alpha.mc.mytown.entities.Resident;
 import ee.lutsu.alpha.mc.mytown.entities.Town;
-import ee.lutsu.alpha.mc.mytown.event.prot.BuildCraft;
-import ee.lutsu.alpha.mc.mytown.event.prot.Creeper;
-import ee.lutsu.alpha.mc.mytown.event.prot.MiningLaser;
-import ee.lutsu.alpha.mc.mytown.event.prot.Mobs;
-import ee.lutsu.alpha.mc.mytown.event.prot.PortalGun;
-import ee.lutsu.alpha.mc.mytown.event.prot.RailCraft;
-import ee.lutsu.alpha.mc.mytown.event.prot.RedPower;
-import ee.lutsu.alpha.mc.mytown.event.prot.SingleBlockTools;
-import ee.lutsu.alpha.mc.mytown.event.prot.SteveCarts;
-import ee.lutsu.alpha.mc.mytown.event.prot.TNT;
-import ee.lutsu.alpha.mc.mytown.event.prot.ThaumCraft;
+import ee.lutsu.alpha.mc.mytown.event.prot.*;
 
 import net.minecraft.block.Block;
 import net.minecraft.entity.Entity;
@@ -56,13 +46,15 @@ public class ProtectionEvents implements ITickHandler
 		Mobs.instance,
 		ThaumCraft.instance,
 		TNT.instance,
-		RailCraft.instance
+		RailCraft.instance,
+		TrainCraft.instance
 	};
 	
 	public static ProtBase[] tileProtections = new ProtBase[]
 	{
 		BuildCraft.instance,
-		RedPower.instance
+		RedPower.instance,
+		ComputerCraft.instance
 	};
 	
 	public static ProtBase[] toolProtections = new ProtBase[]

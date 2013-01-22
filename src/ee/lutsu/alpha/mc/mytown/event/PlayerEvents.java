@@ -36,6 +36,7 @@ import net.minecraftforge.event.entity.player.PlayerInteractEvent;
 import net.minecraftforge.event.entity.player.PlayerInteractEvent.Action;
 import cpw.mods.fml.common.IPlayerTracker;
 import ee.lutsu.alpha.mc.mytown.ChunkCoord;
+import ee.lutsu.alpha.mc.mytown.Formatter;
 import ee.lutsu.alpha.mc.mytown.Log;
 import ee.lutsu.alpha.mc.mytown.MyTown;
 import ee.lutsu.alpha.mc.mytown.MyTownDatasource;
@@ -309,7 +310,7 @@ public class PlayerEvents implements IPlayerTracker
 	@ForgeSubscribe
 	public void serverChat(ServerChatEvent ev)
 	{
-		if (ev.isCanceled() || ev.message == null || ev.message.trim().length() < 1)
+		if (ev.isCanceled() || ev.message == null || ev.message.trim().length() < 1 || !Formatter.formatChat)
 			return;
 		
 		ev.setCanceled(true);

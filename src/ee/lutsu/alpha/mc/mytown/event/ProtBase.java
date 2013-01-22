@@ -11,6 +11,7 @@ public abstract class ProtBase
 {
 	public boolean enabled = false;
 	
+	public void reload() { }
 	public void load() throws Exception { }
 	public boolean loaded() { return true; }
 	public boolean isEntityInstance(Item item) 

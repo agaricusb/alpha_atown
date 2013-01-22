@@ -223,7 +223,7 @@ public class Resident
 
 		if (e instanceof EntityMinecart)
 		{
-			if ((targetBlock != null && targetBlock.town() != null && targetBlock.settings.allowCartInteraction) || ((targetBlock == null || targetBlock.town() == null) && MyTown.instance.getWorldWildSettings(e.dimension).allowCartInteraction))
+			if ((e.riddenByEntity == null || e.riddenByEntity == onlinePlayer) && ((targetBlock != null && targetBlock.town() != null && targetBlock.settings.allowCartInteraction) || ((targetBlock == null || targetBlock.town() == null) && MyTown.instance.getWorldWildSettings(e.dimension).allowCartInteraction)))
 				return true;
 		}
 		

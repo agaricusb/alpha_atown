@@ -284,6 +284,8 @@ public class TownSettingCollection
 	public boolean allowRailcraftBores;
 	public boolean allowBuildcraftMiners;
 	public boolean allowClaimingNextTo;
+	public boolean allowCCTurtles;
+	
 	public boolean disableCreepers;
 	public boolean disableTNT;
 	public boolean disableMobs;
@@ -318,6 +320,9 @@ public class TownSettingCollection
 			allowBuildcraftMiners = set.getEffBoolean();
 		else if (set.getSerializationKey().equals("closeclaim"))
 			allowClaimingNextTo = set.getEffBoolean();
+		else if (set.getSerializationKey().equals("ccturtles"))
+			allowCCTurtles = set.getEffBoolean();
+		
 		else if (set.getSerializationKey().equals("creepoff"))
 			disableCreepers = set.getEffBoolean();
 		else if (set.getSerializationKey().equals("tntoff"))
@@ -348,7 +353,9 @@ public class TownSettingCollection
 		settings.add(new TownSetting("Allow stevescarts miners", 		"steveminer", 	false, 				true, 				"boolean:yes/no", 							boolean.class));
 		settings.add(new TownSetting("Allow railcraft bores",	 		"rcbore", 		false, 				true, 				"boolean:yes/no", 							boolean.class));
 		settings.add(new TownSetting("Allow quarrys,filler,builders", 	"bc",		 	false, 				true, 				"boolean:yes/no", 							boolean.class));
+		settings.add(new TownSetting("Allow computercraft turtles",		"ccturtles",	false, 				true, 				"boolean:yes/no", 							boolean.class));
 		settings.add(new TownSetting("Allow claiming next to", 			"closeclaim",	false, 				null, 				"boolean:yes/no", 							boolean.class));
+		
 		settings.add(new TownSetting("Disable creeper explosion",		"creepoff",		false, 				false, 				"boolean:yes/no", 							boolean.class));
 		settings.add(new TownSetting("Disable TNT explosion",			"tntoff",		true, 				false, 				"boolean:yes/no", 							boolean.class));
 		settings.add(new TownSetting("Disable mobs",					"mobsoff",		false, 				null, 				"boolean:yes/no", 							boolean.class));

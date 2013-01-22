@@ -186,7 +186,15 @@ public class MyTown
     public void reload()
     {
     	loadConfig();
-    	BuildCraft.instance.reload(); // flushes the checked list
+
+        for (ProtBase prot : ProtectionEvents.entityProtections)
+            prot.reload();
+        
+        for (ProtBase prot : ProtectionEvents.tileProtections)
+        	 prot.reload();
+        
+        for (ProtBase prot : ProtectionEvents.toolProtections)
+        	 prot.reload();
     	
     	try
     	{
