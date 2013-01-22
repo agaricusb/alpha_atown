@@ -1,19 +1,5 @@
 package ee.lutsu.alpha.mc.mytown;
 
-import cpw.mods.fml.common.FMLLog;
-import cpw.mods.fml.common.Mod;
-import cpw.mods.fml.common.SidedProxy;
-import cpw.mods.fml.common.event.FMLInitializationEvent;
-import cpw.mods.fml.common.event.FMLPostInitializationEvent;
-import cpw.mods.fml.common.event.FMLPreInitializationEvent;
-import cpw.mods.fml.common.event.FMLServerStartedEvent;
-import cpw.mods.fml.common.network.NetworkMod;
-import cpw.mods.fml.common.network.NetworkRegistry;
-import cpw.mods.fml.common.registry.GameRegistry;
-import cpw.mods.fml.common.registry.LanguageRegistry;
-import cpw.mods.fml.common.registry.TickRegistry;
-import cpw.mods.fml.relauncher.Side;
-
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -25,6 +11,23 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.logging.Level;
 
+import net.minecraft.command.CommandBase;
+import net.minecraft.command.ServerCommandManager;
+import net.minecraft.item.Item;
+import net.minecraft.network.packet.Packet3Chat;
+import net.minecraft.server.MinecraftServer;
+import net.minecraftforge.common.Configuration;
+import net.minecraftforge.common.MinecraftForge;
+import net.minecraftforge.common.Property;
+import cpw.mods.fml.common.FMLLog;
+import cpw.mods.fml.common.Mod;
+import cpw.mods.fml.common.event.FMLInitializationEvent;
+import cpw.mods.fml.common.event.FMLPreInitializationEvent;
+import cpw.mods.fml.common.event.FMLServerStartedEvent;
+import cpw.mods.fml.common.network.NetworkMod;
+import cpw.mods.fml.common.registry.GameRegistry;
+import cpw.mods.fml.common.registry.TickRegistry;
+import cpw.mods.fml.relauncher.Side;
 import ee.lutsu.alpha.mc.mytown.commands.*;
 import ee.lutsu.alpha.mc.mytown.entities.ItemIdRange;
 import ee.lutsu.alpha.mc.mytown.entities.Nation;
@@ -33,25 +36,7 @@ import ee.lutsu.alpha.mc.mytown.entities.Town;
 import ee.lutsu.alpha.mc.mytown.entities.TownSettingCollection;
 import ee.lutsu.alpha.mc.mytown.entities.TownSettingCollection.ISettingsSaveHandler;
 import ee.lutsu.alpha.mc.mytown.event.*;
-import ee.lutsu.alpha.mc.mytown.event.prot.BuildCraft;
-import ee.lutsu.alpha.mc.mytown.event.prot.Creeper;
-import ee.lutsu.alpha.mc.mytown.event.prot.MiningLaser;
-import ee.lutsu.alpha.mc.mytown.event.prot.Mobs;
-import ee.lutsu.alpha.mc.mytown.event.prot.PortalGun;
-import ee.lutsu.alpha.mc.mytown.event.prot.RedPower;
-import ee.lutsu.alpha.mc.mytown.event.prot.SteveCarts;
-import ee.lutsu.alpha.mc.mytown.event.prot.ThaumCraft;
 import ee.lutsu.alpha.mc.mytown.sql.Database;
-import ee.lutsu.alpha.mc.mytown.sql.MyTownDB;
-import net.minecraft.command.CommandBase;
-import net.minecraft.command.ICommandSender;
-import net.minecraft.command.ServerCommandManager;
-import net.minecraft.item.Item;
-import net.minecraft.network.packet.Packet3Chat;
-import net.minecraft.server.MinecraftServer;
-import net.minecraftforge.common.Configuration;
-import net.minecraftforge.common.MinecraftForge;
-import net.minecraftforge.common.Property;
 
 @Mod(
         modid = "MyTown",
@@ -124,7 +109,6 @@ public class MyTown
     	{
     		if (dbVer != MyTownDatasource.instance.dbVersion)
     		{
-    			Configuration config = new Configuration(new File(CONFIG_FILE));
     	        Property prop = config.get("Database", "Version", 0);
     	        prop.value = Integer.toString(MyTownDatasource.instance.dbVersion);
     	        config.save();

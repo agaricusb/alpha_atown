@@ -40,7 +40,7 @@ public class ProtectionEvents implements ITickHandler
 	public static ProtBase[] entityProtections = new ProtBase[]
 	{
 		PortalGun.instance,
-		MiningLaser.instance,
+		IndustrialCraft.instance,
 		SteveCarts.instance,
 		Creeper.instance,
 		Mobs.instance,
