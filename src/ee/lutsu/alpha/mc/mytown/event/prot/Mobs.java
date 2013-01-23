@@ -86,6 +86,7 @@ public class Mobs extends ProtBase
 	}
 	
 	
-	public String getMod() { return "MobLocation"; }
+	public String getMod() { return "VanillaMobLocation"; }
 	public String getComment() { return "Town permission: disableMobs"; }
+	public boolean defaultEnabled() { return true; }
 }

@@ -31,7 +31,7 @@ public class ThaumCraft extends ProtBase
 	@Override
 	public void load() throws Exception
 	{
-		clAlumentum = Class.forName("thaumcraft.common.entities.EntityAlumentum");
+		clAlumentum = Class.forName("thaumcraft.common.entities.projectile.EntityAlumentum");
 		clItemWandExcavation = Class.forName("thaumcraft.common.items.wands.ItemWandExcavation");
 	}
 	
@@ -46,7 +46,7 @@ public class ThaumCraft extends ProtBase
 	public String update(Entity e) throws Exception
 	{
 		EntityThrowable t = (EntityThrowable)e;
-		EntityLiving owner = t.func_85052_h();
+		EntityLiving owner = t.getThrower();
 		
 		if (owner == null || !(owner instanceof EntityPlayer))
 			return "No owner or is not a player";

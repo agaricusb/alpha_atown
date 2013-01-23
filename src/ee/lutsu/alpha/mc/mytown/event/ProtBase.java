@@ -46,4 +46,5 @@ public abstract class ProtBase
 	
 	public abstract String getMod();
 	public abstract String getComment();
+	public boolean defaultEnabled() { return false; }
 }

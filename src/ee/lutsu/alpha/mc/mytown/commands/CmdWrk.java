@@ -53,7 +53,7 @@ public class CmdWrk extends CommandBase
 			}
 			
 			if (mode != EnumGameType.SURVIVAL)
-				pl.sendGameTypeToPlayer(EnumGameType.SURVIVAL);
+				pl.setGameType(EnumGameType.SURVIVAL);
 		}
 		else
 		{
@@ -70,7 +70,7 @@ public class CmdWrk extends CommandBase
 			}
 			
 			if (mode != EnumGameType.CREATIVE)
-				pl.sendGameTypeToPlayer(EnumGameType.CREATIVE);
+				pl.setGameType(EnumGameType.CREATIVE);
 		}
 	}
 }

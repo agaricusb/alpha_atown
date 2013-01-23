@@ -37,7 +37,7 @@ public class CmdGamemode extends CommandBase
 		if (args.length > 0)
 			mode = getGameModeFromCommand(cs, args[0]);
 		
-        pl.sendGameTypeToPlayer(mode);
+        pl.setGameType(mode);
         pl.fallDistance = 0.0F;
         String var5 = StatCollector.translateToLocal("gameMode." + mode.getName());
 

@@ -63,4 +63,5 @@ public class TNT extends ProtBase
 	
 	public String getMod() { return "VanillaTNT"; }
 	public String getComment() { return "Town permission: disableTNT"; }
+	public boolean defaultEnabled() { return true; }
 }

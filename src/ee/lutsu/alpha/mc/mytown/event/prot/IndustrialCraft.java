@@ -63,7 +63,7 @@ public class IndustrialCraft extends ProtBase
 	public boolean isEntityInstance(Entity e) 
 	{
 		Class c = e.getClass();
-		return c == clLaser || c == clDynamite || c == clStickyDynamite || c == clNuke || c == clITNT;
+		return c == clLaser || c == clDynamite || c == clStickyDynamite || clEntityIC2Explosive.isInstance(e);
 	}
 
 	@Override
@@ -181,7 +181,7 @@ public class IndustrialCraft extends ProtBase
 			else
 			{
 				fuse = fFuse1.getInt(e);
-				radius = c == clNuke ? 35 : 6;
+				radius = clNuke.isInstance(e) ? 35 : 6;
 			}
 			
 			if (fuse > 1)
@@ -189,26 +189,30 @@ public class IndustrialCraft extends ProtBase
 	
 	        radius = radius + 2; // 2 for safety
 	
-	        if (canBlow(e.dimension, e.posX - radius, e.posY - radius, e.posY + radius, e.posZ - radius) &&
-	        	canBlow(e.dimension, e.posX - radius, e.posY - radius, e.posY + radius, e.posZ + radius) &&
-	        	canBlow(e.dimension, e.posX + radius, e.posY - radius, e.posY + radius, e.posZ - radius) &&
-	        	canBlow(e.dimension, e.posX + radius, e.posY - radius, e.posY + radius, e.posZ + radius))
-	        	return null;
-	
-	        return "TNT explosion disabled here";
+	        int x1 = ((int)e.posX - radius) >> 4;
+	        int z1 = ((int)e.posZ - radius) >> 4;
+	        int x2 = ((int)e.posX + radius) >> 4;
+	        int z2 = ((int)e.posZ + radius) >> 4;
+	        
+	        boolean canBlow = true;
+	        for (int x = x1; x <= x2 && canBlow; x++)
+	        {
+		        for (int z = z1; z <= z2 && canBlow; z++)
+		        {
+			        if (!canBlow(e.dimension, x << 4, (int)e.posY - radius, (int)e.posY + radius, z << 4))
+				        canBlow = false;
+		        }
+	        }
+	        
+	        return canBlow ? null : "TNT explosion disabled here";
 		}
 	}
 
 	
-	private boolean canBlow(int dim, double x, double yFrom, double yTo, double z)
+	private boolean canBlow(int dim, int x, int yFrom, int yTo, int z)
 	{
-		TownBlock b = MyTownDatasource.instance.getBlock(dim, ChunkCoord.getCoord(x), ChunkCoord.getCoord(z));
-		if (b != null && b.settings.yCheckOn)
-		{
-			if (yTo < b.settings.yCheckFrom || yFrom > b.settings.yCheckTo)
-				b = b.getFirstFullSidingClockwise(b.town());
-		}
-		
+		TownBlock b = MyTownDatasource.instance.getPermBlockAtCoord(dim, x, yFrom, yTo, z);
+
 		if (b == null || b.town() == null)
 			return !MyTown.instance.getWorldWildSettings(dim).disableTNT;
 

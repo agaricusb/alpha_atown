@@ -41,7 +41,7 @@ import ee.lutsu.alpha.mc.mytown.sql.Database;
 @Mod(
         modid = "MyTown",
         name = "My Town",
-        version = "1.4.6.2"
+        version = "1.4.7.0"
 )
 @NetworkMod(
         clientSideRequired = false,
@@ -171,14 +171,7 @@ public class MyTown
     {
     	loadConfig();
 
-        for (ProtBase prot : ProtectionEvents.entityProtections)
-            prot.reload();
-        
-        for (ProtBase prot : ProtectionEvents.tileProtections)
-        	 prot.reload();
-        
-        for (ProtBase prot : ProtectionEvents.toolProtections)
-        	 prot.reload();
+    	ProtectionEvents.instance.reload();
     	
     	try
     	{
@@ -309,7 +302,7 @@ public class MyTown
         
         for (ProtBase prot : ProtectionEvents.entityProtections)
         {
-            prop = config.get("ProtEx", prot.getMod(), false);
+            prop = config.get("ProtEx", prot.getMod(), prot.defaultEnabled());
             prop.comment = prot.getComment();
             prot.enabled = prop.getBoolean(false);
             
@@ -317,14 +310,14 @@ public class MyTown
         
         for (ProtBase prot : ProtectionEvents.tileProtections)
         {
-            prop = config.get("ProtEx", prot.getMod(), false);
+            prop = config.get("ProtEx", prot.getMod(), prot.defaultEnabled());
             prop.comment = prot.getComment();
             prot.enabled = prop.getBoolean(false);
         }
         
         for (ProtBase prot : ProtectionEvents.toolProtections)
         {
-            prop = config.get("ProtEx", prot.getMod(), false);
+            prop = config.get("ProtEx", prot.getMod(), prot.defaultEnabled());
             prop.comment = prot.getComment();
             prot.enabled = prop.getBoolean(false);
         }

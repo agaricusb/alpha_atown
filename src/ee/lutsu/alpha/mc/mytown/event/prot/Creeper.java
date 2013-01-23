@@ -108,4 +108,5 @@ public class Creeper extends ProtBase
 	
 	public String getMod() { return "VanillaCreeper"; }
 	public String getComment() { return "Town permission: disableCreepers"; }
+	public boolean defaultEnabled() { return true; }
 }

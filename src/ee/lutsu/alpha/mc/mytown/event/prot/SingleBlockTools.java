@@ -84,6 +84,7 @@ public class SingleBlockTools extends ProtBase
 		return null;
 	}
 	
-	public String getMod() { return "SingleBlockTools"; }
+	public String getMod() { return "VanillaTools"; }
 	public String getComment() { return "Build check: any tool single target block right click"; }
+	public boolean defaultEnabled() { return true; }
 }

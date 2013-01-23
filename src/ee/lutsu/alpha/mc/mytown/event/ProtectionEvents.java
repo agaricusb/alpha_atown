@@ -36,6 +36,7 @@ public class ProtectionEvents implements ITickHandler
 	public boolean enabled = false;
 	public ArrayList<Entity> toRemove = new ArrayList<Entity>();
 	public ArrayList<TileEntity> toRemoveTile = new ArrayList<TileEntity>();
+	public boolean loaded = false;
 	
 	public static ProtBase[] entityProtections = new ProtBase[]
 	{
@@ -135,6 +136,17 @@ public class ProtectionEvents implements ITickHandler
 				lastOwner = null;
 				kill = null;
 				
+				if (e instanceof EntityPlayer)
+				{
+					EntityPlayer pl = (EntityPlayer)e;
+					if (pl.isUsingItem())
+					{
+						Resident r = MyTownDatasource.instance.getOrMakeResident(pl);
+						if (!ProtectionEvents.instance.itemUsed(r))
+							r.onlinePlayer.stopUsingItem();
+					}
+				}
+				
 				for (ProtBase prot : entityProtections)
 				{
 					if (prot.enabled && prot.isEntityInstance(e))
@@ -221,6 +233,9 @@ public class ProtectionEvents implements ITickHandler
 	
 	private void setFields()
 	{
+		if (loaded)
+			return;
+		
 		for (ProtBase prot : entityProtections)
 		{
 			if (prot.enabled && !prot.loaded())
@@ -249,6 +264,35 @@ public class ProtectionEvents implements ITickHandler
 				}
 			}
 		}
+		for (ProtBase prot : toolProtections)
+		{
+			if (prot.enabled && !prot.loaded())
+			{
+				try
+				{
+					prot.load();
+				}
+				catch (Exception e)
+				{
+					throw new RuntimeException("ProtectionEvents cannot load " + prot.getClass().getSimpleName() + " class. Is " + prot.getMod() + " loaded?", e);
+				}
+			}
+		}
+		loaded = true;
+	}
+	
+	public void reload()
+	{
+		loaded = false;
+		
+        for (ProtBase prot : ProtectionEvents.entityProtections)
+            prot.reload();
+        
+        for (ProtBase prot : ProtectionEvents.tileProtections)
+        	 prot.reload();
+        
+        for (ProtBase prot : ProtectionEvents.toolProtections)
+        	 prot.reload();
 	}
 	
 
