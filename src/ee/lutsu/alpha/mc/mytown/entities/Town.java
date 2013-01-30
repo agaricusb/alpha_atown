@@ -180,7 +180,7 @@ public class Town
 		int perRes = blocksPerResident();
 		for (Resident r : residents)
 		{
-			b += perRes * residentBlockMultiplier(r);
+			b += perRes * residentBlockMultiplier(r) + r.extraBlocks;
 		}
 		
 		return b;
@@ -286,17 +286,23 @@ public class Town
 		save();
 	}
 	
-	public void removeBlock(TownBlock block) throws CommandException
+	public void removeBlockUnsafe(TownBlock block)
 	{
-		if (block.town() == null || block.town() != this)
-			throw new CommandException(Term.TownErrAlreadyClaimed);
-		
 		if (spawnBlock == block)
 			resetSpawn();
 		
 		block.setTown(null);
 		blocks.remove(block);
 		MyTownDatasource.instance.unloadBlock(block);
+	}
+	
+	public void removeBlock(TownBlock block) throws CommandException
+	{
+		if (block.town() == null || block.town() != this)
+			throw new CommandException(Term.TownErrNotClaimedByYourTown);
+		
+		removeBlockUnsafe(block);
+		
 		save();
 	}
 	

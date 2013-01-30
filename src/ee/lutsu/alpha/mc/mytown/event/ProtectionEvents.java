@@ -55,7 +55,8 @@ public class ProtectionEvents implements ITickHandler
 	{
 		BuildCraft.instance,
 		RedPower.instance,
-		ComputerCraft.instance
+		ComputerCraft.instance,
+		ThaumCraft.instance
 	};
 	
 	public static ProtBase[] toolProtections = new ProtBase[]

@@ -22,6 +22,7 @@ import net.minecraft.command.ICommandSender;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.item.EntityMinecart;
 import net.minecraft.entity.item.EntityItem;
+import net.minecraft.entity.monster.EntityGolem;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.server.MinecraftServer;
@@ -73,9 +74,10 @@ public class Resident
 	public TownBlock checkYMovement = null;
 	public boolean mapMode = false;
 	public Town inviteActiveFrom;
-	public ChatChannel activeChannel = ChatChannel.Global;
+	public ChatChannel activeChannel = null;
 	public boolean beingBounced = false;
 	public List<Resident> friends = new ArrayList<Resident>();
+	public int extraBlocks = 0;
 	
 	public int prevDimension, prevDimension2;
 	public double prevX, prevY, prevZ;
@@ -89,6 +91,7 @@ public class Resident
 
 	
 	public void setActiveChannel(ChatChannel ch) { activeChannel = ch; save(); }
+	public void setExtraBlocks(int i) { extraBlocks = i; save(); }
 	public Town town(){ return town; }
 	public void setTown(Town t)
 	{ 
@@ -114,6 +117,7 @@ public class Resident
 		name = pName;
 		createdOn = new Date(System.currentTimeMillis());
 		lastLoginOn = new Date(System.currentTimeMillis());
+		activeChannel = ChatChannel.defaultChannel;
 		
 		save();
 	}
@@ -203,13 +207,22 @@ public class Resident
 		return canInteract(targetBlock, askedFor);
 	}
 	
-	public boolean canInteract(int dimension, int x, int y, int z, TownSettingCollection.Permissions askedFor)
+	public boolean canInteract(int dimension, int x, int yFrom, int yTo, int z, TownSettingCollection.Permissions askedFor)
 	{
-		TownBlock targetBlock = MyTownDatasource.instance.getBlock(dimension, ChunkCoord.getCoord(x), ChunkCoord.getCoord(z));
+		TownBlock targetBlock = MyTownDatasource.instance.getPermBlockAtCoord(dimension, x, yFrom, yTo, z);
 		if (targetBlock == null || targetBlock.town() == null)
 			return MyTown.instance.getWorldWildSettings(dimension).outsiderRights.compareTo(askedFor) >= 0;
 			
-		return canInteract(targetBlock, y, askedFor);
+		return canInteract(targetBlock, askedFor);
+	}
+	
+	public boolean canInteract(int dimension, int x, int y, int z, TownSettingCollection.Permissions askedFor)
+	{
+		TownBlock targetBlock = MyTownDatasource.instance.getPermBlockAtCoord(dimension, x, y, z);
+		if (targetBlock == null || targetBlock.town() == null)
+			return MyTown.instance.getWorldWildSettings(dimension).outsiderRights.compareTo(askedFor) >= 0;
+			
+		return canInteract(targetBlock, askedFor);
 	}
 	
 	public boolean canInteract(int x, int y, int z, TownSettingCollection.Permissions askedFor)
@@ -351,14 +364,22 @@ public class Resident
 			town.residents().add(res);
 
 		res.settings.setParent(town == null ? null : town.settings);
-		res.settings.deserialize(extra);
+
+		if (extra != null && !extra.equals(""))
+		{
+			String[] extraParts = extra.split("\\|");
+			res.settings.deserialize(extraParts[0]);
+			
+			if (extraParts.length > 1)
+				res.extraBlocks = Integer.parseInt(extraParts[1]);
+		}
 
 		return res;
 	}
 	
 	public String serializeExtra()
 	{
-		return settings.serialize();
+		return settings.serialize() + "|" + String.valueOf(extraBlocks);
 	}
 
 	public void checkLocation()
@@ -702,5 +723,20 @@ public class Resident
 		sendToServerSpawn();
 		
 		onlinePlayer.sendChatToPlayer(Term.SpawnCmdTeleportEnded.toString());
+	}
+	
+	public boolean canBeAttackedBy(Entity e)
+	{
+		if (e instanceof EntityGolem) // player controlled entities
+		{
+			// are we in our own town?
+			TownBlock targetBlock = MyTownDatasource.instance.getPermBlockAtCoord(onlinePlayer.dimension, (int)onlinePlayer.posX, (int)onlinePlayer.posY, (int)onlinePlayer.posZ);
+			if (targetBlock != null && targetBlock.town() != null)
+			{
+				return Town.allowFullPvp || town() != targetBlock.town();
+			}
+		}
+		
+		return true;
 	}
 }

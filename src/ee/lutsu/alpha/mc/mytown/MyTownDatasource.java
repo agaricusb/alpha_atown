@@ -231,4 +231,33 @@ public class MyTownDatasource extends MyTownDB
 			residents.remove(r);
 		*/
 	}
+	
+	public int deleteAllTownBlocksInDimension(int dim)
+	{
+		int ret = 0;
+		ArrayList<TownBlock> toRemove = new ArrayList<TownBlock>();
+		for (TownBlock res : blocks)
+		{
+			if (res.worldDimension() == dim)
+				toRemove.add(res);
+		}
+		
+		ArrayList<Town> townsToSave = new ArrayList<Town>();
+		for (TownBlock res : toRemove)
+		{
+			if (res.town() != null)
+			{
+				townsToSave.add(res.town());
+				res.town().removeBlockUnsafe(res);
+				ret++;
+			}
+			else
+				unloadBlock(res);
+		}
+		
+		for (Town t : townsToSave)
+			t.save();
+		
+		return ret;
+	}
 }

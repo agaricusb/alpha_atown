@@ -1,6 +1,8 @@
 package ee.lutsu.alpha.mc.mytown.event;
 
+import ee.lutsu.alpha.mc.mytown.MyTownDatasource;
 import ee.lutsu.alpha.mc.mytown.entities.Resident;
+import ee.lutsu.alpha.mc.mytown.entities.TownBlock;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.item.Item;
@@ -47,4 +49,23 @@ public abstract class ProtBase
 	public abstract String getMod();
 	public abstract String getComment();
 	public boolean defaultEnabled() { return false; }
+	
+	public static Resident getActorFromLocation(int dim, int x, int y, int z, String defaultActor)
+	{
+		TownBlock block = MyTownDatasource.instance.getPermBlockAtCoord(dim, x, y, z);
+		
+		Resident actor = null;
+		if (block != null && block.town() != null)
+		{
+			if (block.owner() != null)
+				actor = block.owner();
+			else
+				actor = block.town().getFirstMayor();
+		}
+		
+		if (actor == null) // zero resident town or in the wild
+			actor = MyTownDatasource.instance.getOrMakeResident(defaultActor);
+		
+		return actor;
+	}
 }

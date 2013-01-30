@@ -41,7 +41,7 @@ import ee.lutsu.alpha.mc.mytown.sql.Database;
 @Mod(
         modid = "MyTown",
         name = "My Town",
-        version = "1.4.7.0"
+        version = "1.4.7.1"
 )
 @NetworkMod(
         clientSideRequired = false,
@@ -284,10 +284,14 @@ public class MyTown
         prop.comment = "How many characters can one chat packet contain. It's global.";
         Packet3Chat.maxChatLength = prop.getInt(32767);
         
+        prop = config.get("Chat", "DefaultChannel", ChatChannel.defaultChannel.name);
+        prop.comment = "Default chat channel for newcomers";
+        ChatChannel.defaultChannel = ChatChannel.parse(prop.value);
+        
         for (ChatChannel ch : ChatChannel.values())
         {
             prop = config.get("Chat", "Channel_" + ch.toString(), "");
-            prop.comment = "<enabled>;<name>;<abbrevation>;<color> like " + String.format("%s;%s;%s;%s", ch.enabled ? 1 : 0, ch.name, ch.abbrevation, ch.color);
+            prop.comment = "<enabled>;<name>;<abbrevation>;<color>;<inlineswitch> like " + String.format("%s;%s;%s;%s", ch.enabled ? 1 : 0, ch.name, ch.abbrevation, ch.color);
             ch.load(prop.value);
         }
     }

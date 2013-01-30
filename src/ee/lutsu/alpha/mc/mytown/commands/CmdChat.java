@@ -123,7 +123,7 @@ public class CmdChat extends CommandBase
 		String formatted = Formatter.formatChat(res, msg, ch);
 		
 		int sentTo = 0;
-		for(Object obj : MinecraftServer.getServer().getConfigurationManager().playerEntityList)
+		for (Object obj : MinecraftServer.getServer().getConfigurationManager().playerEntityList)
 		{
 			((EntityPlayer)obj).sendChatToPlayer(formatted);
 			if (obj != res.onlinePlayer)
@@ -164,6 +164,26 @@ public class CmdChat extends CommandBase
 		return sentTo;
 	}
 
+	public static void sendToChannelFromDirectTalk(Resident sender, String msg, ChatChannel channel)
+	{
+		if (msg == null || msg.trim().length() < 1)
+			return;
+		
+		msg = msg.trim();
+		
+		for (ChatChannel c : ChatChannel.values())
+		{
+			if (c.inLineSwitch != null && !c.inLineSwitch.equals("") && msg.startsWith(c.inLineSwitch))
+			{
+				channel = c;
+				msg = msg.substring(c.inLineSwitch.length());
+				break;
+			}
+		}
+		
+		sendToChannel(sender, msg.trim(), channel);
+	}
+	
 	public static void sendToChannel(Resident sender, String msg, ChatChannel channel)
 	{
 		if (msg == null || msg.trim().length() < 1)

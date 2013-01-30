@@ -16,8 +16,10 @@ public enum ChatChannel
 	public String abbrevation;
 	public String color;
 	public boolean enabled = true;
+	public String inLineSwitch;
 	
 	public static int localChatDistance = 160;
+	public static ChatChannel defaultChannel = Global;
 	
 	ChatChannel(String name, String abbrevation, String color)
 	{
@@ -33,7 +35,7 @@ public enum ChatChannel
                 return type;
             }
         }
-        return ChatChannel.Global;
+        return defaultChannel;
 	}
 	
 	public void load(String val)
@@ -51,5 +53,7 @@ public enum ChatChannel
 			abbrevation = parts[2];
 		if (parts.length > 3)
 			color = parts[3];
+		if (parts.length > 4)
+			inLineSwitch = parts[4];
 	}
 }

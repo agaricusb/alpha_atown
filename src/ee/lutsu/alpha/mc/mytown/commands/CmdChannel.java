@@ -59,7 +59,7 @@ public class CmdChannel extends CommandBase
 		{
 			ChatChannel ch = ChatChannel.parse(var2[0]);
 			if (!ch.enabled)
-				ch = ChatChannel.Global;
+				ch = ChatChannel.defaultChannel;
 
 			if (!Permissions.canAccess(res, "mytown.chat.focus." + ch.name.toLowerCase()))
 			{

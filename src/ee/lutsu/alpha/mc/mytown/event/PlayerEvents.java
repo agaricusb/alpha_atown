@@ -5,6 +5,7 @@ import java.util.logging.Level;
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockRail;
 import net.minecraft.entity.Entity;
+import net.minecraft.entity.monster.EntityGolem;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.inventory.IInventory;
@@ -19,11 +20,13 @@ import net.minecraft.item.ItemFood;
 import net.minecraft.item.ItemMinecart;
 import net.minecraft.item.ItemPotion;
 import net.minecraft.tileentity.TileEntity;
+import net.minecraft.util.DamageSource;
 import net.minecraft.util.EnumMovingObjectType;
 import net.minecraft.util.MathHelper;
 import net.minecraft.util.MovingObjectPosition;
 import net.minecraft.util.Vec3;
 import net.minecraft.world.World;
+import net.minecraftforge.event.EventPriority;
 import net.minecraftforge.event.ForgeSubscribe;
 import net.minecraftforge.event.ServerChatEvent;
 import net.minecraftforge.event.entity.living.LivingAttackEvent;
@@ -207,9 +210,6 @@ public class PlayerEvents implements IPlayerTracker
 		
 		if (ev.source.getSourceOfDamage() != null && ev.source.getSourceOfDamage() instanceof EntityPlayer)
 			attacker = source().getOrMakeResident((EntityPlayer)ev.source.getSourceOfDamage());
-
-		if (attacker == null)
-			return;
 		
 		if (!attacker.isOnline())
 		{
@@ -222,6 +222,25 @@ public class PlayerEvents implements IPlayerTracker
 			attacker.onlinePlayer.sendChatToPlayer(Term.ErrPermCannotAttack.toString());
 			ev.setCanceled(true);
 			return;
+		}
+	}
+	
+	@ForgeSubscribe(priority = EventPriority.LOW)
+	public void onEntityDamaged(LivingAttackEvent ev) 
+	{
+		if (ev.entityLiving instanceof EntityPlayer)
+		{
+			Resident t = source().getOrMakeResident((EntityPlayer)ev.entityLiving);
+			
+			if ((ev.source.getEntity() != null && !t.canBeAttackedBy(ev.source.getEntity())) || (ev.source.getSourceOfDamage() != null && !t.canBeAttackedBy(ev.source.getSourceOfDamage())))
+			{
+				ev.setCanceled(true);
+				// spamming
+				/*Log.info(String.format("%s is attacking %s whos in a protected area",
+						ev.source.getEntity() != null ? ev.source.getEntity() : ev.source.getSourceOfDamage(),
+						t.onlinePlayer));
+				*/
+			}
 		}
 	}
 	
@@ -315,7 +334,7 @@ public class PlayerEvents implements IPlayerTracker
 		
 		ev.setCanceled(true);
 		Resident res = source().getOrMakeResident(ev.player);
-		CmdChat.sendToChannel(res, ev.message, res.activeChannel);
+		CmdChat.sendToChannelFromDirectTalk(res, ev.message, res.activeChannel);
 	}
 	
 	@ForgeSubscribe

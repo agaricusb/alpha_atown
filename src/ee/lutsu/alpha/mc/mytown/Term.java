@@ -227,13 +227,25 @@ public enum Term
 	TownadmCmdExtraArgs("townname count"),
 	TownadmCmdExtraDesc("Adds or removes extra blocks in a town"),
 	
+	TownadmCmdExtraRes("extrares"),
+	TownadmCmdExtraResArgs("playername add|sub|set amount"),
+	TownadmCmdExtraResDesc("Adds, removes or sets a player extra blocks value"),
+	
 	TownadmCmdClaim("claim"),
 	TownadmCmdClaimArgs("townname [playername] [x.y:x.y[:dim]]"),
 	TownadmCmdClaimDesc("Sets the current (or specified) plot to the town (and player)"),
 
+	TownadmCmdWipeDim("wipedim"),
+	TownadmCmdWipeDimArgs("dimension_id"),
+	TownadmCmdWipeDimDesc("Deletes all town blocks from the specified dimension id"),
+	
+	TownadmCmdResetFocusedChannels("reschannels"),
+	TownadmCmdResetFocusedChannelsDesc("Reset the currently selected channel for all users to the default"),
+
 	// Town errors
 	ErrCannotAccessCommand("You cannot access this command"),
 	TownErrAlreadyClaimed("This block is claimed by another town"),
+	TownErrNotClaimedByYourTown("This block is not claimed by your town"),
 	TownErrPlayerAlreadyInTown("That player is already part of a town"),
 	TownErrPlayerNotFound("Player not found"),
 	TownErrPlayerNotFoundOrOnline("Player not found or not online"),
@@ -280,6 +292,7 @@ public enum Term
 	
 	TownadmResidentsSet("Town residents set"),
 	TownadmExtraSet("Town extra blocks value set"),
+	TownadmResExtraSet("Resident extra blocks value set"),
 	
 	PlayerEnteredWild("§aYou just entered the §2wilderness"),
 	PlayerEnteredTown("§aWelcome to §4%s"),

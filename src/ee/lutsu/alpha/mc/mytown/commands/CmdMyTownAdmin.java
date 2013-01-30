@@ -10,6 +10,7 @@ import java.util.TreeMap;
 import java.util.TreeSet;
 import java.util.logging.Level;
 
+import ee.lutsu.alpha.mc.mytown.ChatChannel;
 import ee.lutsu.alpha.mc.mytown.CommandException;
 import ee.lutsu.alpha.mc.mytown.Formatter;
 import ee.lutsu.alpha.mc.mytown.Log;
@@ -69,9 +70,12 @@ public class CmdMyTownAdmin extends CommandBase
 				cs.sendChatToPlayer(Formatter.formatAdminCommand(Term.TownadmCmdSet.toString(), Term.TownadmCmdSetArgs.toString(), Term.TownadmCmdSetDesc.toString(), color));
 				cs.sendChatToPlayer(Formatter.formatAdminCommand(Term.TownadmCmdRem.toString(), Term.TownadmCmdRemArgs.toString(), Term.TownadmCmdRemDesc.toString(), color));
 				cs.sendChatToPlayer(Formatter.formatAdminCommand(Term.TownadmCmdExtra.toString(), Term.TownadmCmdExtraArgs.toString(), Term.TownadmCmdExtraDesc.toString(), color));
+				cs.sendChatToPlayer(Formatter.formatAdminCommand(Term.TownadmCmdExtraRes.toString(), Term.TownadmCmdExtraResArgs.toString(), Term.TownadmCmdExtraResDesc.toString(), color));
 				cs.sendChatToPlayer(Formatter.formatAdminCommand(Term.TownadmCmdReload.toString(), "", Term.TownadmCmdReloadDesc.toString(), color));
 				cs.sendChatToPlayer(Formatter.formatAdminCommand(Term.TownadmCmdPerm.toString(), Term.TownadmCmdPermArgs.toString(), Term.TownadmCmdPermDesc.toString(), color));
 				cs.sendChatToPlayer(Formatter.formatAdminCommand(Term.TownadmCmdClaim.toString(), Term.TownadmCmdClaimArgs.toString(), Term.TownadmCmdClaimDesc.toString(), color));
+				cs.sendChatToPlayer(Formatter.formatAdminCommand(Term.TownadmCmdWipeDim.toString(), Term.TownadmCmdWipeDimArgs.toString(), Term.TownadmCmdWipeDimDesc.toString(), color));
+				cs.sendChatToPlayer(Formatter.formatAdminCommand(Term.TownadmCmdResetFocusedChannels.toString(), "", Term.TownadmCmdResetFocusedChannelsDesc.toString(), color));
 			}
 			else if (var2[0].equalsIgnoreCase(Term.TownadmCmdReload.toString()))
 			{
@@ -79,6 +83,38 @@ public class CmdMyTownAdmin extends CommandBase
 				
 				MyTown.instance.reload();
 				cs.sendChatToPlayer(Term.TownadmModReloaded.toString());
+			}
+			else if (var2[0].equalsIgnoreCase(Term.TownadmCmdResetFocusedChannels.toString()))
+			{
+				if (!Permissions.canAccess(cs, "mytown.adm.cmd.reschannels")) { cs.sendChatToPlayer(Term.ErrCannotAccessCommand.toString()); return; }
+				
+				int i = 0;
+				for (Resident r : MyTownDatasource.instance.residents)
+				{
+					if (r.activeChannel != ChatChannel.defaultChannel)
+					{
+						i++;
+						r.setActiveChannel(ChatChannel.defaultChannel);
+					}
+				}
+				cs.sendChatToPlayer(String.format("§2Done. Resetted %s player channels to %s", i, ChatChannel.defaultChannel.name));
+			}
+			else if (var2[0].equalsIgnoreCase(Term.TownadmCmdWipeDim.toString()))
+			{
+				if (!Permissions.canAccess(cs, "mytown.adm.cmd.wipedim")) { cs.sendChatToPlayer(Term.ErrCannotAccessCommand.toString()); return; }
+				
+				if (var2.length < 2)
+					cs.sendChatToPlayer(Formatter.formatAdminCommand(Term.TownadmCmdWipeDim.toString(), Term.TownadmCmdWipeDimArgs.toString(), Term.TownadmCmdWipeDimDesc.toString(), color));
+				else if (var2.length != 3 || !var2[2].equalsIgnoreCase("ok"))
+				{
+					cs.sendChatToPlayer("Add ' ok' to the end of the command if you are absolutely sure. §4There is no going back.");
+				}
+				else
+				{
+					int dim = Integer.parseInt(var2[1]);
+					int i = MyTownDatasource.instance.deleteAllTownBlocksInDimension(dim);
+					cs.sendChatToPlayer(String.format("§2Done. Deleted %s town blocks", i));
+				}
 			}
 			else if (var2[0].equalsIgnoreCase(Term.TownadmCmdNew.toString()))
 			{
@@ -180,6 +216,30 @@ public class CmdMyTownAdmin extends CommandBase
 
 					t.setExtraBlocks(cnt);
 					cs.sendChatToPlayer(Term.TownadmExtraSet.toString());
+				}
+			}
+			else if (var2[0].equalsIgnoreCase(Term.TownadmCmdExtraRes.toString()))
+			{
+				if (!Permissions.canAccess(cs, "mytown.adm.cmd.extrares")) { cs.sendChatToPlayer(Term.ErrCannotAccessCommand.toString()); return; }
+				
+				if (var2.length != 4)
+					cs.sendChatToPlayer(Formatter.formatAdminCommand(Term.TownadmCmdExtraRes.toString(), Term.TownadmCmdExtraResArgs.toString(), Term.TownadmCmdExtraResDesc.toString(), color));
+				else
+				{
+					Resident t = src.getResident(var2[1]);
+					String cmd = var2[2];
+					int cnt = Integer.parseInt(var2[3]);
+					
+					if (t == null)
+						throw new CommandException(Term.TownErrPlayerNotFound, var2[1]);
+					
+					if (cmd.equalsIgnoreCase("add"))
+						cnt = t.extraBlocks + cnt;
+					else if (cmd.equalsIgnoreCase("sub"))
+						cnt = t.extraBlocks - cnt;
+
+					t.setExtraBlocks(cnt);
+					cs.sendChatToPlayer(Term.TownadmResExtraSet.toString());
 				}
 			}
 			else if (var2[0].equalsIgnoreCase(Term.TownadmCmdPerm.toString()))
