@@ -16,6 +16,29 @@ public class NoAccessException extends Exception
 	@Override
 	public String toString()
 	{
-		return Formatter.dollarToColorPrefix(Permissions.getOption(executor, "permission-denied-" + node, Term.ErrCannotAccessCommand.toString()));
+		return Formatter.dollarToColorPrefix(getCustomizedMessage(Term.ErrCannotAccessCommand.toString()));
+	}
+	
+	private String getCustomizedMessage(String def)
+	{
+		String message;
+		String perm = node;
+		int index;
+
+		while ((index = perm.lastIndexOf(".")) != -1) {
+			perm = perm.substring(0, index);
+
+			message = Permissions.getOption(executor, "permission-denied-" + perm, null);
+			if (message == null)
+				continue;
+
+			return message;
+		}
+
+		message = Permissions.getOption(executor, "permission-denied", null);
+		if (message != null)
+			return message;
+		
+		return def;
 	}
 }
