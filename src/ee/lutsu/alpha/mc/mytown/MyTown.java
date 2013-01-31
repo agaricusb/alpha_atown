@@ -24,6 +24,7 @@ import cpw.mods.fml.common.Mod;
 import cpw.mods.fml.common.event.FMLInitializationEvent;
 import cpw.mods.fml.common.event.FMLPreInitializationEvent;
 import cpw.mods.fml.common.event.FMLServerStartedEvent;
+import cpw.mods.fml.common.event.FMLServerStoppingEvent;
 import cpw.mods.fml.common.network.NetworkMod;
 import cpw.mods.fml.common.registry.GameRegistry;
 import cpw.mods.fml.common.registry.TickRegistry;
@@ -41,7 +42,7 @@ import ee.lutsu.alpha.mc.mytown.sql.Database;
 @Mod(
         modid = "MyTown",
         name = "My Town",
-        version = "1.4.7.1"
+        version = "1.4.7.2"
 )
 @NetworkMod(
         clientSideRequired = false,
@@ -120,6 +121,7 @@ public class MyTown
     	GameRegistry.registerPlayerTracker(events);
     	MinecraftForge.EVENT_BUS.register(ProtectionEvents.instance);
     	TickRegistry.registerTickHandler(ProtectionEvents.instance, Side.SERVER);
+    	TickRegistry.registerTickHandler(TickHandler.instance, Side.SERVER);
     	MinecraftForge.EVENT_BUS.register(WorldEvents.instance);
     	
         try
@@ -137,11 +139,19 @@ public class MyTown
         }
 
 		Log.info("Loaded");
+		
+		WorldBorder.instance.continueGeneratingChunks();
+    }
+    
+    @Mod.ServerStopping
+    public void serverStopping(FMLServerStoppingEvent ev) throws InterruptedException
+    {
+    	WorldBorder.instance.stopGenerators();
     }
 
     public void saveConfig()
     {
-    	
+    	config.save();
     }
     
     public void loadConfig()
@@ -155,11 +165,14 @@ public class MyTown
             loadChatConfigs(config);
             loadExtraProtectionConfig(config);
             loadPerms(config);
+            
+            TickHandler.instance.loadConfigs();
+            WorldBorder.instance.loadConfig();
         }
-        catch (Exception var8)
+        catch (Exception e)
         {
-            FMLLog.log(Level.SEVERE, var8, MOD_NAME + " was unable to load it\'s configuration successfully", new Object[0]);
-            throw new RuntimeException(var8);
+            Log.severe(MOD_NAME + " was unable to load it\'s configuration successfully", e);
+            throw new RuntimeException(e);
         }
         finally
         {
@@ -410,4 +423,5 @@ public class MyTown
         
         return set;
     }
+   
 }

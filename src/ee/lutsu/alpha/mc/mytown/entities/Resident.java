@@ -18,11 +18,13 @@ import ee.lutsu.alpha.mc.mytown.Permissions;
 import ee.lutsu.alpha.mc.mytown.Term;
 import ee.lutsu.alpha.mc.mytown.commands.CmdChat;
 import ee.lutsu.alpha.mc.mytown.entities.TownSettingCollection.ISettingsSaveHandler;
+import ee.lutsu.alpha.mc.mytown.event.WorldBorder;
 import net.minecraft.command.ICommandSender;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.item.EntityMinecart;
 import net.minecraft.entity.item.EntityItem;
 import net.minecraft.entity.monster.EntityGolem;
+import net.minecraft.entity.monster.IMob;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.server.MinecraftServer;
@@ -291,15 +293,20 @@ public class Resident
 		}
 		else
 		{
-			TownBlock targetBlock = MyTownDatasource.instance.getBlock(onlinePlayer.dimension, e.chunkCoordX, e.chunkCoordZ);
+			TownBlock targetBlock = MyTownDatasource.instance.getPermBlockAtCoord(e.dimension, (int)e.posX, (int)e.posY, (int)e.posZ);
 
 			if (e instanceof EntityMinecart)
 			{
 				if ((targetBlock != null && targetBlock.town() != null && targetBlock.settings.allowCartInteraction) || ((targetBlock == null || targetBlock.town() == null) && MyTown.instance.getWorldWildSettings(e.dimension).allowCartInteraction))
 					return true;
 			}
-
-			return canInteract(targetBlock, (int)e.posY, TownSettingCollection.Permissions.Build);
+			else if (e instanceof IMob)
+			{
+				if (targetBlock != null && targetBlock.town() != null && targetBlock.settings.allowKillingMobsByNonResidents)
+					return true;
+			}
+			
+			return canInteract(targetBlock, TownSettingCollection.Permissions.Build);
 		}
 	}
 	
@@ -559,6 +566,39 @@ public class Resident
 		MyTownDatasource.instance.saveResident(this);
 	}
 	
+	public void checkWorldBorderLocation()
+	{
+		if (WorldBorder.instance.enabled)
+		{
+			if ((int)onlinePlayer.posX != (int)prevX || (int)onlinePlayer.posZ != (int)prevZ)
+			{
+				if (!WorldBorder.instance.isWithinArea(onlinePlayer))
+				{
+					beingBounced = true;
+					try
+					{
+						onlinePlayer.sendChatToPlayer(Term.OutofBorderCannotEnter.toString());
+						bounceBack();
+
+						if (!WorldBorder.instance.isWithinArea(onlinePlayer))
+						{
+							// bounce failed, send to spawn
+							Log.warning(String.format("Player %s is over the edge of the world %s (%s, %s, %s). Sending to spawn.",
+									name(),
+									onlinePlayer.dimension, onlinePlayer.posX, onlinePlayer.posY, onlinePlayer.posZ));
+							
+							respawnPlayer();
+						}
+					}
+					finally
+					{
+						beingBounced = false;
+					}
+				}
+			}
+		}
+	}
+	
 	/**
 	 * Called by LivingUpdateEvent
 	 */
@@ -585,6 +625,8 @@ public class Resident
 		}
 		else
 		{
+			checkWorldBorderLocation();
+			
 			int cX = ChunkCoord.getCoord(onlinePlayer.posX);
 			int cZ = ChunkCoord.getCoord(onlinePlayer.posZ);
 			int pcX = ChunkCoord.getCoord(prevX);

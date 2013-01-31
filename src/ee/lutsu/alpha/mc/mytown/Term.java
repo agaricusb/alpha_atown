@@ -243,7 +243,7 @@ public enum Term
 	TownadmCmdResetFocusedChannelsDesc("Reset the currently selected channel for all users to the default"),
 
 	// Town errors
-	ErrCannotAccessCommand("You cannot access this command"),
+	ErrCannotAccessCommand("§4You cannot access this command"),
 	TownErrAlreadyClaimed("This block is claimed by another town"),
 	TownErrNotClaimedByYourTown("This block is not claimed by your town"),
 	TownErrPlayerAlreadyInTown("That player is already part of a town"),
@@ -254,6 +254,8 @@ public enum Term
 	TownErrTownNameCannotBeEmpty("Cannot set a empty name"),
 	TownErrTownNameAlreadyInUse("This town name has already need used"),
 	TownErrNoFreeBlocks("You don't have any free blocks"),
+	
+	ErrUnknowCommand("§4Unknown command. Use tab for autocomplete or /t help to find correct commands. Commands are different based on your town rank."),
 	
 	TownErrCmdUnknownArgument("Unknown argument: §4%s"),
 	TownErrCmdNumberFormatException("The input isn't numerical"),
@@ -299,7 +301,7 @@ public enum Term
 	PlayerEnteredOwnTown("§aWelcome back to §2%s"),
 	PlayerEnteredOtherPlot("§6~%s"),
 	PlayerEnteredOwnPlot("§2~%s"),
-	PlayerEnteredUnclaimedPlot("§6~unclaimed"),
+	PlayerEnteredUnclaimedPlot("§6~unassigned"),
 	
 	PlayerMapModeOn("§aTown map mode is now §2ON"),
 	PlayerMapModeOff("§aTown map mode is now §4OFF"),
@@ -326,6 +328,7 @@ public enum Term
 	
 	TownPlayersOnlineStart("§aPlayers online: %s"),
 	TownYouCannotEnter("§aYou cannot enter the town §4%s§a. Town rules."),
+	OutofBorderCannotEnter("§aYou cannot walk over the edge of the (pizza)world!"),
 	
 	TownSpawnSet("§aTown spawn has been set"),
 	

@@ -463,7 +463,7 @@ public class CmdMyTownAdmin extends CommandBase
 			title = "the wild in dimension " + dim;
 		}
 		
-		set.show(sender, title);
+		set.show(sender, title, node, true);
 	}
 	
 	private void flushPermissions(ICommandSender sender, String node, String perm) throws CommandException

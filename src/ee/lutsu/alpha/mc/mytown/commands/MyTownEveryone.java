@@ -11,9 +11,11 @@ import java.util.Map.Entry;
 import java.util.TreeMap;
 import java.util.TreeSet;
 
+import ee.lutsu.alpha.mc.mytown.Assert;
 import ee.lutsu.alpha.mc.mytown.CommandException;
 import ee.lutsu.alpha.mc.mytown.Formatter;
 import ee.lutsu.alpha.mc.mytown.MyTownDatasource;
+import ee.lutsu.alpha.mc.mytown.NoAccessException;
 import ee.lutsu.alpha.mc.mytown.Permissions;
 import ee.lutsu.alpha.mc.mytown.Term;
 import ee.lutsu.alpha.mc.mytown.entities.Resident;
@@ -85,10 +87,13 @@ public class MyTownEveryone
 		return list;
 	}
 	
-	public static void handleCommand(ICommandSender cs, String[] args) throws CommandException
+	public static boolean handleCommand(ICommandSender cs, String[] args) throws CommandException, NoAccessException
 	{
+		boolean handled = false;
+		
 		if ((((!(cs instanceof EntityPlayer) || MyTownDatasource.instance.getOrMakeResident((EntityPlayer)cs).town() == null) && args.length == 0) || (args.length > 0 && (args[0].equals("?") || args[0].equalsIgnoreCase(Term.CommandHelp.toString())))))
-		{	
+		{
+			handled = true;
 			cs.sendChatToPlayer(Term.LineSeperator.toString());
 			
 			if (args.length > 1)
@@ -105,6 +110,7 @@ public class MyTownEveryone
 			String color = "f";
 			if ((res.town() == null && args.length == 0) || (args.length == 1 && (args[0].equals("?") || args[0].equalsIgnoreCase(Term.CommandHelp.toString()))))
 			{
+				handled = true;
 				cs.sendChatToPlayer(Formatter.formatCommand(Term.TownCmdMap.toString(), Term.TownCmdMapArgs.toString(), Term.TownCmdMapDesc.toString(), color));
 				cs.sendChatToPlayer(Formatter.formatCommand(Term.TownCmdInfo.toString(), Term.TownCmdInfoArgs.toString(), Term.TownCmdInfoDesc.toString(), color));
 				cs.sendChatToPlayer(Formatter.formatCommand(Term.TownCmdList.toString(), "", Term.TownCmdListDesc.toString(), color));
@@ -114,8 +120,9 @@ public class MyTownEveryone
 			}
 			else if (args.length > 0 && args[0].equalsIgnoreCase(Term.TownCmdMap.toString()))
 			{
-				if (!Permissions.canAccess(res, "mytown.cmd.map")) { cs.sendChatToPlayer(Term.ErrCannotAccessCommand.toString()); return; }
-				
+				Assert.Perm(cs, "mytown.cmd.map");
+				handled = true;
+
 				if (args.length > 1)
 				{
 					boolean modeOn = !res.mapMode;
@@ -135,8 +142,9 @@ public class MyTownEveryone
 			}
 			else if (args.length > 0 && args[0].equalsIgnoreCase(Term.TownCmdInfo.toString()))
 			{
-				if (!Permissions.canAccess(cs, "mytown.cmd.info")) { cs.sendChatToPlayer(Term.ErrCannotAccessCommand.toString()); return; }
-				
+				Assert.Perm(cs, "mytown.cmd.info");
+				handled = true;
+
 				if (args.length == 2)
 				{
 					Town t = MyTownDatasource.instance.getTown(args[1]);
@@ -150,8 +158,9 @@ public class MyTownEveryone
 			}
 			else if (args.length > 0 && args[0].equalsIgnoreCase(Term.TownCmdFriend.toString()))
 			{
-				if (!Permissions.canAccess(cs, "mytown.cmd.friend")) { cs.sendChatToPlayer(Term.ErrCannotAccessCommand.toString()); return; }
-				
+				Assert.Perm(cs, "mytown.cmd.friend");
+				handled = true;
+
 				if (args.length == 3)
 				{
 					String cmd = args[1];
@@ -176,11 +185,12 @@ public class MyTownEveryone
 			}
 			else if (args.length > 0 && args[0].equals(Term.TownCmdSpawn.toString()))
 			{
+				handled = true;
 				Town target = null;
 				if (args.length < 2)
 				{
-					if (!Permissions.canAccess(cs, "mytown.cmd.spawn.own")) { cs.sendChatToPlayer(Term.ErrCannotAccessCommand.toString()); return; }
-					
+					Assert.Perm(cs, "mytown.cmd.spawn.own");
+
 					if (res.town() == null)
 						throw new CommandException(Term.ErrPermYouDontHaveTown);
 					
@@ -188,8 +198,8 @@ public class MyTownEveryone
 				}
 				else
 				{
-					if (!Permissions.canAccess(cs, "mytown.cmd.spawn.other")) { cs.sendChatToPlayer(Term.ErrCannotAccessCommand.toString()); return; }
-					
+					Assert.Perm(cs, "mytown.cmd.spawn.other");
+
 					Town t = MyTownDatasource.instance.getTown(args[1]);
 					if (t == null)
 						throw new CommandException(Term.TownErrNotFound, args[1]);
@@ -206,14 +216,16 @@ public class MyTownEveryone
 		{
 			if (args.length < 1 || (args.length == 1 && (args[0].equals("?") || args[0].equalsIgnoreCase(Term.CommandHelp.toString()))))
 			{
+				handled = true;
 				cs.sendChatToPlayer(Formatter.formatCommand(Term.TownCmdInfo.toString(), Term.TownCmdInfoArgs.toString(), Term.TownCmdInfoDesc.toString(), null));
 				cs.sendChatToPlayer(Formatter.formatCommand(Term.TownCmdList.toString(), "", Term.TownCmdListDesc.toString(), null));
 				cs.sendChatToPlayer(Formatter.formatCommand(Term.TownCmdRes.toString(), Term.TownCmdResArgs.toString(), Term.TownCmdResDesc.toString(), null));
 			}
 			else if (args.length > 0 && args[0].equalsIgnoreCase(Term.TownCmdInfo.toString()))
 			{
-				if (!Permissions.canAccess(cs, "mytown.cmd.info")) { cs.sendChatToPlayer(Term.ErrCannotAccessCommand.toString()); return; }
-				
+				Assert.Perm(cs, "mytown.cmd.info");
+				handled = true;
+
 				if (args.length == 2)
 				{
 					Town t = MyTownDatasource.instance.getTown(args[1]);
@@ -229,8 +241,9 @@ public class MyTownEveryone
 		
 		if (args.length > 0 && args[0].equals(Term.TownCmdList.toString()))
 		{
-			if (!Permissions.canAccess(cs, "mytown.cmd.list")) { cs.sendChatToPlayer(Term.ErrCannotAccessCommand.toString()); return; }
-			
+			Assert.Perm(cs, "mytown.cmd.list");
+			handled = true;
+
 			ArrayList<Town> sorted = new ArrayList<Town>(MyTownDatasource.instance.towns);
 			
 			Collections.sort(sorted, new Comparator<Town>()
@@ -269,8 +282,9 @@ public class MyTownEveryone
 		}
 		else if (args.length > 0 && args[0].equals(Term.TownCmdRes.toString()))
 		{
-			if (!Permissions.canAccess(cs, "mytown.cmd.res")) { cs.sendChatToPlayer(Term.ErrCannotAccessCommand.toString()); return; }
-			
+			Assert.Perm(cs, "mytown.cmd.res");
+			handled = true;
+
 			if (args.length == 1 && cs instanceof EntityPlayer)
 			{
 				Resident res = MyTownDatasource.instance.getOrMakeResident((EntityPlayer)cs);
@@ -291,5 +305,7 @@ public class MyTownEveryone
 				cs.sendChatToPlayer(Formatter.formatCommand(Term.TownCmdRes.toString(), Term.TownCmdResArgs.toString(), Term.TownCmdResDesc.toString(), null));
 			}
 		}
+		
+		return handled;
 	}
 }

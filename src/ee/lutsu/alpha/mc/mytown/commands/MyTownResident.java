@@ -7,10 +7,12 @@ import java.util.logging.Level;
 import net.minecraft.command.ICommandSender;
 import net.minecraft.entity.player.EntityPlayer;
 
+import ee.lutsu.alpha.mc.mytown.Assert;
 import ee.lutsu.alpha.mc.mytown.CommandException;
 import ee.lutsu.alpha.mc.mytown.Formatter;
 import ee.lutsu.alpha.mc.mytown.MyTown;
 import ee.lutsu.alpha.mc.mytown.MyTownDatasource;
+import ee.lutsu.alpha.mc.mytown.NoAccessException;
 import ee.lutsu.alpha.mc.mytown.Permissions;
 import ee.lutsu.alpha.mc.mytown.Term;
 import ee.lutsu.alpha.mc.mytown.entities.Resident;
@@ -80,34 +82,38 @@ public class MyTownResident
 		return list;
 	}
 	
-	public static void handleCommand(ICommandSender cs, String[] args) throws CommandException
+	public static boolean handleCommand(ICommandSender cs, String[] args) throws CommandException, NoAccessException
 	{
 		if (!(cs instanceof EntityPlayer)) // no commands for console
-			return;
+			return false;
 		
 		Resident res = MyTownDatasource.instance.getOrMakeResident((EntityPlayer)cs);
 		if (res.town() == null)
-			return;
+			return false;
 		
+		boolean handled = false;
 		String color = "2";
 		if (args.length < 1)
 		{
-			if (!Permissions.canAccess(res, "mytown.cmd.info")) { cs.sendChatToPlayer(Term.ErrCannotAccessCommand.toString()); return; }
-			
+			Assert.Perm(cs, "mytown.cmd.info");
+			handled = true;
+
 			res.town().sendTownInfo(res.onlinePlayer, res.shouldShowTownBlocks());
 		}
 		else
 		{
 			if (args.length == 1 && (args[0].equals("?") || args[0].equalsIgnoreCase(Term.CommandHelp.toString())))
 			{
+				handled = true;
 				cs.sendChatToPlayer(Formatter.formatCommand(Term.TownCmdLeave.toString(), "", Term.TownCmdLeaveDesc.toString(), color));
 				cs.sendChatToPlayer(Formatter.formatCommand(Term.TownCmdOnline.toString(), "", Term.TownCmdOnlineDesc.toString(), color));
 				cs.sendChatToPlayer(Formatter.formatCommand(Term.TownCmdPerm.toString(), Term.TownCmdPermArgs.toString(), Term.TownCmdPermDesc.toString(), color));
 			}
 			else if (args[0].equalsIgnoreCase(Term.TownCmdLeave.toString()))
 			{
-				if (!Permissions.canAccess(res, "mytown.cmd.leave")) { cs.sendChatToPlayer(Term.ErrCannotAccessCommand.toString()); return; }
-				
+				Assert.Perm(cs, "mytown.cmd.leave");
+				handled = true;
+
 				if (res.rank() == Rank.Mayor)
 					throw new CommandException(Term.TownErrMayorsCantLeaveTheTown);
 				
@@ -117,12 +123,13 @@ public class MyTownResident
 			}
 			else if (args[0].equalsIgnoreCase(Term.TownCmdOnline.toString()))
 			{
-				if (!Permissions.canAccess(res, "mytown.cmd.online")) { cs.sendChatToPlayer(Term.ErrCannotAccessCommand.toString()); return; }
-				
+				Assert.Perm(cs, "mytown.cmd.online");
+				handled = true;
+
 				Town t = res.town();
 				
 				StringBuilder sb = new StringBuilder();
-				for(Resident r : t.residents())
+				for (Resident r : t.residents())
 				{
 					if (!r.isOnline())
 						continue;
@@ -137,22 +144,23 @@ public class MyTownResident
 			}
 			else if (args[0].equalsIgnoreCase(Term.TownCmdPerm.toString()))
 			{
+				handled = true;
 				if (args.length < 2)
 				{
 					cs.sendChatToPlayer(Formatter.formatCommand(Term.TownCmdPerm.toString(), Term.TownCmdPermArgs.toString(), Term.TownCmdPermDesc.toString(), color));
-					return;
+					return true;
 				}
 				
 				String node = args[1];
 				if (!node.equalsIgnoreCase(Term.TownCmdPermArgsTown.toString()) && !node.equalsIgnoreCase(Term.TownCmdPermArgsResident.toString()) && !node.equalsIgnoreCase(Term.TownCmdPermArgsPlot.toString()))
 				{
 					cs.sendChatToPlayer(Formatter.formatCommand(Term.TownCmdPerm.toString(), Term.TownCmdPermArgs.toString(), Term.TownCmdPermDesc.toString(), color));
-					return;
+					return true;
 				}
 				
 				if (args.length < 3) // show
 				{
-					if (!Permissions.canAccess(cs, "mytown.cmd.perm.show." + node)) { cs.sendChatToPlayer(Term.ErrCannotAccessCommand.toString()); return; }
+					Assert.Perm(cs, "mytown.cmd.perm.show." + node);
 					showPermissions(cs, res, node);
 				}
 				else
@@ -160,13 +168,14 @@ public class MyTownResident
 					String action = args[2];
 					if (action.equalsIgnoreCase(Term.TownCmdPermArgs2Set.toString()) && args.length > 3)
 					{
-						if (!Permissions.canAccess(cs, "mytown.cmd.perm.set." + node + "." + args[3])) { cs.sendChatToPlayer(Term.ErrCannotAccessCommand.toString()); return; }
+						Assert.Perm(cs, "mytown.cmd.perm.set." + node + "." + args[3]);
+						
 						setPermissions(cs, res, node, args[3], args.length > 4 ? args[4] : null);
 					}
 					else if (action.equalsIgnoreCase(Term.TownCmdPermArgs2Force.toString()))
 					{
-						if (!Permissions.canAccess(cs, "mytown.cmd.perm.force." + node + "." + (args.length > 3 ? args[3] : "all"))) { cs.sendChatToPlayer(Term.ErrCannotAccessCommand.toString()); return; }
-						
+						Assert.Perm(cs, "mytown.cmd.perm.force." + node + "." + (args.length > 3 ? args[3] : "all"));
+
 						flushPermissions(cs, res, node, args.length > 3 ? args[3] : null);
 					}
 					else
@@ -174,6 +183,8 @@ public class MyTownResident
 				}
 			}
 		}
+		
+		return handled;
 	}
 	
 	private static TownSettingCollection getPermNode(String node, Resident res) throws CommandException
@@ -220,7 +231,7 @@ public class MyTownResident
 			title = String.format("the plot @ dim %s, %s,%s owned by '%s'", block.worldDimension(), block.x(), block.z(), block.ownerDisplay());
 		}
 		
-		set.show(sender, title);
+		set.show(sender, title, node, false);
 	}
 	
 	private static void flushPermissions(ICommandSender sender, Resident res, String node, String perm) throws CommandException

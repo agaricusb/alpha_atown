@@ -4,9 +4,11 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Level;
 
+import ee.lutsu.alpha.mc.mytown.Assert;
 import ee.lutsu.alpha.mc.mytown.CommandException;
 import ee.lutsu.alpha.mc.mytown.Formatter;
 import ee.lutsu.alpha.mc.mytown.MyTownDatasource;
+import ee.lutsu.alpha.mc.mytown.NoAccessException;
 import ee.lutsu.alpha.mc.mytown.Permissions;
 import ee.lutsu.alpha.mc.mytown.Term;
 import ee.lutsu.alpha.mc.mytown.entities.Resident;
@@ -42,26 +44,29 @@ public class MyTownNonResident
 		return list;
 	}
 	
-	public static void handleCommand(ICommandSender cs, String[] args) throws CommandException
+	public static boolean handleCommand(ICommandSender cs, String[] args) throws CommandException, NoAccessException
 	{
 		if (!(cs instanceof EntityPlayer)) // no commands for console
-			return;
+			return false;
 		
 		Resident res = MyTownDatasource.instance.getOrMakeResident((EntityPlayer)cs);
 		if (res.town() != null)
-			return;
+			return false;
 		
+		boolean handled = false;
 		String color = "2";
 		if (args.length < 1 || (args.length == 1 && args[0].equals("?") || args[0].equalsIgnoreCase(Term.CommandHelp.toString())))
 		{
+			handled = true;
 			cs.sendChatToPlayer(Formatter.formatCommand(Term.TownCmdNew.toString(), Term.TownCmdNewArgs.toString(), Term.TownCmdNewDesc.toString(), color));
 			cs.sendChatToPlayer(Formatter.formatCommand(Term.TownCmdAccept.toString(), "", Term.TownCmdAcceptDesc.toString(), color));
 			cs.sendChatToPlayer(Formatter.formatCommand(Term.TownCmdDeny.toString(), "", Term.TownCmdDenyDesc.toString(), color));
 		}
 		else if (args[0].equalsIgnoreCase(Term.TownCmdNew.toString()))
 		{
-			if (!Permissions.canAccess(res, "mytown.cmd.new")) { cs.sendChatToPlayer(Term.ErrCannotAccessCommand.toString()); return; }
-			
+			Assert.Perm(cs, "mytown.cmd.new");
+			handled = true;
+
 			if (args.length < 2 || args.length > 2)
 				cs.sendChatToPlayer(Formatter.formatCommand(Term.TownCmdNew.toString(), Term.TownCmdNewArgs.toString(), Term.TownCmdNewDesc.toString(), color));
 			else
@@ -82,8 +87,9 @@ public class MyTownNonResident
 		}
 		else if (args[0].equalsIgnoreCase(Term.TownCmdAccept.toString()))
 		{
-			if (!Permissions.canAccess(res, "mytown.cmd.accept")) { cs.sendChatToPlayer(Term.ErrCannotAccessCommand.toString()); return; }
-			
+			Assert.Perm(cs, "mytown.cmd.accept");
+			handled = true;
+
 			if (res.inviteActiveFrom == null)
 				throw new CommandException(Term.TownErrYouDontHavePendingInvitations);
 			
@@ -95,8 +101,9 @@ public class MyTownNonResident
 		}
 		else if (args[0].equalsIgnoreCase(Term.TownCmdDeny.toString()))
 		{
-			if (!Permissions.canAccess(res, "mytown.cmd.deny")) { cs.sendChatToPlayer(Term.ErrCannotAccessCommand.toString()); return; }
-			
+			Assert.Perm(cs, "mytown.cmd.deny");
+			handled = true;
+
 			if (res.inviteActiveFrom == null)
 				throw new CommandException(Term.TownErrYouDontHavePendingInvitations);
 			
@@ -104,5 +111,7 @@ public class MyTownNonResident
 
 			res.onlinePlayer.sendChatToPlayer(Term.TownPlayerDeniedInvitation.toString());
 		}
+		
+		return handled;
 	}
 }

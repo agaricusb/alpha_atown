@@ -12,9 +12,11 @@ import java.util.logging.Level;
 import net.minecraft.command.ICommandSender;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.server.MinecraftServer;
+import ee.lutsu.alpha.mc.mytown.Assert;
 import ee.lutsu.alpha.mc.mytown.CommandException;
 import ee.lutsu.alpha.mc.mytown.Formatter;
 import ee.lutsu.alpha.mc.mytown.MyTownDatasource;
+import ee.lutsu.alpha.mc.mytown.NoAccessException;
 import ee.lutsu.alpha.mc.mytown.Permissions;
 import ee.lutsu.alpha.mc.mytown.Term;
 import ee.lutsu.alpha.mc.mytown.entities.Nation;
@@ -115,9 +117,10 @@ public class MyTownNation
 		return list;
 	}
 	
-	public static void handleCommand(ICommandSender cs, String[] args) throws CommandException
+	public static boolean handleCommand(ICommandSender cs, String[] args) throws CommandException, NoAccessException
 	{
 		boolean nonresident = cs instanceof EntityPlayer && MyTownDatasource.instance.getOrMakeResident((EntityPlayer)cs).town() == null;
+		boolean handled = false;
 		
 		String color = "b";
 		
@@ -133,18 +136,21 @@ public class MyTownNation
 		{
 			if (args.length < 2 && (args.length < 1 || !args[0].equalsIgnoreCase(Term.TownCmdNation.toString())))
 			{
+				handled = true;
 				cs.sendChatToPlayer(Formatter.formatGroupCommand(Term.CommandHelp.toString(), Term.CommandHelpNation.toString(), Term.CommandHelpNationDesc.toString(), color));
 			}
 			else if ((args[0].equalsIgnoreCase(Term.TownCmdNation.toString()) && args.length < 2) || args[1].equalsIgnoreCase(Term.CommandHelpNation.toString()))
 			{
+				handled = true;
 				cs.sendChatToPlayer(Formatter.formatCommand(Term.TownCmdNation.toString() + " " + Term.TownCmdNationInfo.toString(), Term.TownCmdNationInfoArgs.toString(), Term.TownCmdNationInfoDesc.toString(), color));
 				cs.sendChatToPlayer(Formatter.formatCommand(Term.TownCmdNation.toString() + " " + Term.TownCmdNationList.toString(), "", Term.TownCmdNationListDesc.toString(), color));
 			}
 		}
 		else if (args.length > 1 && args[0].equalsIgnoreCase(Term.TownCmdNation.toString()) && args[1].equalsIgnoreCase(Term.TownCmdNationInfo.toString()))
 		{
-			if (!Permissions.canAccess(cs, "mytown.cmd.nationinfo")) { cs.sendChatToPlayer(Term.ErrCannotAccessCommand.toString()); return; }
-			
+			Assert.Perm(cs, "mytown.cmd.nationinfo");
+			handled = true;
+
 			if (args.length < 3 && cs instanceof EntityPlayer)
 			{
 				Resident res = MyTownDatasource.instance.getOrMakeResident((EntityPlayer)cs);
@@ -166,7 +172,8 @@ public class MyTownNation
 		}
 		else if (args.length > 1 && args[0].equalsIgnoreCase(Term.TownCmdNation.toString()) && args[1].equalsIgnoreCase(Term.TownCmdNationList.toString()))
 		{
-			if (!Permissions.canAccess(cs, "mytown.cmd.nationlist")) { cs.sendChatToPlayer(Term.ErrCannotAccessCommand.toString()); return; }
+			Assert.Perm(cs, "mytown.cmd.nationlist");
+			handled = true;
 
 			ArrayList<Nation> sorted = new ArrayList<Nation>(MyTownDatasource.instance.nations);
 			
@@ -206,14 +213,14 @@ public class MyTownNation
 		}
 		
 		if (args.length < 1) // "/t" command
-			return;
+			return handled;
 		
 		if (!(cs instanceof EntityPlayer)) // no commands for console from here
-			return;
+			return handled;
 		
 		Resident res = MyTownDatasource.instance.getOrMakeResident((EntityPlayer)cs);
 		if (res.town() == null || res.rank() != Rank.Mayor)
-			return;
+			return handled;
 		
 		Town town = res.town();
 		Nation nation = town.nation();
@@ -235,6 +242,7 @@ public class MyTownNation
 				}
 				else if ((args[0].equalsIgnoreCase(Term.TownCmdNation.toString()) && args.length < 2) || args[1].equalsIgnoreCase(Term.CommandHelpNation.toString()))
 				{
+					handled = true;
 					cs.sendChatToPlayer(Formatter.formatCommand(Term.TownCmdNation.toString() + " " + Term.TownCmdNationNew.toString(), Term.TownCmdNationNewArgs.toString(), Term.TownCmdNationNewDesc.toString(), color));
 					cs.sendChatToPlayer(Formatter.formatCommand(Term.TownCmdAccept.toString(), "", Term.TownCmdAcceptDesc2.toString(), color));
 					cs.sendChatToPlayer(Formatter.formatCommand(Term.TownCmdDeny.toString(), "", Term.TownCmdDenyDesc2.toString(), color));
@@ -242,8 +250,9 @@ public class MyTownNation
 			}
 			else if (args[0].equalsIgnoreCase(Term.TownCmdAccept.toString()))
 			{
-				if (!Permissions.canAccess(res, "mytown.cmd.nationaccept")) { cs.sendChatToPlayer(Term.ErrCannotAccessCommand.toString()); return; }
-				
+				Assert.Perm(cs, "mytown.cmd.nationaccept");
+				handled = true;
+
 				if (town.pendingNationInvitation == null)
 					throw new CommandException(Term.TownErrNationYouDontHavePendingInvitations);
 				
@@ -254,8 +263,9 @@ public class MyTownNation
 			}
 			else if (args[0].equalsIgnoreCase(Term.TownCmdDeny.toString()))
 			{
-				if (!Permissions.canAccess(res, "mytown.cmd.nationdeny")) { cs.sendChatToPlayer(Term.ErrCannotAccessCommand.toString()); return; }
-				
+				Assert.Perm(cs, "mytown.cmd.nationdeny");
+				handled = true;
+
 				if (town.pendingNationInvitation == null)
 					throw new CommandException(Term.TownErrNationYouDontHavePendingInvitations);
 				
@@ -264,11 +274,12 @@ public class MyTownNation
 				cs.sendChatToPlayer(Term.NationPlayerDeniedInvitation.toString());
 			}
 			else if (!args[0].equalsIgnoreCase(Term.TownCmdNation.toString()))
-				return;
+				return handled;
 			else if (args[1].equalsIgnoreCase(Term.TownCmdNationNew.toString()))
 			{
-				if (!Permissions.canAccess(res, "mytown.cmd.nationnew")) { cs.sendChatToPlayer(Term.ErrCannotAccessCommand.toString()); return; }
-				
+				Assert.Perm(cs, "mytown.cmd.nationnew");
+				handled = true;
+
 				if (args.length == 3)
 				{
 					String name = args[2];
@@ -293,17 +304,19 @@ public class MyTownNation
 			}
 			else if ((args[0].equalsIgnoreCase(Term.TownCmdNation.toString()) && args.length < 2) || args[1].equalsIgnoreCase(Term.CommandHelpNation.toString()))
 			{
+				handled = true;
 				cs.sendChatToPlayer(Formatter.formatCommand(Term.TownCmdNation.toString() + " " + Term.TownCmdNationInvite.toString(), Term.TownCmdNationInviteArgs.toString(), Term.TownCmdNationInviteDesc.toString(), color));
 				cs.sendChatToPlayer(Formatter.formatCommand(Term.TownCmdNation.toString() + " " + Term.TownCmdNationKick.toString(), Term.TownCmdNationKickArgs.toString(), Term.TownCmdNationKickDesc.toString(), color));
 				cs.sendChatToPlayer(Formatter.formatCommand(Term.TownCmdNation.toString() + " " + Term.TownCmdNationTransfer.toString(), Term.TownCmdNationTransferArgs.toString(), Term.TownCmdNationTransferDesc.toString(), color));
 				cs.sendChatToPlayer(Formatter.formatCommand(Term.TownCmdNation.toString() + " " + Term.TownCmdNationDel.toString(), "", Term.TownCmdNationDelDesc.toString(), color));
 			}
 			else if (!args[0].equalsIgnoreCase(Term.TownCmdNation.toString()))
-				return;
+				return handled;
 			else if (args[1].equalsIgnoreCase(Term.TownCmdNationInvite.toString()))
 			{
-				if (!Permissions.canAccess(res, "mytown.cmd.nationinvite")) { cs.sendChatToPlayer(Term.ErrCannotAccessCommand.toString()); return; }
-				
+				Assert.Perm(cs, "mytown.cmd.nationinvite");
+				handled = true;
+
 				if (args.length == 3)
 				{
 					Town t = MyTownDatasource.instance.getTown(args[2]);
@@ -336,8 +349,9 @@ public class MyTownNation
 			}
 			else if (args[1].equalsIgnoreCase(Term.TownCmdNationKick.toString()))
 			{
-				if (!Permissions.canAccess(res, "mytown.cmd.nationkick")) { cs.sendChatToPlayer(Term.ErrCannotAccessCommand.toString()); return; }
-				
+				Assert.Perm(cs, "mytown.cmd.nationkick");
+				handled = true;
+
 				if (args.length == 3)
 				{
 					Town t = MyTownDatasource.instance.getTown(args[2]);
@@ -360,8 +374,9 @@ public class MyTownNation
 			}
 			else if (args[1].equalsIgnoreCase(Term.TownCmdNationTransfer.toString()))
 			{
-				if (!Permissions.canAccess(res, "mytown.cmd.nationtransfer")) { cs.sendChatToPlayer(Term.ErrCannotAccessCommand.toString()); return; }
-				
+				Assert.Perm(cs, "mytown.cmd.nationtransfer");
+				handled = true;
+
 				if (args.length == 3)
 				{
 					Town t = MyTownDatasource.instance.getTown(args[2]);
@@ -384,8 +399,9 @@ public class MyTownNation
 			}
 			else if (args[1].equalsIgnoreCase(Term.TownCmdNationDel.toString()))
 			{
-				if (!Permissions.canAccess(res, "mytown.cmd.nationdelete")) { cs.sendChatToPlayer(Term.ErrCannotAccessCommand.toString()); return; }
-				
+				Assert.Perm(cs, "mytown.cmd.nationdelete");
+				handled = true;
+
 				if (args.length == 3 && args[2].equalsIgnoreCase("yes"))
 				{
 					nation.delete();
@@ -409,17 +425,21 @@ public class MyTownNation
 			}
 			else if ((args[0].equalsIgnoreCase(Term.TownCmdNation.toString()) && args.length < 2) || args[1].equalsIgnoreCase(Term.CommandHelpNation.toString()))
 			{
+				handled = true;
 				cs.sendChatToPlayer(Formatter.formatCommand(Term.TownCmdNation.toString() + " " + Term.TownCmdNationLeave.toString(), "", Term.TownCmdNationLeaveDesc.toString(), color));
 			}
 			else if (!args[0].equalsIgnoreCase(Term.TownCmdNation.toString()))
-				return;
+				return handled;
 			else if (args[1].equalsIgnoreCase(Term.TownCmdNationLeave.toString()))
 			{
-				if (!Permissions.canAccess(res, "mytown.cmd.nationleave")) { cs.sendChatToPlayer(Term.ErrCannotAccessCommand.toString()); return; }
-				
+				Assert.Perm(cs, "mytown.cmd.nationleave");
+				handled = true;
+
 				nation.removeTown(town);
 				town.sendNotification(Level.INFO, Term.NationLeft.toString(nation.name()));
 			}
 		}
+		
+		return handled;
 	}
 }

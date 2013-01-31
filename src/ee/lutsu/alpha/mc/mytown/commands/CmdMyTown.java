@@ -12,6 +12,7 @@ import net.minecraft.server.MinecraftServer;
 import ee.lutsu.alpha.mc.mytown.CommandException;
 import ee.lutsu.alpha.mc.mytown.Formatter;
 import ee.lutsu.alpha.mc.mytown.Log;
+import ee.lutsu.alpha.mc.mytown.NoAccessException;
 import ee.lutsu.alpha.mc.mytown.Permissions;
 import ee.lutsu.alpha.mc.mytown.Term;
 
@@ -44,31 +45,39 @@ public class CmdMyTown extends CommandBase
 	@Override
 	public void processCommand(ICommandSender var1, String[] var2) 
 	{
+		boolean handled = false;
 		try
 		{
 			// all
-			MyTownEveryone.handleCommand(var1, var2);
+			handled = MyTownEveryone.handleCommand(var1, var2) || handled;
 			
 			// in town
-			MyTownResident.handleCommand(var1, var2);
-			MyTownAssistant.handleCommand(var1, var2);
-			MyTownMayor.handleCommand(var1, var2);
+			handled = MyTownResident.handleCommand(var1, var2) || handled;
+			handled = MyTownAssistant.handleCommand(var1, var2) || handled;
+			handled = MyTownMayor.handleCommand(var1, var2) || handled;
 			
 			// not in town
-			MyTownNonResident.handleCommand(var1, var2);
+			handled = MyTownNonResident.handleCommand(var1, var2) || handled;
 			
 			// all - nations
-			MyTownNation.handleCommand(var1, var2);
+			handled = MyTownNation.handleCommand(var1, var2) || handled;
+			
+			if (!handled)
+				throw new CommandException(Term.ErrUnknowCommand);
 		}
-		catch(NumberFormatException ex)
+		catch (NoAccessException ex)
+		{
+			var1.sendChatToPlayer(ex.toString());
+		}
+		catch (NumberFormatException ex)
 		{
 			var1.sendChatToPlayer(Formatter.commandError(Level.WARNING, Term.TownErrCmdNumberFormatException.toString()));
 		}
-		catch(CommandException ex)
+		catch (CommandException ex)
 		{
 			var1.sendChatToPlayer(Formatter.commandError(Level.WARNING, ex.errorCode.toString(ex.args)));
 		}
-		catch(Throwable ex)
+		catch (Throwable ex)
 		{
 			Log.log(Level.WARNING, String.format("Command execution error by %s", var1), ex);
 			var1.sendChatToPlayer(Formatter.commandError(Level.SEVERE, ex.toString()));

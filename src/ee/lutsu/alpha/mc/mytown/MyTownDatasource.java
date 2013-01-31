@@ -2,6 +2,7 @@ package ee.lutsu.alpha.mc.mytown;
 
 import java.sql.PreparedStatement;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
@@ -259,5 +260,35 @@ public class MyTownDatasource extends MyTownDB
 			t.save();
 		
 		return ret;
+	}
+	
+	public List<Town> getOldTowns(Date lastLoginTimeBelow)
+	{
+		ArrayList<Town> towns = new ArrayList<Town>();
+		synchronized (residents)
+		{
+			for (Resident res : residents)
+			{
+				if (res.town() != null && !res.isOnline() && res.lastLogin().compareTo(lastLoginTimeBelow) < 0)
+				{
+					if (!towns.contains(res.town()))
+					{
+						boolean allOld = true;
+						for (Resident r : res.town().residents())
+						{
+							if (r.isOnline() || r.lastLogin().compareTo(lastLoginTimeBelow) >= 0)
+							{
+								allOld = false;
+								break;
+							}
+						}
+						if (allOld)
+							towns.add(res.town());
+					}
+				}
+			}
+		}
+
+		return towns;
 	}
 }

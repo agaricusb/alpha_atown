@@ -36,14 +36,12 @@ public class CmdOnline extends CommandBase
 	@Override
 	public boolean canCommandSenderUseCommand(ICommandSender par1ICommandSender)
 	{
-		return true;
+		return Permissions.canAccess(par1ICommandSender, "mytown.ecmd.online");
 	}
 
 	@Override
 	public void processCommand(ICommandSender cs, String[] args) 
 	{
-		if (!Permissions.canAccess(cs, "mytown.ecmd.online")) { cs.sendChatToPlayer(Term.ErrCannotAccessCommand.toString()); return; }
-		
 		ArrayList<Resident> sorted = new ArrayList<Resident>(MyTownDatasource.instance.getOnlineResidents());
 		
 		Collections.sort(sorted, new Comparator<Resident>()

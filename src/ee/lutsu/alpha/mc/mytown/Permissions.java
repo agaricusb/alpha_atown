@@ -5,6 +5,7 @@ import net.minecraft.entity.player.EntityPlayer;
 import cpw.mods.fml.common.Loader;
 import cpw.mods.fml.common.ModContainer;
 import ee.lutsu.alpha.mc.mytown.entities.Resident;
+import ru.tehkode.permissions.IPermissionEntity;
 import ru.tehkode.permissions.IPermissions;
 
 public class Permissions
@@ -75,5 +76,28 @@ public class Permissions
 			return "";
 
 		return pex.suffix(player, world);
+	}
+	
+	public static String getOption(String player, String world, String node, String def)
+	{
+		if (!pexAvailable())
+			return def;
+		
+		IPermissionEntity entity = pex.getUser(player);
+		if (entity == null)
+			return def;
+		
+		return entity.getOption(node, world, def);
+	}
+	
+	public static String getOption(ICommandSender name, String node, String def)
+	{
+		if (!(name instanceof EntityPlayer))
+			return def;
+		else
+		{
+			EntityPlayer pl = (EntityPlayer)name;
+			return getOption(pl.username, String.valueOf(pl.dimension), node, def);
+		}
 	}
 }

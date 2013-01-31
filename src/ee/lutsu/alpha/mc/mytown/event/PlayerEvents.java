@@ -288,6 +288,14 @@ public class PlayerEvents implements IPlayerTracker
 		// load the resident
 		Resident r = source().getOrMakeResident(player);
 		
+		if (!WorldBorder.instance.isWithinArea(player))
+		{
+			Log.warning(String.format("Player %s logged in over the world edge %s (%s, %s, %s). Sending to spawn.",
+					r.name(), player.dimension,
+					player.posX, player.posY, player.posZ));
+			r.respawnPlayer();
+		}
+		
 		TownBlock t = source().getBlock(r.onlinePlayer.dimension, player.chunkCoordX, player.chunkCoordZ);
 
 		r.location = t != null && t.town() != null ? t.town() : null;
@@ -295,9 +303,9 @@ public class PlayerEvents implements IPlayerTracker
 		
 		if (!r.canInteract(t, (int)player.posY, Permissions.Enter))
 		{
-			Log.warning(String.format("Player %s logged in at a enemy town %s (%s, %s, %s) with bouncing on. Sending to spawn.",
+			Log.warning(String.format("Player %s logged in at a enemy town %s (%s, %s, %s, %s) with bouncing on. Sending to spawn.",
 					r.name(), r.location.name(),
-					player.posX, player.posY, player.posZ));
+					player.dimension, player.posX, player.posY, player.posZ));
 			r.respawnPlayer();
 		}
 		
@@ -345,7 +353,7 @@ public class PlayerEvents implements IPlayerTracker
 
 		// so we don't re-link to player to be online
 		// as this is called after the player logs off
-		Resident res = source().getResident((EntityPlayer)ev.entityLiving);
+		Resident res = source().getOrMakeResident((EntityPlayer)ev.entityLiving);
 		
 		if (res != null && res.isOnline())
 			res.update();

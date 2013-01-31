@@ -373,6 +373,31 @@ public abstract class MyTownDB extends Database {
     	}
     }
     
+    @Deprecated
+    /*
+     * Don't use this. We want to keep info about all residents
+     */
+    public void deleteResident(Resident res)
+    {
+    	synchronized(lock)
+    	{
+    		try 
+    		{
+    			if (res.id() > 0)
+    			{
+	    			PreparedStatement statement = prepare("DELETE FROM " + prefix + "residents WHERE id = ?");      
+	    			statement.setInt(1, res.id());
+	    			statement.executeUpdate();
+    			}
+    		} 
+    		catch (Exception e) 
+    		{ 
+    			e.printStackTrace(); 
+    			throw new RuntimeException("Error in resident deleting", e);
+    		}
+    	}
+    }
+    
     public void saveTown(Town town)
     {
     	StringBuilder blocks = new StringBuilder();

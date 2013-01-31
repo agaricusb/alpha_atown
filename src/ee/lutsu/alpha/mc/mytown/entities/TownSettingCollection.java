@@ -8,6 +8,7 @@ import net.minecraft.command.ICommandSender;
 
 import com.google.common.base.Joiner;
 
+import ee.lutsu.alpha.mc.mytown.Assert;
 import ee.lutsu.alpha.mc.mytown.CommandException;
 import ee.lutsu.alpha.mc.mytown.Term;
 
@@ -257,18 +258,21 @@ public class TownSettingCollection
 		}
 	}
 	
-	public void show(ICommandSender cs, String title)
+	public void show(ICommandSender cs, String title, String node, boolean all)
 	{
 		cs.sendChatToPlayer(String.format("§6-- §ePermissions for %s§6 --", title));
 		
 		for (TownSetting set : settings)
 		{
 			if (!isWild || set.wildValue != null)
-				cs.sendChatToPlayer(String.format("§a%s §2[%s] : %s%s",
-					set.getName(),
-					set.getSerializationKey(),
-					set.value == null ? "§d" : "§c",
-					set.getVisualValue()));
+			{
+				if (all || ee.lutsu.alpha.mc.mytown.Permissions.canAccess(cs, "mytown.cmd.perm.set." + node + "." + set.getSerializationKey()))
+					cs.sendChatToPlayer(String.format("§a%s §2[%s] : %s%s",
+						set.getName(),
+						set.getSerializationKey(),
+						set.value == null ? "§d" : "§c",
+						set.getVisualValue()));
+			}
 		}
 	}
 	
@@ -285,6 +289,7 @@ public class TownSettingCollection
 	public boolean allowBuildcraftMiners;
 	public boolean allowClaimingNextTo;
 	public boolean allowCCTurtles;
+	public boolean allowKillingMobsByNonResidents;
 	
 	public boolean disableCreepers;
 	public boolean disableTNT;
@@ -322,6 +327,8 @@ public class TownSettingCollection
 			allowClaimingNextTo = set.getEffBoolean();
 		else if (set.getSerializationKey().equals("ccturtles"))
 			allowCCTurtles = set.getEffBoolean();
+		else if (set.getSerializationKey().equals("killmobs"))
+			allowKillingMobsByNonResidents = set.getEffBoolean();
 		
 		else if (set.getSerializationKey().equals("creepoff"))
 			disableCreepers = set.getEffBoolean();
@@ -355,6 +362,7 @@ public class TownSettingCollection
 		settings.add(new TownSetting("Allow quarrys,filler,builders", 	"bc",		 	false, 				true, 				"boolean:yes/no", 							boolean.class));
 		settings.add(new TownSetting("Allow computercraft turtles",		"ccturtles",	false, 				true, 				"boolean:yes/no", 							boolean.class));
 		settings.add(new TownSetting("Allow claiming next to", 			"closeclaim",	false, 				null, 				"boolean:yes/no", 							boolean.class));
+		settings.add(new TownSetting("Allow everyone to kill mobs",		"killmobs",		true, 				null, 				"boolean:yes/no", 							boolean.class));
 		
 		settings.add(new TownSetting("Disable creeper explosion",		"creepoff",		false, 				false, 				"boolean:yes/no", 							boolean.class));
 		settings.add(new TownSetting("Disable TNT explosion",			"tntoff",		true, 				false, 				"boolean:yes/no", 							boolean.class));
