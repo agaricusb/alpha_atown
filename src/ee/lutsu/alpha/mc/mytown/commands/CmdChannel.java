@@ -67,6 +67,8 @@ public class CmdChannel extends CommandBase
 				return;
 			}
 			
+			CmdPrivateMsg.stopLockChatWithNotify(res.onlinePlayer);
+			
 			if (ch != res.activeChannel)
 			{
 				res.setActiveChannel(ch);

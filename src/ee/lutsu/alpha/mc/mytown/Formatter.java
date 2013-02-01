@@ -59,12 +59,12 @@ public class Formatter
 		return String.format("[%s§f] %s", formatLevel(lvl), msg);
 	}
 	
-	public static String formatChat(Resident res, String line, ChatChannel channel)
+	public static String formatChat(Resident res, String line, ChatChannel channel, boolean emote)
 	{
 		if (!formatChat)
-			return String.format("<%s> %s", res.name(), line);
+			return emote ? String.format("* %s %s", res.name(), line) : String.format("<%s> %s", res.name(), line);
 
-		return Term.ChatFormat.toString()
+		return (emote ? Term.EmoteFormat : Term.ChatFormat).toString()
 				.replace("$color$", channel.color)
 				.replace("$channel$", channel.abbrevation)
 				.replace("$name$", res.name())
@@ -72,7 +72,7 @@ public class Formatter
 				.replace("$prefix$", res.prefix())
 				.replace("$postfix$", res.postfix());
 	}
-	
+
 	public static String formatChatSystem(String line, ChatChannel channel)
 	{
 		if (!formatChat)
@@ -85,6 +85,20 @@ public class Formatter
 				.replace("$msg$", line)
 				.replace("$prefix$", "§f[§4Sys§f]")
 				.replace("$postfix$", "");
+	}
+	
+	public static String formatPrivMsg(Resident sender, Resident receiver, String line, boolean out)
+	{
+		return (out ? Term.PrivMsgFormatOut : Term.PrivMsgFormatIn).toString()
+				.replace("$sname$", sender.name())
+				.replace("$sprefix$", sender.prefix())
+				.replace("$spostfix$", sender.postfix())
+				
+				.replace("$name$", receiver.name())
+				.replace("$prefix$", receiver.prefix())
+				.replace("$postfix$", receiver.postfix())
+				
+				.replace("$msg$", line);
 	}
 	
 	public static String formatResidentName(Resident r)

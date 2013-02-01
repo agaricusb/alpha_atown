@@ -24,9 +24,9 @@ import net.minecraft.util.MovingObjectPosition;
 import net.minecraft.util.Vec3;
 import net.minecraft.world.World;
 
-public class SingleBlockTools extends ProtBase
+public class RangedTools extends ProtBase
 {
-	public static SingleBlockTools instance = new SingleBlockTools();
+	public static RangedTools instance = new RangedTools();
 
 	@Override
 	public void load() throws Exception
@@ -39,19 +39,10 @@ public class SingleBlockTools extends ProtBase
 	@Override
 	public boolean isEntityInstance(Item e) 
 	{ 
-		return isCritical(e);
-    	// public boolean onItemUseFirst(ItemStack stack, EntityPlayer player, World world, int x, int y, int z, int side, float hitX, float hitY, float hitZ)
-	}
-
-	private boolean isCritical(Item e)
-	{
-		if (e instanceof ItemBucket || e instanceof ItemBoat)
-			return true;
-		
 		Method m = null;
 		try 
 		{
-			m = e.getClass().getDeclaredMethod("onItemUseFirst", ItemStack.class, EntityPlayer.class, World.class, int.class, int.class, int.class, int.class, float.class, float.class, float.class);
+			m = e.getClass().getDeclaredMethod("onUsingItemTick", ItemStack.class, EntityPlayer.class, int.class);
 		} 
 		catch (NoSuchMethodException e1) { }
 		catch (NoClassDefFoundError e1) 
@@ -66,15 +57,20 @@ public class SingleBlockTools extends ProtBase
 	@Override
 	public String update(Resident res, Item tool, ItemStack item) throws Exception
 	{
-		boolean liquid = false;
+		MovingObjectPosition pos = Utils.getMovingObjectPositionFromPlayer(res.onlinePlayer.worldObj, res.onlinePlayer, false, 20);
+		if (pos != null && pos.typeOfHit == EnumMovingObjectType.TILE)
+		{
+			if (!res.canInteract(pos.blockX, pos.blockY, pos.blockZ, Permissions.Build))
+				return "Cannot build here";
+		}
+		else if (pos != null && pos.typeOfHit == EnumMovingObjectType.ENTITY)
+		{
+			if (!res.canAttack(pos.entityHit))
+				return "Cannot attack here";
+		}
 		
-		if (tool instanceof ItemBucket)
-			liquid = tool == Item.bucketEmpty;
-		else if (tool instanceof ItemBoat)
-			liquid = true;
-		
-		MovingObjectPosition pos = Utils.getMovingObjectPositionFromPlayer(res.onlinePlayer.worldObj, res.onlinePlayer, liquid);
-		
+		// liquids
+		pos = Utils.getMovingObjectPositionFromPlayer(res.onlinePlayer.worldObj, res.onlinePlayer, true, 20);
 		if (pos != null && pos.typeOfHit == EnumMovingObjectType.TILE)
 		{
 			if (!res.canInteract(pos.blockX, pos.blockY, pos.blockZ, Permissions.Build))
@@ -89,7 +85,7 @@ public class SingleBlockTools extends ProtBase
 		return null;
 	}
 	
-	public String getMod() { return "VanillaTools"; }
-	public String getComment() { return "Build check: any tool single target block right click"; }
+	public String getMod() { return "VanillaRangedTools"; }
+	public String getComment() { return "PVP & Build check: any tool ranged 20 block distance"; }
 	public boolean defaultEnabled() { return true; }
 }

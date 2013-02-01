@@ -19,6 +19,7 @@ import net.minecraft.item.ItemFishingRod;
 import net.minecraft.item.ItemFood;
 import net.minecraft.item.ItemMinecart;
 import net.minecraft.item.ItemPotion;
+import net.minecraft.item.ItemStack;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.DamageSource;
 import net.minecraft.util.EnumMovingObjectType;
@@ -132,8 +133,18 @@ public class PlayerEvents implements IPlayerTracker
 					perm = Permissions.Access;
 			}
 			
+			ItemStack itemstack = ev.entityPlayer.getHeldItem();
+			Item item = itemstack == null ? null : itemstack.getItem();
+			
+			if (ev.entityPlayer.getHeldItem() == null/* || !(ev.entityPlayer.getHeldItem().getItem() instanceof ItemBlock)*/)
+				perm = Permissions.Access;
+			
+			/*
+			if (item != null && (item instanceof ItemBow || item instanceof ItemEgg || item instanceof ItemPotion || item instanceof ItemFishingRod || item instanceof ItemExpBottle || item instanceof ItemEnderEye))
+				perm = Permissions.Build;*/
+			
 			// placing a block
-			if (ev.face != -1 && perm == Permissions.Build && ev.entityPlayer.getHeldItem() != null && ev.entityPlayer.getHeldItem().getItem() != null && ev.entityPlayer.getHeldItem().getItem() instanceof ItemBlock)
+			if (ev.face != -1 && perm == Permissions.Build && item != null && item instanceof ItemBlock)
 			{
 	            if (ev.face == 0)
 	            	y--;
@@ -342,7 +353,7 @@ public class PlayerEvents implements IPlayerTracker
 		
 		ev.setCanceled(true);
 		Resident res = source().getOrMakeResident(ev.player);
-		CmdChat.sendToChannelFromDirectTalk(res, ev.message, res.activeChannel);
+		CmdChat.sendToChannelFromDirectTalk(res, ev.message, res.activeChannel, false);
 	}
 	
 	@ForgeSubscribe

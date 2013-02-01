@@ -6,6 +6,10 @@ public enum Term
 {
 	// General & events
 	ChatFormat("§f[$color$$channel$§f]$prefix$$name$$postfix$$color$: $msg$"),
+	EmoteFormat("§f[$color$$channel$§f]* $prefix$$name$$postfix$$color$ $msg$"),
+	PrivMsgFormatIn("§7[$sprefix$$sname$$spostfix$ §7-> Me] $msg$"),
+	PrivMsgFormatOut("§7[Me -> $prefix$$name$$postfix$§7] $msg$"),
+	
 	ChatErrNotInTown("You cannot use townchat if you are not in a town"),
 	ChatErrNotInNation("You cannot use nationchat if your town is not part of a nation"),
 	ChatAloneInChannel("§7§oSo lonely..."),
@@ -241,6 +245,9 @@ public enum Term
 	
 	TownadmCmdResetFocusedChannels("reschannels"),
 	TownadmCmdResetFocusedChannelsDesc("Reset the currently selected channel for all users to the default"),
+	
+	TownadmCmdSnoopPrivateChat("snoop"),
+	TownadmCmdSnoopPrivateChatDesc("Starts or stops logging private chat into server log"),
 
 	// Town errors
 	ErrCannotAccessCommand("§4You cannot access this command"),

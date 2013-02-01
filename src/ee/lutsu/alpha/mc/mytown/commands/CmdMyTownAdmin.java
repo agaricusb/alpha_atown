@@ -76,6 +76,7 @@ public class CmdMyTownAdmin extends CommandBase
 				cs.sendChatToPlayer(Formatter.formatAdminCommand(Term.TownadmCmdClaim.toString(), Term.TownadmCmdClaimArgs.toString(), Term.TownadmCmdClaimDesc.toString(), color));
 				cs.sendChatToPlayer(Formatter.formatAdminCommand(Term.TownadmCmdWipeDim.toString(), Term.TownadmCmdWipeDimArgs.toString(), Term.TownadmCmdWipeDimDesc.toString(), color));
 				cs.sendChatToPlayer(Formatter.formatAdminCommand(Term.TownadmCmdResetFocusedChannels.toString(), "", Term.TownadmCmdResetFocusedChannelsDesc.toString(), color));
+				cs.sendChatToPlayer(Formatter.formatAdminCommand(Term.TownadmCmdSnoopPrivateChat.toString(), "", Term.TownadmCmdSnoopPrivateChatDesc.toString(), color));
 			}
 			else if (var2[0].equalsIgnoreCase(Term.TownadmCmdReload.toString()))
 			{
@@ -217,6 +218,16 @@ public class CmdMyTownAdmin extends CommandBase
 					t.setExtraBlocks(cnt);
 					cs.sendChatToPlayer(Term.TownadmExtraSet.toString());
 				}
+			}
+			else if (var2[0].equalsIgnoreCase(Term.TownadmCmdSnoopPrivateChat.toString()))
+			{
+				if (!Permissions.canAccess(cs, "mytown.adm.cmd.snoop")) { cs.sendChatToPlayer(Term.ErrCannotAccessCommand.toString()); return; }
+				
+				boolean done = CmdPrivateMsg.snoopers.remove(MinecraftServer.getServer());
+				if (!done)
+					CmdPrivateMsg.snoopers.add(MinecraftServer.getServer());
+				
+				cs.sendChatToPlayer("§aSnooping is now " + (done ? "§4off" : "§2on"));
 			}
 			else if (var2[0].equalsIgnoreCase(Term.TownadmCmdExtraRes.toString()))
 			{

@@ -42,9 +42,9 @@ public class CmdChat extends CommandBase
 		return "/" + getCommandName() + " message";
     }
 	
-	public static String sendTownChat(Resident res, String msg)
+	public static String sendTownChat(Resident res, String msg, boolean emote)
 	{
-		String formatted = Formatter.formatChat(res, msg, ChatChannel.Town);
+		String formatted = Formatter.formatChat(res, msg, ChatChannel.Town, emote);
 		
 		int sentTo = 0;
 		if (res.town() == null)
@@ -72,9 +72,9 @@ public class CmdChat extends CommandBase
 		return Term.ChatTownLogFormat.toString(res.town().name(), formatted);
 	}
 	
-	public static String sendNationChat(Resident res, String msg)
+	public static String sendNationChat(Resident res, String msg, boolean emote)
 	{
-		String formatted = Formatter.formatChat(res, msg, ChatChannel.Nation);
+		String formatted = Formatter.formatChat(res, msg, ChatChannel.Nation, emote);
 		
 		int sentTo = 0;
 		if (res.town() == null)
@@ -112,15 +112,15 @@ public class CmdChat extends CommandBase
 	
 	public static String sendGlobalChat(Resident res, String msg)
 	{
-		return sendGlobalChat(res, msg, ChatChannel.Global);
+		return sendGlobalChat(res, msg, ChatChannel.Global, false);
 	}
 	
-	public static String sendGlobalChat(Resident res, String msg, ChatChannel ch)
+	public static String sendGlobalChat(Resident res, String msg, ChatChannel ch, boolean emote)
 	{
 		if (!Permissions.canAccess(res, "mytown.chat.allowcaps"))
 			msg = msg.toLowerCase();
 
-		String formatted = Formatter.formatChat(res, msg, ch);
+		String formatted = Formatter.formatChat(res, msg, ch, emote);
 		
 		int sentTo = 0;
 		for (Object obj : MinecraftServer.getServer().getConfigurationManager().playerEntityList)
@@ -136,9 +136,9 @@ public class CmdChat extends CommandBase
 		return formatted;
 	}
 	
-	public static String sendLocalChat(Resident res, String msg)
+	public static String sendLocalChat(Resident res, String msg, boolean emote)
 	{
-		String formatted = Formatter.formatChat(res, msg, ChatChannel.Local);
+		String formatted = Formatter.formatChat(res, msg, ChatChannel.Local, emote);
 		
 		int sentTo = sendChatToAround(res.onlinePlayer.dimension, res.onlinePlayer.posX, res.onlinePlayer.posY, res.onlinePlayer.posZ, formatted, null);
 
@@ -164,27 +164,36 @@ public class CmdChat extends CommandBase
 		return sentTo;
 	}
 
-	public static void sendToChannelFromDirectTalk(Resident sender, String msg, ChatChannel channel)
+	public static void sendToChannelFromDirectTalk(Resident sender, String msg, ChatChannel channel, boolean emote)
 	{
 		if (msg == null || msg.trim().length() < 1)
 			return;
 		
 		msg = msg.trim();
-		
+		boolean quickChatHit = false;
 		for (ChatChannel c : ChatChannel.values())
 		{
 			if (c.inLineSwitch != null && !c.inLineSwitch.equals("") && msg.startsWith(c.inLineSwitch))
 			{
 				channel = c;
 				msg = msg.substring(c.inLineSwitch.length());
+				quickChatHit = true;
 				break;
 			}
 		}
 		
-		sendToChannel(sender, msg.trim(), channel);
+		if (quickChatHit || !CmdPrivateMsg.chatLock.containsKey(sender.onlinePlayer))
+			sendToChannel(sender, msg.trim(), channel, emote);
+		else
+			CmdPrivateMsg.sendChat(sender.onlinePlayer, CmdPrivateMsg.chatLock.get(sender.onlinePlayer), msg);
 	}
 	
 	public static void sendToChannel(Resident sender, String msg, ChatChannel channel)
+	{
+		sendToChannel(sender, msg, channel, false);
+	}
+	
+	public static void sendToChannel(Resident sender, String msg, ChatChannel channel, boolean emote)
 	{
 		if (msg == null || msg.trim().length() < 1)
 			return;
@@ -197,13 +206,13 @@ public class CmdChat extends CommandBase
 		
 		String s;
 		if (channel == ChatChannel.Local)
-			s = sendLocalChat(sender, msg);
+			s = sendLocalChat(sender, msg, emote);
 		else if (channel == ChatChannel.Town)
-			s = sendTownChat(sender, msg);
+			s = sendTownChat(sender, msg, emote);
 		else if (channel == ChatChannel.Nation)
-			s = sendNationChat(sender, msg);
+			s = sendNationChat(sender, msg, emote);
 		else
-			s = sendGlobalChat(sender, msg, channel); // trade, help, global
+			s = sendGlobalChat(sender, msg, channel, emote); // trade, help, global
 		
 		if (s != null)
 			Log.direct(s);

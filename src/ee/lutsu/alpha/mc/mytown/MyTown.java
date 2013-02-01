@@ -42,7 +42,7 @@ import ee.lutsu.alpha.mc.mytown.sql.Database;
 @Mod(
         modid = "MyTown",
         name = "My Town",
-        version = "1.4.7.2"
+        version = "1.4.7.3"
 )
 @NetworkMod(
         clientSideRequired = false,
@@ -77,6 +77,9 @@ public class MyTown
 		commands.add(new CmdTeleport());
 		commands.add(new CmdSetSpawn());
 		commands.add(new CmdOnline());
+		commands.add(new CmdEmote());
+		commands.add(new CmdPrivateMsg());
+		commands.add(new CmdReplyPrivateMsg());
 		
 		for(ChatChannel c : ChatChannel.values())
 			commands.add(new CmdChat(c));
@@ -87,11 +90,6 @@ public class MyTown
     {
     	addCommands();
         loadConfig();
-    }
-
-    @Mod.Init
-    public void load(FMLInitializationEvent var1)
-    {
     }
 
     @Mod.ServerStarted
@@ -288,6 +286,18 @@ public class MyTown
         prop = config.get("Chat", "ChatFormat", Term.ChatFormat.defaultVal);
         prop.comment = "Chat format to be used";
         Term.ChatFormat.defaultVal = prop.value;
+        
+        prop = config.get("Chat", "EmoteFormat", Term.EmoteFormat.defaultVal);
+        prop.comment = "Emote format to be used";
+        Term.EmoteFormat.defaultVal = prop.value;
+        
+        prop = config.get("Chat", "PrivMsgInFormat", Term.PrivMsgFormatIn.defaultVal);
+        prop.comment = "Private message format to be used when receiving. Vars starting with $s mean sender";
+        Term.PrivMsgFormatIn.defaultVal = prop.value;
+        
+        prop = config.get("Chat", "PrivMsgOutFormat", Term.PrivMsgFormatOut.defaultVal);
+        prop.comment = "Private message format to be used when sending. Vars starting with $s mean sender";
+        Term.PrivMsgFormatOut.defaultVal = prop.value;
         
         prop = config.get("Chat", "LocalDistance", 160);
         prop.comment = "How many blocks far does the local chat sound";

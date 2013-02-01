@@ -781,4 +781,9 @@ public class Resident
 		
 		return true;
 	}
+	
+	public static Resident getOrMake(EntityPlayer pl)
+	{
+		return MyTownDatasource.instance.getOrMakeResident(pl);
+	}
 }

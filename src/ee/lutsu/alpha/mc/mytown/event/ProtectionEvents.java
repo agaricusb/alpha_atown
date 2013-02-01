@@ -62,6 +62,7 @@ public class ProtectionEvents implements ITickHandler
 	public static ProtBase[] toolProtections = new ProtBase[]
 	{
 		SingleBlockTools.instance,
+		RangedTools.instance,
 		ThaumCraft.instance
 	};
 	
