@@ -12,30 +12,37 @@ import net.minecraft.entity.Entity;
 import net.minecraft.entity.item.EntityTNTPrimed;
 import net.minecraft.entity.monster.EntityCreeper;
 
-public class TNT extends ProtBase
+public class Mekanism extends ProtBase
 {
-	public static TNT instance = new TNT();
+	public static Mekanism instance = new Mekanism();
 
-    public int explosionRadius = 4;
+    public float explosionRadius = 6;
+    
+    Class clEntityObsidianTNT;
+    Field fEntityObsidianTNT_Fuse, fMekanism_ObsidianTNTBlastRadius;
     
 	@Override
 	public void load() throws Exception
 	{
+		clEntityObsidianTNT = Class.forName("mekanism.common.EntityObsidianTNT");
+		fEntityObsidianTNT_Fuse = clEntityObsidianTNT.getDeclaredField("fuse");
+		fMekanism_ObsidianTNTBlastRadius = Class.forName("mekanism.common.Mekanism").getDeclaredField("ObsidianTNTBlastRadius");
+		
+		explosionRadius = fMekanism_ObsidianTNTBlastRadius.getFloat(null);
 	}
 	
 	@Override
-	public boolean loaded() { return true; }
+	public boolean loaded() { return clEntityObsidianTNT != null; }
 	@Override
-	public boolean isEntityInstance(Entity e) { return e instanceof EntityTNTPrimed; }
+	public boolean isEntityInstance(Entity e) { return clEntityObsidianTNT.isInstance(e); }
 	
 	@Override
 	public String update(Entity e) throws Exception
 	{
-		EntityTNTPrimed tnt = (EntityTNTPrimed)e;
-		if (tnt.isDead || tnt.fuse > 1)
+		if (e.isDead || fEntityObsidianTNT_Fuse.getInt(e) > 1)
 			return null;
-
-        int radius = explosionRadius + 2; // 2 for safety
+		
+        int radius = (int)Math.ceil(explosionRadius) + 2; // 2 for safety
 
         int x1 = ((int)e.posX - radius) >> 4;
         int z1 = ((int)e.posZ - radius) >> 4;
@@ -65,7 +72,7 @@ public class TNT extends ProtBase
 		return !b.settings.disableTNT;
 	}
 	
-	public String getMod() { return "VanillaTNT"; }
+	public String getMod() { return "Mekanism"; }
 	public String getComment() { return "Town permission: disableTNT"; }
-	public boolean defaultEnabled() { return true; }
+	public boolean defaultEnabled() { return false; }
 }

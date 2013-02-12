@@ -3,6 +3,8 @@ package ee.lutsu.alpha.mc.mytown.event.tick;
 import java.util.Date;
 import java.util.List;
 
+import com.google.common.collect.Lists;
+
 import ee.lutsu.alpha.mc.mytown.Log;
 import ee.lutsu.alpha.mc.mytown.MyTown;
 import ee.lutsu.alpha.mc.mytown.entities.*;
@@ -13,6 +15,7 @@ public class OldTownRemover extends TickBase
 	public int daysOld = -1;
 	public boolean enabled = false;
 	public int timeout = 20 * 60;
+	public String[] safeTowns = new String[0];
 	
 	@Override
 	public boolean enabled() { return enabled; }
@@ -25,6 +28,15 @@ public class OldTownRemover extends TickBase
 
 		for (Town t : towns)
 		{
+			boolean exit = false;
+			if (safeTowns != null)
+				for (String s : safeTowns)
+					if (t.name().equalsIgnoreCase(s))
+						exit = true;
+			
+			if (exit)
+				continue;
+			
 			try
 			{
 				if (t.nation() != null)
@@ -68,7 +80,8 @@ public class OldTownRemover extends TickBase
 		daysOld = MyTown.instance.config.get("TickHandlers.OldTownRemover", "DaysAtleastOld", 30, "Delete towns where members haven't logged in for this amount of days").getInt();
 		enabled = MyTown.instance.config.get("TickHandlers.OldTownRemover", "Enabled", false, "Feature enabled?").getBoolean(false);
 		timeout = MyTown.instance.config.get("TickHandlers.OldTownRemover", "WorkerTimeoutTicks", 20 * 60, "How often should the worker check for old towns? Default 1min - 1200 ticks").getInt();
-	
+		safeTowns = MyTown.instance.config.get("TickHandlers.OldTownRemover", "SafeTownList", "Spawn,Server", "Town name comma seperated list which are exempt from this feature").value.split(",");
+		
 		if (timeout <= 0)
 			throw new Exception("WorkerTimeoutTicks cannot be at or below 0");
 		if (daysOld <= 0)
