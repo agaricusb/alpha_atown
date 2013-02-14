@@ -42,7 +42,7 @@ import ee.lutsu.alpha.mc.mytown.sql.Database;
 @Mod(
         modid = "MyTown",
         name = "My Town",
-        version = "1.4.7.3"
+        version = "1.4.7.4"
 )
 @NetworkMod(
         clientSideRequired = false,
@@ -125,6 +125,7 @@ public class MyTown
         try
         {
             loadCommandsConfig(config);
+            WorldBorder.instance.continueGeneratingChunks();
         }
         catch (Exception var8)
         {
@@ -137,8 +138,6 @@ public class MyTown
         }
 
 		Log.info("Loaded");
-		
-		WorldBorder.instance.continueGeneratingChunks();
     }
     
     @Mod.ServerStopping

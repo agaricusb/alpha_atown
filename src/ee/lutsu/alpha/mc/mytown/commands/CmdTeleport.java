@@ -19,53 +19,67 @@ public class CmdTeleport extends CommandServerTp
 	}
 	
 	@Override
-    public void processCommand(ICommandSender par1ICommandSender, String[] par2ArrayOfStr)
+	public String getCommandUsage(ICommandSender par1iCommandSender) 
+	{
+		return "/tp [player] <toplayer> | /tp [player] [dim] <x> <y> <z>";
+	}
+	
+	@Override
+    public void processCommand(ICommandSender cs, String[] arg)
     {
-        if (par2ArrayOfStr.length < 1)
+        if (arg.length < 1)
         {
-            throw new WrongUsageException("commands.tp.usage", new Object[0]);
+            throw new WrongUsageException("/tp [player] <toplayer> | /tp [player] [dim] <x> <y> <z>");
         }
         else
         {
             EntityPlayerMP self;
 
             // /tp [self] <target player>
-            // /tp [self] <x> <y> <z>
-            if (par2ArrayOfStr.length != 2 && par2ArrayOfStr.length != 4)
-                self = getCommandSenderAsPlayer(par1ICommandSender);
+            // /tp [self] [dim] <x> <y> <z>
+            
+            // 1 name
+            // 2 name name
+            // 3 x y z
+            // 4 dim x y z
+            // 5 name dim z y z
+            // 
+            if (arg.length != 2 && arg.length != 5)
+                self = getCommandSenderAsPlayer(cs);
             else
             {
-                self = func_82359_c(par1ICommandSender, par2ArrayOfStr[0]);
+                self = func_82359_c(cs, arg[0]);
                 if (self == null)
                     throw new PlayerNotFoundException();
             }
 
-            if (par2ArrayOfStr.length != 3 && par2ArrayOfStr.length != 4)
+            if (arg.length == 1 || arg.length == 2)
             {
-                if (par2ArrayOfStr.length == 1 || par2ArrayOfStr.length == 2)
-                {
-                    EntityPlayerMP targetPlayer = func_82359_c(par1ICommandSender, par2ArrayOfStr[par2ArrayOfStr.length - 1]);
+                EntityPlayerMP targetPlayer = func_82359_c(cs, arg[arg.length - 1]);
 
-                    if (targetPlayer == null)
-                    {
-                        throw new PlayerNotFoundException();
-                    }
+                if (targetPlayer == null)
+                    throw new PlayerNotFoundException();
 
-                    if (targetPlayer.worldObj != self.worldObj)
-                		MinecraftServer.getServer().getConfigurationManager().transferPlayerToDimension(self, targetPlayer.dimension);
+                if (targetPlayer.worldObj != self.worldObj)
+            		MinecraftServer.getServer().getConfigurationManager().transferPlayerToDimension(self, targetPlayer.dimension);
 
-                    self.playerNetServerHandler.setPlayerLocation(targetPlayer.posX, targetPlayer.posY, targetPlayer.posZ, targetPlayer.rotationYaw, targetPlayer.rotationPitch);
-                    notifyAdmins(par1ICommandSender, "commands.tp.success", new Object[] {self.getEntityName(), targetPlayer.getEntityName()});
-                }
+                self.playerNetServerHandler.setPlayerLocation(targetPlayer.posX, targetPlayer.posY, targetPlayer.posZ, targetPlayer.rotationYaw, targetPlayer.rotationPitch);
+                notifyAdmins(cs, "commands.tp.success", new Object[] {self.getEntityName(), targetPlayer.getEntityName()});
             }
             else if (self.worldObj != null)
             {
-                int var4 = par2ArrayOfStr.length - 3;
-                double var5 = func_82368_a(par1ICommandSender, self.posX, par2ArrayOfStr[var4++]);
-                double var7 = func_82367_a(par1ICommandSender, self.posY, par2ArrayOfStr[var4++], 0, 0);
-                double var9 = func_82368_a(par1ICommandSender, self.posZ, par2ArrayOfStr[var4++]);
-                self.setPositionAndUpdate(var5, var7, var9);
-                notifyAdmins(par1ICommandSender, "commands.tp.success.coordinates", new Object[] {self.getEntityName(), Double.valueOf(var5), Double.valueOf(var7), Double.valueOf(var9)});
+            	int dim = arg.length > 3 ? Integer.parseInt(arg[arg.length - 4]) : self.dimension;
+            	
+                int var4 = arg.length - 3;
+                double var5 = func_82368_a(cs, self.posX, arg[var4++]);
+                double var7 = func_82367_a(cs, self.posY, arg[var4++], 0, 0);
+                double var9 = func_82368_a(cs, self.posZ, arg[var4++]);
+                
+                if (self.dimension != dim)
+            		MinecraftServer.getServer().getConfigurationManager().transferPlayerToDimension(self, dim);
+
+                self.playerNetServerHandler.setPlayerLocation(var5, var7, var9, self.rotationYaw, self.rotationPitch);
+                notifyAdmins(cs, "commands.tp.success.coordinates", new Object[] {self.getEntityName(), Double.valueOf(var5), Double.valueOf(var7), Double.valueOf(var9)});
             }
         }
     }

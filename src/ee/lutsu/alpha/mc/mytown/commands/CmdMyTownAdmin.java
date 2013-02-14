@@ -23,6 +23,7 @@ import ee.lutsu.alpha.mc.mytown.entities.Town;
 import ee.lutsu.alpha.mc.mytown.entities.TownBlock;
 import ee.lutsu.alpha.mc.mytown.entities.TownSettingCollection;
 import ee.lutsu.alpha.mc.mytown.entities.Resident.Rank;
+import ee.lutsu.alpha.mc.mytown.event.WorldBorder;
 import net.minecraft.command.CommandBase;
 import net.minecraft.command.ICommandSender;
 import net.minecraft.entity.player.EntityPlayer;
@@ -397,6 +398,13 @@ public class CmdMyTownAdmin extends CommandBase
 				}
 
 				cs.sendChatToPlayer(Term.TownBlocksClaimed.toString(nr, sb.toString()));
+			}
+			else if (var2[0].equalsIgnoreCase("togglegen"))
+			{
+				WorldBorder.instance.genenabled = !WorldBorder.instance.genenabled;
+				MyTown.instance.config.get("worldborder", "chunk-generator-enabled", WorldBorder.instance.genenabled, "Generate blocks?").value = String.valueOf(WorldBorder.instance.genenabled);
+				MyTown.instance.config.save();
+				cs.sendChatToPlayer(String.format("§aWorld gen is now %s", WorldBorder.instance.genenabled ? "§2ENABLED" : "§4DISABLED"));
 			}
 		}
 		catch(CommandException ex)

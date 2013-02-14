@@ -18,9 +18,11 @@ import ee.lutsu.alpha.mc.mytown.Permissions;
 import ee.lutsu.alpha.mc.mytown.Term;
 import ee.lutsu.alpha.mc.mytown.commands.CmdChat;
 import ee.lutsu.alpha.mc.mytown.entities.TownSettingCollection.ISettingsSaveHandler;
+import ee.lutsu.alpha.mc.mytown.event.ProtectionEvents;
 import ee.lutsu.alpha.mc.mytown.event.WorldBorder;
 import net.minecraft.command.ICommandSender;
 import net.minecraft.entity.Entity;
+import net.minecraft.entity.INpc;
 import net.minecraft.entity.item.EntityMinecart;
 import net.minecraft.entity.item.EntityItem;
 import net.minecraft.entity.monster.EntityGolem;
@@ -234,7 +236,7 @@ public class Resident
 	
 	public boolean canInteract(Entity e)
 	{
-		TownBlock targetBlock = MyTownDatasource.instance.getBlock(e.dimension, e.chunkCoordX, e.chunkCoordZ);
+		TownBlock targetBlock = MyTownDatasource.instance.getPermBlockAtCoord(e.dimension, (int)e.posX, (int)e.posY, (int)e.posZ);
 
 		if (e instanceof EntityMinecart)
 		{
@@ -242,10 +244,23 @@ public class Resident
 				return true;
 		}
 		
+		TownSettingCollection.Permissions perm = TownSettingCollection.Permissions.Build;
+		
 		if (e instanceof EntityItem)
-			return canInteract(targetBlock, (int)e.posY, TownSettingCollection.Permissions.Loot);
+			perm = TownSettingCollection.Permissions.Loot;
 		else
-			return canInteract(targetBlock, (int)e.posY, TownSettingCollection.Permissions.Build); // shears come here
+		{
+			boolean isNpc = false;
+			
+			for (Class cl : ProtectionEvents.instance.getNPCClasses())
+				if (cl.isInstance(e))
+					isNpc = true;
+			
+			if (isNpc)
+				perm = TownSettingCollection.Permissions.Access;
+		}
+			
+		return canInteract(targetBlock, perm);
 	}
 	
 	public boolean canAttack(Entity e)

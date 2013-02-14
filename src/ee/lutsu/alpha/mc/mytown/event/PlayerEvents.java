@@ -55,7 +55,7 @@ import ee.lutsu.alpha.mc.mytown.entities.TownSettingCollection.Permissions;
 
 public class PlayerEvents implements IPlayerTracker
 {
-	@ForgeSubscribe
+	@ForgeSubscribe(priority=EventPriority.HIGHEST)
 	public void interact(PlayerInteractEvent ev)
 	{
 		if (ev.isCanceled())
@@ -81,7 +81,7 @@ public class PlayerEvents implements IPlayerTracker
 				MovingObjectPosition pos = Utils.getMovingObjectPositionFromPlayer(r.onlinePlayer.worldObj, r.onlinePlayer, false);
 				if (pos == null)
 				{
-					if (item instanceof ItemBow || item instanceof ItemEgg || item instanceof ItemPotion || item instanceof ItemFishingRod || item instanceof ItemExpBottle || item instanceof ItemEnderEye)
+					if (item instanceof ItemBow || item instanceof ItemEgg || item instanceof ItemPotion || item instanceof ItemFishingRod || item instanceof ItemExpBottle || item instanceof ItemEnderEye || item.getClass().getSimpleName().equalsIgnoreCase("ItemNanoBow"))
 					{
 						perm = Permissions.Build;
 					}
@@ -213,6 +213,21 @@ public class PlayerEvents implements IPlayerTracker
 		if (ev.isCanceled() || ev.entity != null)
 			return;
 		
+		if (ev.entityLiving instanceof EntityPlayer)
+		{
+			Resident t = source().getOrMakeResident((EntityPlayer)ev.entityLiving);
+			
+			if ((ev.source.getEntity() != null && !t.canBeAttackedBy(ev.source.getEntity())) || (ev.source.getSourceOfDamage() != null && !t.canBeAttackedBy(ev.source.getSourceOfDamage())))
+			{
+				ev.setCanceled(true);
+				// spamming
+				/*Log.info(String.format("%s is attacking %s whos in a protected area",
+						ev.source.getEntity() != null ? ev.source.getEntity() : ev.source.getSourceOfDamage(),
+						t.onlinePlayer));
+				*/
+			}
+		}
+		
 		Entity target = ev.entity;
 		Resident attacker = null;
 		
@@ -235,26 +250,7 @@ public class PlayerEvents implements IPlayerTracker
 			return;
 		}
 	}
-	
-	@ForgeSubscribe(priority = EventPriority.LOW)
-	public void onEntityDamaged(LivingAttackEvent ev) 
-	{
-		if (ev.entityLiving instanceof EntityPlayer)
-		{
-			Resident t = source().getOrMakeResident((EntityPlayer)ev.entityLiving);
-			
-			if ((ev.source.getEntity() != null && !t.canBeAttackedBy(ev.source.getEntity())) || (ev.source.getSourceOfDamage() != null && !t.canBeAttackedBy(ev.source.getSourceOfDamage())))
-			{
-				ev.setCanceled(true);
-				// spamming
-				/*Log.info(String.format("%s is attacking %s whos in a protected area",
-						ev.source.getEntity() != null ? ev.source.getEntity() : ev.source.getSourceOfDamage(),
-						t.onlinePlayer));
-				*/
-			}
-		}
-	}
-	
+
 	@ForgeSubscribe
 	public void entityInteract(EntityInteractEvent ev)
 	{

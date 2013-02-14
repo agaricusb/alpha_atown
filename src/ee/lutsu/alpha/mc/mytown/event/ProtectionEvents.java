@@ -6,6 +6,8 @@ import java.util.ArrayList;
 import java.util.EnumSet;
 import java.util.List;
 
+import com.google.common.collect.Lists;
+
 import cpw.mods.fml.common.ITickHandler;
 import cpw.mods.fml.common.TickType;
 
@@ -20,6 +22,7 @@ import ee.lutsu.alpha.mc.mytown.event.prot.*;
 
 import net.minecraft.block.Block;
 import net.minecraft.entity.Entity;
+import net.minecraft.entity.INpc;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
@@ -37,6 +40,7 @@ public class ProtectionEvents implements ITickHandler
 	public ArrayList<Entity> toRemove = new ArrayList<Entity>();
 	public ArrayList<TileEntity> toRemoveTile = new ArrayList<TileEntity>();
 	public boolean loaded = false;
+	private List<Class> npcClasses = null;
 	
 	public static ProtBase[] entityProtections = new ProtBase[]
 	{
@@ -48,7 +52,9 @@ public class ProtectionEvents implements ITickHandler
 		ThaumCraft.instance,
 		TNT.instance,
 		RailCraft.instance,
-		TrainCraft.instance
+		TrainCraft.instance,
+		Mekanism.instance,
+		ModularPowersuits.instance
 	};
 	
 	public static ProtBase[] tileProtections = new ProtBase[]
@@ -83,6 +89,8 @@ public class ProtectionEvents implements ITickHandler
 			// Always allow the usage of cart type items
 			if (ItemIdRange.contains(MyTown.instance.carts, item))
 				return true;
+			
+			//Log.info(String.format("Item click : %s %s %s", r.name(), item, tool.getClass()));
 			
 			ProtBase lastCheck = null;
 			kill = null;
@@ -231,6 +239,25 @@ public class ProtectionEvents implements ITickHandler
 			String ms = e == null ? t == null ? "#unknown#" : t.toString() : e.toString();
 			Log.severe("Error in entity " + ms + " pre-update check", er);
 		}
+	}
+	
+	public List<Class> getNPCClasses()
+	{
+		if (npcClasses == null)
+		{
+			npcClasses = Lists.newArrayList((Class)INpc.class);
+			
+			try
+			{
+				CustomNPCs.addNPCClasses(npcClasses);
+			}
+			catch (Throwable t)
+			{
+				
+			}
+		}
+		
+		return npcClasses;
 	}
 	
 	private void setFields()

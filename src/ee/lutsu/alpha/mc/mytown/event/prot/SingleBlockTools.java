@@ -45,7 +45,7 @@ public class SingleBlockTools extends ProtBase
 
 	private boolean isCritical(Item e)
 	{
-		if (e instanceof ItemBucket || e instanceof ItemBoat)
+		if (e instanceof ItemBucket || e instanceof ItemBoat || e.getClass().getSimpleName().equalsIgnoreCase("ItemChestTransporter"))
 			return true;
 		
 		Method m = null;
