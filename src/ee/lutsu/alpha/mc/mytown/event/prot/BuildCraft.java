@@ -14,7 +14,9 @@ import ee.lutsu.alpha.mc.mytown.ChunkCoord;
 import ee.lutsu.alpha.mc.mytown.Log;
 import ee.lutsu.alpha.mc.mytown.MyTown;
 import ee.lutsu.alpha.mc.mytown.MyTownDatasource;
+import ee.lutsu.alpha.mc.mytown.entities.Resident;
 import ee.lutsu.alpha.mc.mytown.entities.TownBlock;
+import ee.lutsu.alpha.mc.mytown.entities.TownSettingCollection.Permissions;
 import ee.lutsu.alpha.mc.mytown.event.ProtBase;
 import ee.lutsu.alpha.mc.mytown.event.ProtectionEvents;
 
@@ -22,8 +24,6 @@ public class BuildCraft extends ProtBase
 {
 	public static BuildCraft instance = new BuildCraft();
 	public List<TileEntity> checkedEntitys = new ArrayList<TileEntity>();
-	public int tickRun = 0;
-	public boolean tickRunDone = false;
 
 	Class clQuarry = null, clFiller, clBuilder, clBox;
 	Field fBoxQ, fBoxF, fBoxB, fmx, fmy, fmz, fxx, fxy, fxz, fBoxInit, fQuarryOwner, fQuarryBuilderDone;
@@ -32,8 +32,6 @@ public class BuildCraft extends ProtBase
 	public void reload()
 	{
 		checkedEntitys.clear();
-		tickRunDone = false;
-		tickRun = 0;
 	}
 	
 	@Override
@@ -58,22 +56,11 @@ public class BuildCraft extends ProtBase
 		fxy = clBox.getField("yMax");
 		fxz = clBox.getField("zMax");
 		fBoxInit = clBox.getField("initialized");
-		
-		tickRunDone = false;
-		tickRun = 0;
 	}
 	
 	@Override
 	public boolean loaded() 
 	{ 
-		if (!tickRunDone)
-		{
-			if (tickRun > (MinecraftServer.getServer().worldServers.length * 20 * 60)) // skip for 1 minute
-				tickRunDone = true;
-			
-			tickRun++;
-		}
-		
 		return clBuilder != null;
 	}
 	
@@ -88,13 +75,12 @@ public class BuildCraft extends ProtBase
 	@Override
 	public String update(TileEntity e) throws Exception
 	{
-		if (!tickRunDone)
-			return null;
-
 		if (checkedEntitys.contains(e))
 			return null;
 		
 		String s = updateSub(e);
+		
+		Log.info(String.format("Checked BC '%s' resulted in '%s'", e, s));
 		
 		if (s == null) // no need to check twice if it already passed
 			checkedEntitys.add(e);
@@ -134,31 +120,37 @@ public class BuildCraft extends ProtBase
 		int tx = ChunkCoord.getCoord(bx);
 		int tz = ChunkCoord.getCoord(bz);
 		
+		Resident owner = null;
+		if (clazz == clQuarry)
+		{
+			EntityPlayer pl = (EntityPlayer)fQuarryOwner.get(e);
+			if (pl != null)
+				owner = MyTownDatasource.instance.getOrMakeResident(pl);
+			else
+				return null; // owner = null then the block was there before
+		}
+
+		
 		for (int z = fz; z <= tz; z++)
 		{
 			for (int x = fx; x <= tx; x++)
 			{
 				TownBlock block = MyTownDatasource.instance.getBlock(e.worldObj.provider.dimensionId, x, z);
+				
+				boolean allowed = false;
+				if (block == null || block.town() == null)
+					allowed = MyTown.instance.getWorldWildSettings(e.worldObj.provider.dimensionId).allowBuildcraftMiners;
+				else if (owner != null)
+					allowed = owner.canInteract(block, Permissions.Build);
+				else
+					allowed = block.settings.allowBuildcraftMiners;
 			
-				if ((block != null && block.town() != null && !block.settings.allowBuildcraftMiners) || ((block == null || block.town() == null) && !MyTown.instance.getWorldWildSettings(e.worldObj.provider.dimensionId).allowBuildcraftMiners))
+				if (!allowed)
 				{
+					ProtectionEvents.instance.lastOwner = owner;
+					
 					String b = block == null || block.town() == null ? "wild" : block.town().name() + (block.owner() != null ? " owned by " + block.ownerDisplay() : "");
 					b = String.format("%s @ dim %s (%s,%s)", b, e.worldObj.provider.dimensionId, x, z);
-					
-					if (clazz == clQuarry)
-					{
-						EntityPlayer pl = (EntityPlayer)fQuarryOwner.get(e);
-						if (pl != null)
-						{
-							ProtectionEvents.instance.lastOwner = MyTownDatasource.instance.getOrMakeResident(pl);
-						}
-						else
-						{
-							Log.severe(String.format("ERROR: Quarry %s,%s,%s,%s would've been popped - %s. Not popping because the placer is unknown.", e.worldObj.provider.dimensionId, e.xCoord, e.yCoord, e.zCoord, b));
-							return null; // some fluke, the quarry had to be here before
-						}
-					}
-					
 
 					return "Region will hit " + b + " which doesn't allow buildcraft block breakers";
 				}
@@ -169,5 +161,5 @@ public class BuildCraft extends ProtBase
 	}
 
 	public String getMod() { return "BuildCraft"; }
-	public String getComment() { return "Town permission: allowBuildcraftMiners"; }
+	public String getComment() { return "Town permission: allowBuildcraftMiners, Build perm for Quarry"; }
 }

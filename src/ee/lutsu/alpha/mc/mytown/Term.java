@@ -293,8 +293,8 @@ public enum Term
 	TownBroadcastCreated("%s has just founded a new town called %s"),
 	TownBroadcastDeleted("The town of %s went like POOF"),
 	
-	TownBroadcastLoggedIn("%s came just online"),
-	TownBroadcastLoggedOut("%s went just offline"),
+	TownBroadcastLoggedIn("%s just came online"),
+	TownBroadcastLoggedOut("%s just went offline"),
 	
 	TownadmCreatedNewTown("Town named %s created for mayor %s"),
 	TownadmDeletedTown("Town named %s deleted"),
