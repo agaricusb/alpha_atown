@@ -42,9 +42,11 @@ public class PortalGun extends ProtBase
 		
 		String owner = e.getDataWatcher().getWatchableObjectString(18);
 		
-		if (owner != null && !owner.equals("def")) // not default portal
+		if (owner != null && !owner.equals("") && !owner.equals("def")) // not default portal
 		{
 			Resident r = ProtectionEvents.instance.lastOwner = MyTownDatasource.instance.getOrMakeResident(owner);
+		    if (!r.isOnline())
+		    	return "Owner offline";
 		    
 			for (int ii = 0; ii < 5; ii++)
 			{

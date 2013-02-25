@@ -304,12 +304,18 @@ public class MyTownAssistant
 						throw new CommandException(Term.TownErrCmdUnknownArgument, args[2]);
 				}
 				
-				Resident target = MyTownDatasource.instance.getResident(args[1]);
-				if (target == null) // all town residents are always loaded
-					throw new CommandException(Term.TownErrPlayerNotFound);
-				if (res.town() != target.town())
-					throw new CommandException(Term.TownErrPlayerNotInYourTown);
+				Resident target = null;
 				
+				if (args[1] != null && !args[1].equals("") && !args[1].equalsIgnoreCase("none") && !args[1].equalsIgnoreCase("null"))
+				{
+					target = MyTownDatasource.instance.getResident(args[1]);
+					if (target == null) // all town residents are always loaded
+						throw new CommandException(Term.TownErrPlayerNotFound);
+					if (res.town() != target.town())
+						throw new CommandException(Term.TownErrPlayerNotInYourTown);
+				}
+				
+				boolean canUnAssign = false, canReAssign = false;
 				int cx = res.onlinePlayer.chunkCoordX;
 				int cz = res.onlinePlayer.chunkCoordZ;
 				for(int z = cz - radius_rec; z <= cz + radius_rec; z++)
@@ -321,12 +327,29 @@ public class MyTownAssistant
 							throw new CommandException(Term.ErrPermPlotNotInTown);
 						if (b.town() != res.town())
 							throw new CommandException(Term.ErrPermPlotNotInYourTown);
+						
+						if (b.owner() == target)
+							continue;
+						
+						if (target == null && b.owner() != null && !canUnAssign)
+						{
+							Assert.Perm(cs, "mytown.cmd.plot.unassign");
+							canUnAssign = true;
+						}
+						if (target != null && b.owner() != null && !canReAssign)
+						{
+							Assert.Perm(cs, "mytown.cmd.plot.reassign");
+							canReAssign = true;
+						}
 
 						b.setOwner(target);
 					}
 				}
 
-				cs.sendChatToPlayer(Term.TownPlotAssigned.toString(target.name()));
+				if (target != null)
+					cs.sendChatToPlayer(Term.TownPlotAssigned.toString(target.name()));
+				else
+					cs.sendChatToPlayer(Term.TownPlotUnAssigned.toString());
 			}
 		}
 		else if (args[0].equalsIgnoreCase(Term.TownCmdSetSpawn.toString()))

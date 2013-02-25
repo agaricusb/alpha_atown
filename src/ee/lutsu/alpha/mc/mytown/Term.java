@@ -398,7 +398,8 @@ public enum Term
 	PermForced("§aAll childs have been updated to inherit from the node '§2%s§a' for perm '§2%s§a'"),
 	PermSetDone("§aPermission '§2%s§a' set for the node '§2%s§a'"),
 	
-	TownPlotAssigned("§aPlot assigned to '%s'"),
+	TownPlotAssigned("§aPlot(s) assigned to '%s'"),
+	TownPlotUnAssigned("§aPlot(s) unassigned"),
 	
 	// per errors
 	ErrPermSettingNotFound("The specified setting '%s' cannot be found"),

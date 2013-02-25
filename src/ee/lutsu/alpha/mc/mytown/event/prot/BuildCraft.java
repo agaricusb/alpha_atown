@@ -80,7 +80,7 @@ public class BuildCraft extends ProtBase
 		
 		String s = updateSub(e);
 		
-		Log.info(String.format("Checked BC '%s' resulted in '%s'", e, s));
+		//Log.info(String.format("Checked BC '%s' resulted in '%s'", e, s));
 		
 		if (s == null) // no need to check twice if it already passed
 			checkedEntitys.add(e);
