@@ -80,6 +80,24 @@ public abstract class MyTownDB extends Database {
     	doUpdate(codes, "14.12.2012", "Adds 'Friends' field to 'Residents' table");
     	doUpdate(codes, "16.12.2012", "Creates 'Nations' table");
     }
+    
+    private void doUpdateSwitch(String code) throws SQLException
+    {
+    	if (code.equals("20.11.2012"))
+    		update_20_11_2012();
+    	else if (code.equals("21.11.2012"))
+    		update_21_11_2012();
+    	else if (code.equals("13.12.2012"))
+    		update_13_12_2012();
+    	else if (code.equals("14.12.2012"))
+    		update_14_12_2012();
+    	else if (code.equals("16.12.2012"))
+    		update_16_12_2012();
+    	else if (code.equals("26.02.2013"))
+    		update_26_02_2013();
+    }
+    
+    //////////////////////////// start updates ////////////////////////////
 
     private void update_20_11_2012() throws SQLException
     {
@@ -238,22 +256,8 @@ public abstract class MyTownDB extends Database {
 	    	updates.execute();
     	}
     }
-    
-    private void doUpdateSwitch(String code) throws SQLException
-    {
-    	if (code.equals("20.11.2012"))
-    		update_20_11_2012();
-    	else if (code.equals("21.11.2012"))
-    		update_21_11_2012();
-    	else if (code.equals("13.12.2012"))
-    		update_13_12_2012();
-    	else if (code.equals("14.12.2012"))
-    		update_14_12_2012();
-    	else if (code.equals("16.12.2012"))
-    		update_16_12_2012();
-    	else if (code.equals("26.02.2013"))
-    		update_26_02_2013();
-    }
+
+    //////////////////////////// end updates ////////////////////////////
     
     private void doUpdate(List<String> codes, String code, String desc) throws SQLException
     {

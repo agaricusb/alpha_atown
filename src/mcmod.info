@@ -1,7 +1,7 @@
 [
 {
   "modid": "MyTown",
-  "name": "My Town",
+  "name": "MyTown",
   "description": "Adds the possibility to create towns in Minecraft server that protect the players
   and the player builds.",
   "version": "1.4.7.5",
