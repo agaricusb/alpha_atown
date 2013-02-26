@@ -157,14 +157,11 @@ public abstract class Database {
      * @return if the connection was successful
      */
     public boolean connect() throws Exception {
-        if (connection != null) {
+        if (connection != null)
             return true;
-        }
 
-        if (currentType == null || currentType == Type.NONE) {
-            log("Invalid database engine");
-            return false;
-        }
+        if (currentType == null || currentType == Type.NONE)
+        	throw new Exception("Unknown Connection type");
         
         // What class should we try to load?
         String className = "";
@@ -190,15 +187,9 @@ public abstract class Database {
         }
 
         // Connect to the database
-        try {
-            connection = driver.connect("jdbc:" + currentType.toString().toLowerCase() + ":" + getDatabasePath(), properties);
-            connected = true;
-            return true;
-        } catch (SQLException e) {
-            log("Failed to connect to " + currentType);
-            e.printStackTrace();
-            return false;
-        }
+        connection = driver.connect("jdbc:" + currentType.toString().toLowerCase() + ":" + getDatabasePath(), properties);
+        connected = true;
+        return true;
     }
 
     public void dispose() {
@@ -245,21 +236,12 @@ public abstract class Database {
     public abstract void load();
 
     /**
-     * Log a string to stdout
-     *
-     * @param str The string to log
-     */
-    public void log(String str) {
-        Log.info(str);
-    }
-
-    /**
      * Prepare a statement unless it's already cached (and if so, just return it)
      *
      * @param sql
      * @return
      */
-    public PreparedStatement prepare(String sql) {
+    public PreparedStatement prepare(String sql) throws SQLException {
         return prepare(sql, false);
     }
 
@@ -269,33 +251,22 @@ public abstract class Database {
      * @param sql
      * @param returnGeneratedKeys
      * @return
+     * @throws SQLException 
      */
-    public PreparedStatement prepare(String sql, boolean returnGeneratedKeys) {
-        if (connection == null) {
-            return null;
-        }
+    public PreparedStatement prepare(String sql, boolean returnGeneratedKeys) throws SQLException {
+        if (connection == null)
+        	throw new SQLException("No connection");
 
-        if (useStatementCache && statementCache.containsKey(sql)) {
+        if (useStatementCache && statementCache.containsKey(sql))
             return statementCache.get(sql);
-        }
 
-        try {
-            PreparedStatement preparedStatement;
+        PreparedStatement preparedStatement = returnGeneratedKeys ?
+        	connection.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS) :
+        	connection.prepareStatement(sql);
 
-            if (returnGeneratedKeys) {
-                preparedStatement = connection.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS);
-            } else {
-                preparedStatement = connection.prepareStatement(sql);
-            }
+        statementCache.put(sql, preparedStatement);
 
-            statementCache.put(sql, preparedStatement);
-
-            return preparedStatement;
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
-
-        return null;
+        return preparedStatement;
     }
 
     /**

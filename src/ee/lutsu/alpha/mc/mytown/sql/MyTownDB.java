@@ -12,8 +12,10 @@ import java.util.List;
 import java.util.Map.Entry;
 
 import com.google.common.base.Joiner;
+import com.google.common.collect.Lists;
 
 import ee.lutsu.alpha.mc.mytown.ChatChannel;
+import ee.lutsu.alpha.mc.mytown.Log;
 import ee.lutsu.alpha.mc.mytown.MyTown;
 import ee.lutsu.alpha.mc.mytown.MyTownDatasource;
 import ee.lutsu.alpha.mc.mytown.entities.Nation;
@@ -25,10 +27,8 @@ import ee.lutsu.alpha.mc.mytown.entities.Resident.Rank;
 public abstract class MyTownDB extends Database {
 
 	public boolean loaded = false;
-	public int dbVersion = 0;
 	private Object lock = new Object();
 	public static DateFormat iso8601Format = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-
 	
 	@Override
 	public void load() 
@@ -40,12 +40,10 @@ public abstract class MyTownDB extends Database {
 		{
 			try
 			{
-				tryCreateTables();
 				tryDoUpdates();
 			} 
 			catch (Exception e) 
 			{ 
-				e.printStackTrace(); 
 				throw new RuntimeException("Error in making/updating tables", e);
 			}
 		}
@@ -53,134 +51,223 @@ public abstract class MyTownDB extends Database {
 		loaded = true;
 	}
 
-    public void tryCreateTables()
-    {
-    	Table towns = new Table(this, "towns");
-    	{
-    		towns.add("Id", "INTEGER", true, true);
-    		towns.add("Name", "VARCHAR(255)");
-    		towns.add("ExtraBlocks", "INTEGER");
-    		towns.add("Residents", "TEXT");
-    		towns.add("Blocks", "TEXT");
-    	}
-    	towns.execute();
-    }
-    
     public void tryDoUpdates() throws SQLException
     {
-    	update_21_11_2012();
-    	update_13_12_2012();
-    	update_14_12_2012();
-    	update_16_12_2012();
+    	ResultSet r = null;
+    	try
+    	{
+    		PreparedStatement s = prepare("SELECT * FROM " + prefix + "updates"); 
+    		r = s.executeQuery();
+    	}
+    	catch (SQLException e)
+    	{
+    	}
+    	
+    	List<String> lst = Lists.newArrayList();
+		while (r != null && r.next())
+			lst.add(r.getString("Code"));
+		
+    	doUpdates(lst);
+    }
+    
+    private void doUpdates(List<String> codes) throws SQLException
+    {
+    	doUpdate(codes, "26.02.2013", "Creates 'Updates' table");
+    	
+    	doUpdate(codes, "20.11.2012", "Creates 'Towns' table");
+    	doUpdate(codes, "21.11.2012", "Adds 'Extra' field to 'Towns' table");
+    	doUpdate(codes, "13.12.2012", "Creates 'Residents' table");
+    	doUpdate(codes, "14.12.2012", "Adds 'Friends' field to 'Residents' table");
+    	doUpdate(codes, "16.12.2012", "Creates 'Nations' table");
+    }
+
+    private void update_20_11_2012() throws SQLException
+    {
+    	try
+    	{
+    		PreparedStatement s = prepare("SELECT * FROM " + prefix + "towns"); 
+    		s.executeQuery();
+    	}
+    	catch (SQLException e)
+    	{
+	    	Table towns = new Table(this, "towns");
+	    	{
+	    		towns.add("Id", "INTEGER", true, true);
+	    		towns.add("Name", "VARCHAR(255)");
+	    		towns.add("ExtraBlocks", "INTEGER");
+	    		towns.add("Residents", "TEXT");
+	    		towns.add("Blocks", "TEXT");
+	    	}
+	    	towns.execute();
+    	}
     }
     
     private void update_21_11_2012() throws SQLException
     {
-    	if (dbVersion > 0)
-    		return;
-    	
-		PreparedStatement statement = prepare("alter table " + prefix + "towns ADD Extra varchar(2000) null");      
-		statement.executeUpdate();
-		
-		dbVersion++;
+    	try
+    	{
+    		PreparedStatement s = prepare("SELECT Extra FROM " + prefix + "towns"); 
+    		s.executeQuery();
+    	}
+    	catch (SQLException e)
+    	{
+    		PreparedStatement statement = prepare("alter table " + prefix + "towns ADD Extra varchar(2000) null");      
+    		statement.executeUpdate();
+    	}
     }
     
     private void update_13_12_2012() throws SQLException
     {
-    	if (dbVersion > 1)
-    		return;
-    	
-    	Table residents = new Table(this, "residents");
+    	try
     	{
-    		residents.add("Id", "INTEGER", true, true);
-    		residents.add("Name", "VARCHAR(255)");
-    		residents.add("Town", "INTEGER");
-    		residents.add("Rank", "VARCHAR(255)");
-    		residents.add("Channel", "VARCHAR(255)");
-    		residents.add("Created", "VARCHAR(255)");
-    		residents.add("LastLogin", "VARCHAR(255)");
-    		residents.add("Extra", "TEXT");
+    		PreparedStatement s = prepare("SELECT * FROM " + prefix + "residents"); 
+    		s.executeQuery();
     	}
-    	residents.execute();
-
-		PreparedStatement statementTown = prepare("SELECT * FROM " + prefix + "towns"); 
-		ResultSet setTown = statementTown.executeQuery();
-		
-		HashMap<Integer, String> towns = new HashMap<Integer, String>();
-		while (setTown.next())
-			towns.put(setTown.getInt("Id"), setTown.getString("Residents"));
-		setTown.close();
-		
-		for(Entry<Integer, String> town : towns.entrySet())
-		{
-			int tid = town.getKey();
-			String res = town.getValue();
-			if (res != null && res != "")
+    	catch (SQLException e)
+    	{
+	    	Table residents = new Table(this, "residents");
+	    	{
+	    		residents.add("Id", "INTEGER", true, true);
+	    		residents.add("Name", "VARCHAR(255)");
+	    		residents.add("Town", "INTEGER");
+	    		residents.add("Rank", "VARCHAR(255)");
+	    		residents.add("Channel", "VARCHAR(255)");
+	    		residents.add("Created", "VARCHAR(255)");
+	    		residents.add("LastLogin", "VARCHAR(255)");
+	    		residents.add("Extra", "TEXT");
+	    	}
+	    	residents.execute();
+	
+			PreparedStatement statementTown = prepare("SELECT * FROM " + prefix + "towns"); 
+			ResultSet setTown = statementTown.executeQuery();
+			
+			HashMap<Integer, String> towns = new HashMap<Integer, String>();
+			while (setTown.next())
+				towns.put(setTown.getInt("Id"), setTown.getString("Residents"));
+			setTown.close();
+			
+			for(Entry<Integer, String> town : towns.entrySet())
 			{
-				for(String split : res.split(" "))
+				int tid = town.getKey();
+				String res = town.getValue();
+				if (res != null && res != "")
 				{
-					if (split.trim().length() > 0)
+					for(String split : res.split(" "))
 					{
-						String[] opt = split.trim().split(";");
-	
-						String rName = opt[0];
-						Rank rRank = Rank.parse(opt[1]);
-						ChatChannel rChannel = ChatChannel.parse(opt[2]);
-						
-						PreparedStatement statement = prepare("DELETE FROM " + prefix + "residents where Name = ?");      
-						statement.setString(1, rName);
-						statement.executeUpdate();
-						
-		    			statement = prepare("INSERT INTO " + prefix + "residents (Name, Town, Rank, Channel, Created, LastLogin, Extra) VALUES (?, ?, ?, ?, ?, ?, ?)");      
-		    			statement.setString(1, rName);
-		    			statement.setInt(2, tid);
-		    			statement.setString(3, rRank.toString());
-		    			statement.setString(4, rChannel.toString());
-		    			statement.setString(5, iso8601Format.format(new Date(System.currentTimeMillis())));
-		    			statement.setString(6, iso8601Format.format(new Date(System.currentTimeMillis())));
-		    			statement.setString(7, "");
-	
-		    			statement.executeUpdate();
+						if (split.trim().length() > 0)
+						{
+							String[] opt = split.trim().split(";");
+		
+							String rName = opt[0];
+							Rank rRank = Rank.parse(opt[1]);
+							ChatChannel rChannel = ChatChannel.parse(opt[2]);
+							
+							PreparedStatement statement = prepare("DELETE FROM " + prefix + "residents where Name = ?");      
+							statement.setString(1, rName);
+							statement.executeUpdate();
+							
+			    			statement = prepare("INSERT INTO " + prefix + "residents (Name, Town, Rank, Channel, Created, LastLogin, Extra) VALUES (?, ?, ?, ?, ?, ?, ?)");      
+			    			statement.setString(1, rName);
+			    			statement.setInt(2, tid);
+			    			statement.setString(3, rRank.toString());
+			    			statement.setString(4, rChannel.toString());
+			    			statement.setString(5, iso8601Format.format(new Date(System.currentTimeMillis())));
+			    			statement.setString(6, iso8601Format.format(new Date(System.currentTimeMillis())));
+			    			statement.setString(7, "");
+		
+			    			statement.executeUpdate();
+						}
 					}
 				}
 			}
-		}
-		
-		PreparedStatement statement = prepare("UPDATE " + prefix + "towns SET Residents = NULL");      
-		statement.executeUpdate();
-		
-		dbVersion++;
+			
+			PreparedStatement statement = prepare("UPDATE " + prefix + "towns SET Residents = NULL");      
+			statement.executeUpdate();
+    	}
     }
     
     private void update_14_12_2012() throws SQLException
     {
-    	if (dbVersion > 2)
-    		return;
-    	
-		PreparedStatement statement = prepare("alter table " + prefix + "residents ADD Friends TEXT");      
-		statement.executeUpdate();
-		
-		dbVersion++;
+    	try
+    	{
+    		PreparedStatement s = prepare("SELECT Friends FROM " + prefix + "residents"); 
+    		s.executeQuery();
+    	}
+    	catch (SQLException e)
+    	{
+    		PreparedStatement statement = prepare("alter table " + prefix + "residents ADD Friends TEXT");      
+			statement.executeUpdate();
+    	}
     }
     
     private void update_16_12_2012() throws SQLException
     {
-    	if (dbVersion > 3)
-    		return;
-    	
-    	Table nations = new Table(this, "nations");
+    	try
     	{
-    		nations.add("Id", "INTEGER", true, true);
-    		nations.add("Name", "VARCHAR(255)");
-    		nations.add("Towns", "TEXT");
-    		nations.add("Capital", "INTEGER");
-    		nations.add("Extra", "TEXT");
+    		PreparedStatement s = prepare("SELECT * FROM " + prefix + "nations"); 
+    		s.executeQuery();
     	}
-    	nations.execute();
-    	
-    	dbVersion++;
+    	catch (SQLException e)
+    	{
+	    	Table nations = new Table(this, "nations");
+	    	{
+	    		nations.add("Id", "INTEGER", true, true);
+	    		nations.add("Name", "VARCHAR(255)");
+	    		nations.add("Towns", "TEXT");
+	    		nations.add("Capital", "INTEGER");
+	    		nations.add("Extra", "TEXT");
+	    	}
+	    	nations.execute();
+    	}
     }
     
+    private void update_26_02_2013()  throws SQLException
+    {
+    	try
+    	{
+    		PreparedStatement s = prepare("SELECT * FROM " + prefix + "updates"); 
+    		s.executeQuery();
+    	}
+    	catch (SQLException e)
+    	{
+	    	Table updates = new Table(this, "updates");
+	    	{
+	    		updates.add("Id", "INTEGER", true, true);
+	    		updates.add("Code", "VARCHAR(255)");
+	    	}
+	    	updates.execute();
+    	}
+    }
+    
+    private void doUpdateSwitch(String code) throws SQLException
+    {
+    	if (code.equals("20.11.2012"))
+    		update_20_11_2012();
+    	else if (code.equals("21.11.2012"))
+    		update_21_11_2012();
+    	else if (code.equals("13.12.2012"))
+    		update_13_12_2012();
+    	else if (code.equals("14.12.2012"))
+    		update_14_12_2012();
+    	else if (code.equals("16.12.2012"))
+    		update_16_12_2012();
+    	else if (code.equals("26.02.2013"))
+    		update_26_02_2013();
+    }
+    
+    private void doUpdate(List<String> codes, String code, String desc) throws SQLException
+    {
+    	if (codes.contains(code))
+    		return;
+    	
+    	Log.info("[DB]Doing update '%s' - %s", code, desc);
+    	
+    	doUpdateSwitch(code);
+
+		PreparedStatement statement = prepare("insert into " + prefix + "updates (Code) values ('" + code + "')");      
+		statement.executeUpdate();
+    }
+
     public List<Nation> loadNations() // has to happen after town load
     {
     	synchronized(lock)

@@ -95,7 +95,6 @@ public class MyTown
     @Mod.ServerStarted
     public void modsLoaded(FMLServerStartedEvent var1)
     {
-    	int dbVer = MyTownDatasource.instance.dbVersion;
     	try
     	{
     		MyTownDatasource.instance.init();
@@ -103,15 +102,6 @@ public class MyTown
     	catch(Exception ex)
     	{
     		throw new RuntimeException(ex.getMessage(), ex);
-    	}
-    	finally
-    	{
-    		if (dbVer != MyTownDatasource.instance.dbVersion)
-    		{
-    	        Property prop = config.get("Database", "Version", 0);
-    	        prop.value = Integer.toString(MyTownDatasource.instance.dbVersion);
-    	        config.save();
-    		}
     	}
     	
     	PlayerEvents events = new PlayerEvents();
@@ -268,10 +258,6 @@ public class MyTown
         prop = config.get("Database", "Path", CONFIG_FOLDER + "data.db");
         prop.comment = "The database file path. Used by SQLite";
         MyTownDatasource.instance.dbpath = prop.value;
-        
-        prop = config.get("Database", "Version", 0);
-        prop.comment = "The database version. Changed automatically when updates arrive.";
-        MyTownDatasource.instance.dbVersion = prop.getInt();
     }
     
     private void loadChatConfigs(Configuration config)

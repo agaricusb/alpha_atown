@@ -12,34 +12,34 @@ public class Log
 	public static boolean isUnix = isUnix();
 	
 
-	public static void info(String msg)
+	public static void info(String msg, Object ... paras)
 	{
-		log(Level.INFO, msg);
+		log(Level.INFO, msg, paras);
 	}
 	
-	public static void warning(String msg)
+	public static void warning(String msg, Object ... paras)
 	{
-		log(Level.WARNING, msg);
+		log(Level.WARNING, msg, paras);
 	}
 	
-	public static void severe(String msg)
+	public static void severe(String msg, Object ... paras)
 	{
-		log(Level.SEVERE, msg);
+		log(Level.SEVERE, msg, paras);
 	}
 	
-	public static void severe(String msg, Throwable t)
+	public static void severe(String msg, Throwable t, Object ... paras)
 	{
-		log(Level.SEVERE, msg, t);
+		log(Level.SEVERE, msg, t, paras);
 	}
 	
-	public static void log(Level l, String msg)
+	public static void log(Level l, String msg, Object ... paras)
 	{
-		mclog.log(l, consoleColors(String.format("§7[§a%s§7]%s", MyTown.MOD_NAME, msg)));
+		mclog.log(l, consoleColors(String.format("§7[§a%s§7]%s", MyTown.MOD_NAME, String.format(msg, paras))));
 	}
-	
-	public static void log(Level l, String msg, Throwable t)
+
+	public static void log(Level l, String msg, Throwable t, Object ... paras)
 	{
-		mclog.log(l, consoleColors(String.format("§7[§a%s§7]%s", MyTown.MOD_NAME, msg)), t);
+		mclog.log(l, consoleColors(String.format("§7[§a%s§7]%s", MyTown.MOD_NAME, String.format(msg, paras))), t);
 	}
 	
 	public static void direct(String msg)
