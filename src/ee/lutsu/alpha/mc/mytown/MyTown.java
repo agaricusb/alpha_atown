@@ -37,6 +37,7 @@ import ee.lutsu.alpha.mc.mytown.entities.Town;
 import ee.lutsu.alpha.mc.mytown.entities.TownSettingCollection;
 import ee.lutsu.alpha.mc.mytown.entities.TownSettingCollection.ISettingsSaveHandler;
 import ee.lutsu.alpha.mc.mytown.event.*;
+import ee.lutsu.alpha.mc.mytown.event.tick.WorldBorder;
 import ee.lutsu.alpha.mc.mytown.sql.Database;
 
 @Mod(
@@ -306,32 +307,20 @@ public class MyTown
     
     private void loadExtraProtectionConfig(Configuration config)
     {
-        Property prop; 
+        ProtectionEvents.instance.enabled = config.get("ProtEx", "Enabled", true, "Run the extra protections").getBoolean(true);
+        ProtectionEvents.instance.dynamicEnabling = config.get("ProtEx", "DynamicEnabling", true, "Load all modules for which mods are present").getBoolean(true);
         
-        prop = config.get("ProtEx", "Enabled", true);
-        prop.comment = "Run the extra protections";
-        ProtectionEvents.instance.enabled = prop.getBoolean(true);
-        
-        for (ProtBase prot : ProtectionEvents.entityProtections)
+        if (ProtectionEvents.instance.dynamicEnabling) // delete nodes
         {
-            prop = config.get("ProtEx", prot.getMod(), prot.defaultEnabled());
-            prop.comment = prot.getComment();
-            prot.enabled = prop.getBoolean(false);
-            
+        	config.getCategory("ProtEx").clear();
+        	
+            config.get("ProtEx", "Enabled", true, "Run the extra protections?").value = String.valueOf(ProtectionEvents.instance.enabled);
+            config.get("ProtEx", "DynamicEnabling", true, "Load all modules for which mods are present").value = String.valueOf(ProtectionEvents.instance.dynamicEnabling);
         }
-        
-        for (ProtBase prot : ProtectionEvents.tileProtections)
+        else
         {
-            prop = config.get("ProtEx", prot.getMod(), prot.defaultEnabled());
-            prop.comment = prot.getComment();
-            prot.enabled = prop.getBoolean(false);
-        }
-        
-        for (ProtBase prot : ProtectionEvents.toolProtections)
-        {
-            prop = config.get("ProtEx", prot.getMod(), prot.defaultEnabled());
-            prop.comment = prot.getComment();
-            prot.enabled = prop.getBoolean(false);
+	        for (ProtBase prot : ProtectionEvents.getProtections())
+	            prot.enabled = config.get("ProtEx", prot.getMod(), prot.defaultEnabled(), prot.getComment()).getBoolean(false);
         }
     }
     

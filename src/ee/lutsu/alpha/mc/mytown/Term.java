@@ -428,6 +428,9 @@ public enum Term
 	SpawnCmdTeleportNearStarted("§e%s started casting a %s second spawn teleport spell"),
 	SpawnCmdTeleportEnded("§aWhoooOooOooooOoo"),
 	SpawnCmdTeleportReset("§4Teleport spell casting interrupted"),
+	
+	// home commands
+	HomeCmdNoHomeByName("No home by that name was found"),
 	;
 	
 	public String defaultVal;

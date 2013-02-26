@@ -79,6 +79,7 @@ public abstract class MyTownDB extends Database {
     	doUpdate(codes, "13.12.2012", "Creates 'Residents' table");
     	doUpdate(codes, "14.12.2012", "Adds 'Friends' field to 'Residents' table");
     	doUpdate(codes, "16.12.2012", "Creates 'Nations' table");
+    	doUpdate(codes, "27.02.2013", "Adds 'Homes' field to 'Residents' table");
     }
     
     private void doUpdateSwitch(String code) throws SQLException
@@ -95,6 +96,8 @@ public abstract class MyTownDB extends Database {
     		update_16_12_2012();
     	else if (code.equals("26.02.2013"))
     		update_26_02_2013();
+    	else if (code.equals("27.02.2013"))
+    		update_27_02_2013();
     }
     
     //////////////////////////// start updates ////////////////////////////
@@ -257,6 +260,12 @@ public abstract class MyTownDB extends Database {
     	}
     }
 
+    private void update_27_02_2013() throws SQLException
+    {
+		PreparedStatement statement = prepare("alter table " + prefix + "residents ADD Homes TEXT");      
+		statement.executeUpdate();
+    }
+    
     //////////////////////////// end updates ////////////////////////////
     
     private void doUpdate(List<String> codes, String code, String desc) throws SQLException
@@ -423,7 +432,7 @@ public abstract class MyTownDB extends Database {
     		{
     			if (res.id() > 0)
     			{
-	    			PreparedStatement statement = prepare("UPDATE " + prefix + "residents SET Name = ?, Town = ?, Rank = ?, Channel = ?, LastLogin = ?, Extra = ?, Friends = ? WHERE id = ?");      
+	    			PreparedStatement statement = prepare("UPDATE " + prefix + "residents SET Name = ?, Town = ?, Rank = ?, Channel = ?, LastLogin = ?, Extra = ?, Friends = ?, Homes = ? WHERE id = ?");      
 	    			statement.setString(1, res.name());
 	    			statement.setInt(2, res.town() == null ? 0 : res.town().id());
 	    			statement.setString(3, res.rank().toString());
@@ -431,13 +440,14 @@ public abstract class MyTownDB extends Database {
 	    			statement.setString(5, iso8601Format.format(res.lastLogin()));
 	    			statement.setString(6, res.serializeExtra());
 	    			statement.setString(7, sFriends);
+	    			statement.setString(8, res.home.serialize());
 	    			
-	    			statement.setInt(8, res.id());
+	    			statement.setInt(9, res.id());
 	    			statement.executeUpdate();
     			}
     			else
     			{
-	    			PreparedStatement statement = prepare("INSERT INTO " + prefix + "residents (Name, Town, Rank, Channel, Created, LastLogin, Extra, Friends) VALUES (?, ?, ?, ?, ?, ?, ?, ?)", true);      
+	    			PreparedStatement statement = prepare("INSERT INTO " + prefix + "residents (Name, Town, Rank, Channel, Created, LastLogin, Extra, Friends, Homes) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)", true);      
 	    			statement.setString(1, res.name());
 	    			statement.setInt(2, res.town() == null ? 0 : res.town().id());
 	    			statement.setString(3, res.rank().toString());
@@ -446,6 +456,7 @@ public abstract class MyTownDB extends Database {
 	    			statement.setString(6, iso8601Format.format(res.lastLogin()));
 	    			statement.setString(7, res.serializeExtra());
 	    			statement.setString(8, sFriends);
+	    			statement.setString(9, res.home.serialize());
 
 	    			statement.executeUpdate();
 	    			
@@ -570,7 +581,8 @@ public abstract class MyTownDB extends Database {
 							ChatChannel.parse(set.getString("Channel")), 
 							iso8601Format.parse(set.getString("Created")), 
 							iso8601Format.parse(set.getString("LastLogin")), 
-							set.getString("Extra"));
+							set.getString("Extra"),
+							set.getString("Homes"));
 					
 					residents.add(r);
 					

@@ -1,4 +1,4 @@
-package ee.lutsu.alpha.mc.mytown.event;
+package ee.lutsu.alpha.mc.mytown.event.tick;
 
 import java.util.HashMap;
 import java.util.List;
@@ -15,6 +15,7 @@ import net.minecraftforge.common.ConfigCategory;
 import net.minecraftforge.common.Property;
 import ee.lutsu.alpha.mc.mytown.Log;
 import ee.lutsu.alpha.mc.mytown.MyTown;
+import ee.lutsu.alpha.mc.mytown.event.TickBase;
 
 public class WorldBorder extends TickBase
 {
@@ -61,10 +62,11 @@ public class WorldBorder extends TickBase
 	public void continueGeneratingChunks()
 	{
 		genenabled = MyTown.instance.config.get("worldborder", "chunk-generator-enabled", false, "Generate blocks?").getBoolean(false);
+		multithreaded = MyTown.instance.config.get("worldborder", "chunk-generator-multithreaded", false, "Multithreaded chunk generation. Usable only by threadsafe servers. Expect crashes from modded worlds.").getBoolean(false);
+		
 		if (!genenabled)
 			return;
-
-		multithreaded = MyTown.instance.config.get("worldborder", "chunk-generator-multithreaded", false, "Multithreaded chunk generation. Usable only by threadsafe servers.").getBoolean(false);
+		
 		for (Entry<Integer, DimConfig> kv : limits.entrySet())
 		{
 			World w = MinecraftServer.getServer().worldServerForDimension(kv.getKey());

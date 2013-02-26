@@ -23,7 +23,7 @@ import ee.lutsu.alpha.mc.mytown.entities.Town;
 import ee.lutsu.alpha.mc.mytown.entities.TownBlock;
 import ee.lutsu.alpha.mc.mytown.entities.TownSettingCollection;
 import ee.lutsu.alpha.mc.mytown.entities.Resident.Rank;
-import ee.lutsu.alpha.mc.mytown.event.WorldBorder;
+import ee.lutsu.alpha.mc.mytown.event.tick.WorldBorder;
 import net.minecraft.command.CommandBase;
 import net.minecraft.command.ICommandSender;
 import net.minecraft.entity.player.EntityPlayer;

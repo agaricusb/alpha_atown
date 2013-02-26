@@ -19,7 +19,7 @@ import ee.lutsu.alpha.mc.mytown.Term;
 import ee.lutsu.alpha.mc.mytown.commands.CmdChat;
 import ee.lutsu.alpha.mc.mytown.entities.TownSettingCollection.ISettingsSaveHandler;
 import ee.lutsu.alpha.mc.mytown.event.ProtectionEvents;
-import ee.lutsu.alpha.mc.mytown.event.WorldBorder;
+import ee.lutsu.alpha.mc.mytown.event.tick.WorldBorder;
 import net.minecraft.command.ICommandSender;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.INpc;
@@ -113,6 +113,7 @@ public class Resident
 	public Date created() { return createdOn; }
 	public Date lastLogin() { return lastLoginOn; }
 	public TownSettingCollection settings = new TownSettingCollection();
+	public SavedHomeList home = new SavedHomeList(this);
 	
 	public Resident(String pName)
 	{
@@ -371,7 +372,7 @@ public class Resident
 		return Permissions.getPostfix(name(), w);
 	}
 	
-	public static Resident loadFromDB(int id, String name, Town town, Rank r, ChatChannel c, Date created, Date lastLogin, String extra)
+	public static Resident loadFromDB(int id, String name, Town town, Rank r, ChatChannel c, Date created, Date lastLogin, String extra, String home)
 	{
 		Resident res = new Resident();
 		res.name = name;
@@ -381,6 +382,7 @@ public class Resident
 		res.activeChannel = c;
 		res.createdOn = created;
 		res.lastLoginOn = lastLogin;
+		res.home.deserialize(home);
 		
 		if (town != null)
 			town.residents().add(res);

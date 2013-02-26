@@ -3,10 +3,13 @@ package ee.lutsu.alpha.mc.mytown.event;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.EnumSet;
 import java.util.List;
+import java.util.Set;
 
 import com.google.common.collect.Lists;
+import com.google.common.collect.Sets;
 
 import cpw.mods.fml.common.ITickHandler;
 import cpw.mods.fml.common.TickType;
@@ -41,16 +44,17 @@ public class ProtectionEvents implements ITickHandler
 	public ArrayList<TileEntity> toRemoveTile = new ArrayList<TileEntity>();
 	public boolean loaded = false;
 	private List<Class> npcClasses = null;
+	public boolean dynamicEnabling = true;
 	
 	public static ProtBase[] entityProtections = new ProtBase[]
 	{
+		Creeper.instance,
+		Mobs.instance,
+		TNT.instance,
+		ThaumCraft.instance,
 		PortalGun.instance,
 		IndustrialCraft.instance,
 		SteveCarts.instance,
-		Creeper.instance,
-		Mobs.instance,
-		ThaumCraft.instance,
-		TNT.instance,
 		RailCraft.instance,
 		TrainCraft.instance,
 		Mekanism.instance,
@@ -260,53 +264,47 @@ public class ProtectionEvents implements ITickHandler
 		return npcClasses;
 	}
 	
+	public static List<ProtBase> getProtections()
+	{
+		Set<ProtBase> set = Sets.newHashSet();
+		
+		set.addAll(Arrays.asList(entityProtections));
+		set.addAll(Arrays.asList(tileProtections));
+		set.addAll(Arrays.asList(toolProtections));
+		
+		return new ArrayList<ProtBase>(set);
+	}
+	
 	private void setFields()
 	{
 		if (loaded)
 			return;
+
+		for (ProtBase prot : getProtections())
+		{
+			if (dynamicEnabling)
+				prot.enabled = true;
+			
+			if (prot.enabled && !prot.loaded())
+			{
+				try
+				{
+					prot.load();
+				}
+				catch (Exception e)
+				{
+					prot.enabled = false;
+					Log.info("§f[§1Prot§f]Module %s §4failed §fto load.", prot.getClass().getSimpleName());
+					
+					if (!dynamicEnabling)
+						throw new RuntimeException("ProtectionEvents cannot load " + prot.getClass().getSimpleName() + " class. Is " + prot.getMod() + " loaded?", e);
+				}
+			}
+			
+			if (prot.enabled) // some are already loaded()
+				Log.info("§f[§1Prot§f]Module %s §2loaded§f.", prot.getClass().getSimpleName());
+		}
 		
-		for (ProtBase prot : entityProtections)
-		{
-			if (prot.enabled && !prot.loaded())
-			{
-				try
-				{
-					prot.load();
-				}
-				catch (Exception e)
-				{
-					throw new RuntimeException("ProtectionEvents cannot load " + prot.getClass().getSimpleName() + " class. Is " + prot.getMod() + " loaded?", e);
-				}
-			}
-		}
-		for (ProtBase prot : tileProtections)
-		{
-			if (prot.enabled && !prot.loaded())
-			{
-				try
-				{
-					prot.load();
-				}
-				catch (Exception e)
-				{
-					throw new RuntimeException("ProtectionEvents cannot load " + prot.getClass().getSimpleName() + " class. Is " + prot.getMod() + " loaded?", e);
-				}
-			}
-		}
-		for (ProtBase prot : toolProtections)
-		{
-			if (prot.enabled && !prot.loaded())
-			{
-				try
-				{
-					prot.load();
-				}
-				catch (Exception e)
-				{
-					throw new RuntimeException("ProtectionEvents cannot load " + prot.getClass().getSimpleName() + " class. Is " + prot.getMod() + " loaded?", e);
-				}
-			}
-		}
 		loaded = true;
 	}
 	
@@ -314,14 +312,8 @@ public class ProtectionEvents implements ITickHandler
 	{
 		loaded = false;
 		
-        for (ProtBase prot : ProtectionEvents.entityProtections)
+        for (ProtBase prot : getProtections())
             prot.reload();
-        
-        for (ProtBase prot : ProtectionEvents.tileProtections)
-        	 prot.reload();
-        
-        for (ProtBase prot : ProtectionEvents.toolProtections)
-        	 prot.reload();
 	}
 	
 

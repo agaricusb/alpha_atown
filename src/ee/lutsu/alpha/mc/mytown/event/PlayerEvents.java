@@ -52,6 +52,7 @@ import ee.lutsu.alpha.mc.mytown.entities.Resident;
 import ee.lutsu.alpha.mc.mytown.entities.Town;
 import ee.lutsu.alpha.mc.mytown.entities.TownBlock;
 import ee.lutsu.alpha.mc.mytown.entities.TownSettingCollection.Permissions;
+import ee.lutsu.alpha.mc.mytown.event.tick.WorldBorder;
 
 public class PlayerEvents implements IPlayerTracker
 {
