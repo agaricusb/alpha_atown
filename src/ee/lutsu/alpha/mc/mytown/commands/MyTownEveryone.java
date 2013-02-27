@@ -13,11 +13,13 @@ import java.util.TreeSet;
 
 import ee.lutsu.alpha.mc.mytown.Assert;
 import ee.lutsu.alpha.mc.mytown.CommandException;
+import ee.lutsu.alpha.mc.mytown.Cost;
 import ee.lutsu.alpha.mc.mytown.Formatter;
 import ee.lutsu.alpha.mc.mytown.MyTownDatasource;
 import ee.lutsu.alpha.mc.mytown.NoAccessException;
 import ee.lutsu.alpha.mc.mytown.Permissions;
 import ee.lutsu.alpha.mc.mytown.Term;
+import ee.lutsu.alpha.mc.mytown.entities.PayHandler;
 import ee.lutsu.alpha.mc.mytown.entities.Resident;
 import ee.lutsu.alpha.mc.mytown.entities.Town;
 import ee.lutsu.alpha.mc.mytown.entities.Resident.Rank;
@@ -25,6 +27,7 @@ import ee.lutsu.alpha.mc.mytown.entities.Resident.Rank;
 import net.minecraft.command.CommandBase;
 import net.minecraft.command.ICommandSender;
 import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.item.ItemStack;
 import net.minecraft.server.MinecraftServer;
 
 public class MyTownEveryone 
@@ -189,8 +192,6 @@ public class MyTownEveryone
 				Town target = null;
 				if (args.length < 2)
 				{
-					Assert.Perm(cs, "mytown.cmd.spawn.own");
-
 					if (res.town() == null)
 						throw new CommandException(Term.ErrPermYouDontHaveTown);
 					
@@ -198,8 +199,6 @@ public class MyTownEveryone
 				}
 				else
 				{
-					Assert.Perm(cs, "mytown.cmd.spawn.other");
-
 					Town t = MyTownDatasource.instance.getTown(args[1]);
 					if (t == null)
 						throw new CommandException(Term.TownErrNotFound, args[1]);
@@ -209,7 +208,29 @@ public class MyTownEveryone
 				if (target.spawnBlock == null || target.getSpawn() == null)
 					throw new CommandException(Term.TownErrSpawnNotSet);
 				
-				res.sendToTownSpawn(target);
+				ItemStack cost = null;
+				if (target == res.town())
+				{
+					Assert.Perm(cs, "mytown.cmd.spawn.own");
+					cost = Cost.TownSpawnTeleportOwn.item;
+				}
+				else
+				{
+					Assert.Perm(cs, "mytown.cmd.spawn.other");
+					cost = Cost.TownSpawnTeleportOther.item;
+				}
+				
+				if (cost != null)
+					res.pay.requestPayment(cost, new PayHandler.IDone() 
+					{
+						@Override
+						public void run(Resident player, Object[] args) 
+						{
+							player.sendToTownSpawn((Town)args[0]);
+						}
+					}, target);
+				else
+					res.sendToTownSpawn(target);
 			}
 		}
 		else

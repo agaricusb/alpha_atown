@@ -6,14 +6,18 @@ import java.util.logging.Level;
 
 import ee.lutsu.alpha.mc.mytown.Assert;
 import ee.lutsu.alpha.mc.mytown.CommandException;
+import ee.lutsu.alpha.mc.mytown.Cost;
 import ee.lutsu.alpha.mc.mytown.Formatter;
+import ee.lutsu.alpha.mc.mytown.Log;
 import ee.lutsu.alpha.mc.mytown.MyTownDatasource;
 import ee.lutsu.alpha.mc.mytown.NoAccessException;
 import ee.lutsu.alpha.mc.mytown.Permissions;
 import ee.lutsu.alpha.mc.mytown.Term;
+import ee.lutsu.alpha.mc.mytown.entities.PayHandler;
 import ee.lutsu.alpha.mc.mytown.entities.Resident;
 import ee.lutsu.alpha.mc.mytown.entities.Town;
 import ee.lutsu.alpha.mc.mytown.entities.Resident.Rank;
+import ee.lutsu.alpha.mc.mytown.entities.TownBlock;
 import ee.lutsu.alpha.mc.mytown.event.PlayerEvents;
 
 import net.minecraft.command.ICommandSender;
@@ -71,18 +75,45 @@ public class MyTownNonResident
 				cs.sendChatToPlayer(Formatter.formatCommand(Term.TownCmdNew.toString(), Term.TownCmdNewArgs.toString(), Term.TownCmdNewDesc.toString(), color));
 			else
 			{
-				Town t = new Town(args[1], res, MyTownDatasource.instance.getOrMakeBlock(res.onlinePlayer.dimension, res.onlinePlayer.chunkCoordX, res.onlinePlayer.chunkCoordZ));
-				
-				// emulate that the player just entered it
-				res.checkLocation();
-
-				String msg = Term.TownBroadcastCreated.toString(res.name(), t.name());
-				for(Object obj : MinecraftServer.getServer().getConfigurationManager().playerEntityList)
+				TownBlock home = MyTownDatasource.instance.getOrMakeBlock(res.onlinePlayer.dimension, res.onlinePlayer.chunkCoordX, res.onlinePlayer.chunkCoordZ);
+				try
 				{
-					((EntityPlayer)obj).sendChatToPlayer(msg);
+					Town.assertNewTownParams(args[1], res, home);
+				}
+				catch (Exception e)
+				{
+					if (home != null && home.town() == null)
+						MyTownDatasource.instance.unloadBlock(home);
+					
+					throw e;
 				}
 				
-				t.sendTownInfo(cs, res.shouldShowTownBlocks());
+				res.pay.requestPayment(Cost.TownNew.item, new PayHandler.IDone() 
+				{
+					@Override
+					public void run(Resident res, Object[] ar2) 
+					{
+						String[] args = (String[])ar2[0];
+						
+						Town t = null;
+						try { // should never crash because we're doing the same checks before
+							t = new Town(args[1], res, (TownBlock)ar2[1]);
+						} catch (CommandException e) {
+							Log.severe("Town creating failed after taking payment", e);
+						}
+						
+						// emulate that the player just entered it
+						res.checkLocation();
+
+						String msg = Term.TownBroadcastCreated.toString(res.name(), t.name());
+						for(Object obj : MinecraftServer.getServer().getConfigurationManager().playerEntityList)
+						{
+							((EntityPlayer)obj).sendChatToPlayer(msg);
+						}
+						
+						t.sendTownInfo(res.onlinePlayer, res.shouldShowTownBlocks());
+					}
+				}, (Object)args, home);
 			}
 		}
 		else if (args[0].equalsIgnoreCase(Term.TownCmdAccept.toString()))

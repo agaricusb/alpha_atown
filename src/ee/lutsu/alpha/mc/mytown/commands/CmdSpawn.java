@@ -32,6 +32,6 @@ public class CmdSpawn extends CommandBase
 		EntityPlayerMP pl = (EntityPlayerMP)cs;
 		Resident res = MyTownDatasource.instance.getOrMakeResident(pl);
 		
-		res.asyncStartSpawnTeleport();
+		res.asyncStartSpawnTeleport(null);
 	}
 }

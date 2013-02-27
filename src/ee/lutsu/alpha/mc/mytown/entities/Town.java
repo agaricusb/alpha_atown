@@ -65,16 +65,20 @@ public class Town
 	public void setSpawn(TownBlock b, Vec3 loc, float eye1, float eye2) { spawnBlock = b; spawnDimension = b.worldDimension(); spawnLocation = loc; spawnEye1 = eye1; spawnEye2 = eye2; save(); }
 	public void resetSpawn() { spawnBlock = null; spawnLocation = null; spawnDimension = 0; spawnEye1 = 0; spawnEye2 = 0; save(); }
 	
-	public Town(String pName, Resident creator, TownBlock home) throws CommandException
+	public static void assertNewTownParams(String pName, Resident creator, TownBlock home) throws CommandException
 	{
 		if (creator.town() != null)
 			throw new CommandException(Term.TownErrCreatorPartOfTown);
 		
-		canSetName(pName);
-		
+		canSetName(pName, null);
 		if (home != null)
-			canAddBlock(home, true);
-
+			canAddBlock(home, true, null);
+	}
+	
+	public Town(String pName, Resident creator, TownBlock home) throws CommandException
+	{
+		assertNewTownParams(pName, creator, home);
+		
 		id = -1;
 		name = pName;
 		
@@ -204,25 +208,25 @@ public class Town
 	
 	public void setTownName(String newName) throws CommandException
 	{
-		canSetName(newName);
+		canSetName(newName, this);
 		
 		name = newName;
 		save();
 	}
 	
-	public void canSetName(String name) throws CommandException
+	public static void canSetName(String name, Town self) throws CommandException
 	{
 		if (name == null || name.equals(""))
 			throw new CommandException(Term.TownErrTownNameCannotBeEmpty);
 		
 		for(Town t : MyTownDatasource.instance.towns)
 		{
-			if (t != this && t.name.equalsIgnoreCase(name))
+			if (t != self && t.name.equalsIgnoreCase(name))
 				throw new CommandException(Term.TownErrTownNameAlreadyInUse);
 		}
 	}
 	
-	public void canAddBlock(TownBlock block, boolean ignoreRoomCheck) throws CommandException
+	public static void canAddBlock(TownBlock block, boolean ignoreRoomCheck, Town self) throws CommandException
 	{
 		if (block.town() != null)
 			throw new CommandException(Term.TownErrAlreadyClaimed);
@@ -232,15 +236,15 @@ public class Town
 		{
 			if (b != block && 
 					b.town() != null &&
-					b.town() != this &&
+					b.town() != self &&
 					b.worldDimension() == block.worldDimension() &&
-					(b.town().nation() == null || b.town().nation() != nation()) &&
+					(b.town().nation() == null || (self != null && b.town().nation() != self.nation())) &&
 					block.squaredDistanceTo(b) <= sqr && 
 					!b.settings.allowClaimingNextTo)
 				throw new CommandException(Term.TownErrBlockTooCloseToAnotherTown);
 		}
 		
-		if (!ignoreRoomCheck && freeBlocks() < 1)
+		if (!ignoreRoomCheck && self != null && self.freeBlocks() < 1)
 			throw new CommandException(Term.TownErrNoFreeBlocks);
 	}
 	
@@ -252,7 +256,7 @@ public class Town
 	public void addBlock(TownBlock block, boolean bypassChecks) throws CommandException
 	{
 		if (!bypassChecks)
-			canAddBlock(block, false);
+			canAddBlock(block, false, this);
 		
 		block.setTown(this);
 		blocks.add(block);

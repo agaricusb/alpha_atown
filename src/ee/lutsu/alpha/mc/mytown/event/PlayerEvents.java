@@ -63,6 +63,17 @@ public class PlayerEvents implements IPlayerTracker
 			return;
 		
 		Resident r = source().getOrMakeResident(ev.entityPlayer);
+		if (ev.action == Action.RIGHT_CLICK_AIR || ev.action == Action.RIGHT_CLICK_BLOCK)
+		{
+			if (r.pay.tryPayByHand())
+			{
+				ev.setCanceled(true);
+				r.onlinePlayer.stopUsingItem();
+				return;
+			}
+		}
+		else
+			r.pay.cancelPayment();
 		
 		if (!ProtectionEvents.instance.itemUsed(r))
 		{

@@ -17,26 +17,19 @@ import ee.lutsu.alpha.mc.mytown.Term;
 import ee.lutsu.alpha.mc.mytown.entities.PayHandler;
 import ee.lutsu.alpha.mc.mytown.entities.Resident;
 import ee.lutsu.alpha.mc.mytown.entities.SavedHome;
-import ee.lutsu.alpha.mc.mytown.entities.TownSettingCollection;
 
-public class CmdSetHome extends CommandBase
+public class CmdHome extends CommandBase
 {
 	@Override
 	public String getCommandName() 
 	{
-		return "sethome";
+		return "home";
 	}
 	
 	@Override
 	public boolean canCommandSenderUseCommand(ICommandSender cs)
 	{
-		return cs instanceof EntityPlayerMP && Permissions.canAccess(cs, "mytown.ecmd.sethome");
-	}
-	
-	@Override
-	public String getCommandUsage(ICommandSender cs) 
-	{
-		return getCommandName() + " [name] - Sets a new home location";
+		return cs instanceof EntityPlayerMP && Permissions.canAccess(cs, "mytown.ecmd.home");
 	}
 
 	@Override
@@ -47,40 +40,25 @@ public class CmdSetHome extends CommandBase
 		
 		try 
 		{
-			if (!res.canInteract(pl.dimension, (int)pl.posX, (int)pl.posY, (int)pl.posZ, TownSettingCollection.Permissions.Build))
-				throw new CommandException(Term.HomeCmdCannotSetHere);
-			
-			res.home.assertSetHome(args.length == 0 ? null : args[0], pl);
-			
-			ItemStack request = null;
 			SavedHome h = res.home.get(args.length == 0 ? null : args[0]);
-			if (h == null)
-			{
-				if (Cost.HomeSetNew.item != null)
-				{
-					request = Cost.HomeSetNew.item.copy();
-					request.stackSize += Cost.homeSetNewAdditional * res.home.size();
-				}
-			}
-			else
-			{
-				if (Cost.HomeReplace.item != null)
-					request = Cost.HomeReplace.item;
-			}
 			
-			if (request != null && request.stackSize > 0)
-			{
-				res.pay.requestPayment(request, new PayHandler.IDone()
+			if (!res.home.hasHomes())
+				throw new CommandException(Term.HomeCmdNoHomes);
+			
+			if (h == null)
+				throw new CommandException(Term.HomeCmdNoHomeByName);
+			
+			if (Cost.HomeTeleport.item != null)
+				res.pay.requestPayment(Cost.HomeTeleport.item, new PayHandler.IDone() 
 				{
 					@Override
 					public void run(Resident player, Object[] args) 
 					{
-						setHome((Resident)args[0], (EntityPlayerMP)args[1], (String[])args[2]);
+						teleport(player, (SavedHome)args[0]);
 					}
-				}, res, pl, args);
-			}
+				}, h);
 			else
-				setHome(res, pl, args);
+				teleport(res, h);
 		} 
 		catch (CommandException ex)
 		{
@@ -93,9 +71,11 @@ public class CmdSetHome extends CommandBase
 		}
 	}
 	
-	public static void setHome(Resident res, EntityPlayerMP pl, String[] args)
+	public static void teleport(Resident res, SavedHome h)
 	{
-		res.home.set(args.length == 0 ? null : args[0], pl);
-		pl.sendChatToPlayer(args.length == 0 ? Term.HomeCmdHomeSet.toString() : Term.HomeCmdHome2Set.toString(args[0]));
+		if (Cost.HomeTeleport.item != null && Resident.teleportToHomeWaitSeconds > 0)
+			res.onlinePlayer.sendChatToPlayer(Term.HomeCmdDontMove.toString());
+		
+		res.asyncStartSpawnTeleport(h);
 	}
 }

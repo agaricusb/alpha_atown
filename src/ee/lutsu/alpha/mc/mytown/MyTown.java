@@ -14,8 +14,10 @@ import java.util.logging.Level;
 import net.minecraft.command.CommandBase;
 import net.minecraft.command.ServerCommandManager;
 import net.minecraft.item.Item;
+import net.minecraft.item.ItemStack;
 import net.minecraft.network.packet.Packet3Chat;
 import net.minecraft.server.MinecraftServer;
+import net.minecraftforge.common.ConfigCategory;
 import net.minecraftforge.common.Configuration;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.common.Property;
@@ -81,6 +83,10 @@ public class MyTown
 		commands.add(new CmdEmote());
 		commands.add(new CmdPrivateMsg());
 		commands.add(new CmdReplyPrivateMsg());
+		commands.add(new CmdHomes());
+		commands.add(new CmdHome());
+		commands.add(new CmdSetHome());
+		commands.add(new CmdDelHome());
 		
 		for(ChatChannel c : ChatChannel.values())
 			commands.add(new CmdChat(c));
@@ -153,6 +159,7 @@ public class MyTown
             loadChatConfigs(config);
             loadExtraProtectionConfig(config);
             loadPerms(config);
+            loadCostConfigs(config);
             
             TickHandler.instance.loadConfigs();
             WorldBorder.instance.loadConfig();
@@ -222,10 +229,41 @@ public class MyTown
         prop = config.get("General", "CartItemIds", "");
         prop.comment = "Defines the cart id's which can be placed on a rail with carts perm on. Includes all cart-types.";
         carts = ItemIdRange.parseList(Arrays.asList(prop.value.split(";")));
-        
-        prop = config.get("General", "SpawnTeleportTimeout", 60);
-        prop.comment = "How many seconds the /spawn teleport takes";
-        Resident.teleportToSpawnWaitSeconds = prop.getInt();
+
+        Resident.teleportToSpawnWaitSeconds = config.get("General", "SpawnTeleportTimeout", Resident.teleportToSpawnWaitSeconds, "How many seconds the /spawn teleport takes").getInt();
+        Resident.teleportToHomeWaitSeconds = config.get("General", "HomeTeleportTimeout", Resident.teleportToHomeWaitSeconds, "How many seconds the /home teleport takes").getInt();
+    }
+    
+    private void loadCostConfigs(Configuration config)
+    {
+    	config.addCustomCategoryComment("cost", "MyTown item based economy");
+    	config.addCustomCategoryComment("cost.list", "Defines what and how much costs. Set the amount to 0 to disable the cost. Syntax: [amount]x[item id]:[sub id]");
+    	for (Cost c : Cost.values())
+    		c.item = getItemStackConfig(config, "cost.list", c.name(), c.item, c.description);
+    	
+    	Cost.enabled = config.get("cost", "Enabled", Cost.enabled, "Enable the so called economy module?").getBoolean(Cost.enabled);
+    	Cost.homeSetNewAdditional = config.get("cost", "HomeCostAdditionPerHome", Cost.homeSetNewAdditional, "How much of the /sethome cost item is requested more for every home the player has when the player is creating a new home location. Ex. with 2 homes = /sethome cost + this * 2").getInt();
+    }
+    
+    private static ItemStack getItemStackConfig(Configuration config, String cat, String node, ItemStack def, String comment)
+    {
+    	String sDef = "";
+    	if (def != null)
+    		sDef = def.stackSize + "x" + def.itemID + (def.getItemDamage() != 0 ? ":" + def.getItemDamage() : "");
+    	
+    	String v = config.get(cat, node, sDef, comment).value;
+    	if (v == null || v.trim().length() < 1)
+    		return null;
+    	
+    	int cnt, id, sub;
+    	String[] s1 = v.split("x");
+    	cnt = s1.length > 1 ? Integer.parseInt(s1[0]) : 1;
+    	
+    	String[] s2 = s1[s1.length - 1].split(":");
+    	id = Integer.parseInt(s2[0]);
+    	sub = s2.length > 1 ? Integer.parseInt(s2[1]) : 0;
+    	
+    	return new ItemStack(id, cnt, sub);
     }
     
     private void loadDatabaseConfigs(Configuration config)

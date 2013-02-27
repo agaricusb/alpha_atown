@@ -4,15 +4,21 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Level;
 
+import com.google.common.collect.Lists;
+
 import ee.lutsu.alpha.mc.mytown.Assert;
 import ee.lutsu.alpha.mc.mytown.CommandException;
+import ee.lutsu.alpha.mc.mytown.Cost;
 import ee.lutsu.alpha.mc.mytown.Formatter;
+import ee.lutsu.alpha.mc.mytown.Log;
 import ee.lutsu.alpha.mc.mytown.MyTown;
 import ee.lutsu.alpha.mc.mytown.MyTownDatasource;
 import ee.lutsu.alpha.mc.mytown.NoAccessException;
 import ee.lutsu.alpha.mc.mytown.Permissions;
 import ee.lutsu.alpha.mc.mytown.Term;
+import ee.lutsu.alpha.mc.mytown.entities.PayHandler;
 import ee.lutsu.alpha.mc.mytown.entities.Resident;
+import ee.lutsu.alpha.mc.mytown.entities.Town;
 import ee.lutsu.alpha.mc.mytown.entities.TownBlock;
 import ee.lutsu.alpha.mc.mytown.entities.TownSetting;
 import ee.lutsu.alpha.mc.mytown.entities.TownSettingCollection;
@@ -21,6 +27,7 @@ import ee.lutsu.alpha.mc.mytown.event.PlayerEvents;
 
 import net.minecraft.command.ICommandSender;
 import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.item.ItemStack;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.util.Vec3;
 import net.minecraftforge.event.entity.EntityEvent.EnteringChunk;
@@ -138,44 +145,86 @@ public class MyTownAssistant
 			int cx = res.onlinePlayer.chunkCoordX;
 			int cz = res.onlinePlayer.chunkCoordZ;
 			int dim = res.onlinePlayer.dimension;
-			
-			StringBuilder sb = new StringBuilder();
-			int nr = 0;
-			
-			try
+
+			CommandException firstError = null;
+			int requestedBlocks = 0, ableToClaim = 0, alreadyOwn = 0;
+			List<TownBlock> blocks = Lists.newArrayList();
+
+			for(int z = cz - radius_rec; z <= cz + radius_rec; z++)
 			{
-				for(int z = cz - radius_rec; z <= cz + radius_rec; z++)
+				for(int x = cx - radius_rec; x <= cx + radius_rec; x++)
 				{
-					for(int x = cx - radius_rec; x <= cx + radius_rec; x++)
+					requestedBlocks++;
+					
+					TownBlock b = MyTownDatasource.instance.getOrMakeBlock(dim, x, z);
+					if (b.town() == res.town())
 					{
-						TownBlock b = MyTownDatasource.instance.getOrMakeBlock(dim, x, z);
-						if (b.town() == res.town())
-							continue;
+						alreadyOwn++;
+						continue;
+					}
+					
+					try
+					{
+						Town.canAddBlock(b, false, res.town());
+						ableToClaim++;
+						blocks.add(b);
+					}
+					catch (CommandException e)
+					{
+						if (b != null && b.town() == null)
+							MyTownDatasource.instance.unloadBlock(b);
 						
-						try
-						{
-							res.town().addBlock(b);
-							
-							nr++;
-							if (sb.length() > 0)
-								sb.append(", ");
-							sb.append(String.format("(%s,%s)", x, z));
-						}
-						catch(CommandException e)
-						{
-							if (b != null && b.town() == null)
-								MyTownDatasource.instance.unloadBlock(b);
-							
-							throw e;
-						}
+						if (firstError == null)
+							firstError = e;
 					}
 				}
 			}
-			finally
+
+			cs.sendChatToPlayer(Term.TownBlocksClaimedDisclaimer.toString(requestedBlocks, ableToClaim, alreadyOwn));
+			if (firstError != null)
+				cs.sendChatToPlayer(Term.TownBlocksClaimedDisclaimer2.toString(firstError.errorCode.toString(firstError.args)));
+
+			if (blocks.size() > 0)
 			{
-				// emulate that the player just entered it
-				res.checkLocation();
-				cs.sendChatToPlayer(Term.TownBlocksClaimed.toString(nr, sb.toString()));
+				
+				ItemStack request = Cost.TownClaimBlock.item;
+				if (request != null && request.stackSize > 0)
+				{
+					request = request.copy();
+					request.stackSize = request.stackSize * blocks.size();
+				}
+				
+				res.pay.requestPayment(request, new PayHandler.IDone() 
+				{
+					@Override
+					public void run(Resident res, Object[] args) 
+					{
+						StringBuilder sb = new StringBuilder();
+						int nr = 0;
+						List<TownBlock> blocks = (List<TownBlock>)args[0];
+						
+						for (TownBlock b : blocks)
+						{
+							try 
+							{
+								res.town().addBlock(b);
+								
+								nr++;
+								if (sb.length() > 0)
+									sb.append(", ");
+								
+								sb.append(String.format("(%s,%s)", b.x(), b.z()));
+							} 
+							catch (CommandException e)
+							{
+								Log.severe("Block claiming failed after payment", e);
+							}
+						}
+						
+						res.checkLocation(); // emulate that the player just entered it
+						res.onlinePlayer.sendChatToPlayer(Term.TownBlocksClaimed.toString(nr, sb.toString()));
+					}
+				}, blocks);
 			}
 		}
 		else if (args[0].equalsIgnoreCase(Term.TownCmdUnclaim.toString()))

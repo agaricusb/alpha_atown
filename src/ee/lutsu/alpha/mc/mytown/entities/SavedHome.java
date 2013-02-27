@@ -1,6 +1,8 @@
 package ee.lutsu.alpha.mc.mytown.entities;
 
 import net.minecraft.entity.Entity;
+import net.minecraft.entity.player.EntityPlayerMP;
+import net.minecraft.util.ChunkCoordinates;
 
 public class SavedHome
 {
@@ -50,6 +52,24 @@ public class SavedHome
 		
 		h.look1 = Float.parseFloat(a[5]);
 		h.look2 = Float.parseFloat(a[6]);
+		
+		return h;
+	}
+	
+	public static SavedHome fromBed(EntityPlayerMP entityFrom)
+	{
+		ChunkCoordinates c = entityFrom.getBedLocation();
+		if (c == null)
+			return null;
+		
+		SavedHome h = new SavedHome();
+		h.dim = entityFrom.worldObj.provider.getRespawnDimension(entityFrom);
+		
+		h.x = c.posX;
+		h.y = c.posY;
+		h.z = c.posZ;
+		h.look1 = 0;
+		h.look2 = 0;
 		
 		return h;
 	}

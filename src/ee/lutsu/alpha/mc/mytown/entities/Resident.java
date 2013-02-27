@@ -10,6 +10,7 @@ import com.google.common.base.Joiner;
 
 import ee.lutsu.alpha.mc.mytown.ChatChannel;
 import ee.lutsu.alpha.mc.mytown.ChunkCoord;
+import ee.lutsu.alpha.mc.mytown.CommandException;
 import ee.lutsu.alpha.mc.mytown.Formatter;
 import ee.lutsu.alpha.mc.mytown.Log;
 import ee.lutsu.alpha.mc.mytown.MyTown;
@@ -29,6 +30,7 @@ import net.minecraft.entity.monster.EntityGolem;
 import net.minecraft.entity.monster.IMob;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.player.EntityPlayerMP;
+import net.minecraft.item.ItemStack;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.util.ChunkCoordinates;
 import net.minecraft.util.Vec3;
@@ -114,6 +116,7 @@ public class Resident
 	public Date lastLogin() { return lastLoginOn; }
 	public TownSettingCollection settings = new TownSettingCollection();
 	public SavedHomeList home = new SavedHomeList(this);
+	public PayHandler pay = new PayHandler(this);
 	
 	public Resident(String pName)
 	{
@@ -507,30 +510,47 @@ public class Resident
 	
 	public void respawnPlayer()
 	{
+		respawnPlayer(null);
+	}
+	
+	public void respawnPlayer(SavedHome h)
+	{
 		if (!(onlinePlayer instanceof EntityPlayerMP))
 			throw new RuntimeException("Cannot move a non-player");
-		
-		EntityPlayerMP pl = (EntityPlayerMP)onlinePlayer;
-		
-		if (pl.dimension != pl.worldObj.provider.getRespawnDimension(pl))
-			MinecraftServer.getServer().getConfigurationManager().transferPlayerToDimension(pl, pl.worldObj.provider.getRespawnDimension(pl));
-		
-		WorldServer world = MinecraftServer.getServer().worldServerForDimension(pl.dimension);
-		ChunkCoordinates c = pl.getBedLocation();
-		boolean forcedSpawn = pl.isSpawnForced();
-		
-		if (c != null)
-			c = EntityPlayer.verifyRespawnCoordinates(world, c, forcedSpawn);
 
-        if (c != null)
-            pl.setLocationAndAngles((double)((float)c.posX + 0.5F), (double)((float)c.posY + 0.1F), (double)((float)c.posZ + 0.5F), 0.0F, 0.0F);
+		EntityPlayerMP pl = (EntityPlayerMP)onlinePlayer;
+		WorldServer world = null;
+		
+		if (h == null)
+		{
+			if (pl.dimension != pl.worldObj.provider.getRespawnDimension(pl))
+				MinecraftServer.getServer().getConfigurationManager().transferPlayerToDimension(pl, pl.worldObj.provider.getRespawnDimension(pl));
+			
+			world = MinecraftServer.getServer().worldServerForDimension(pl.dimension);
+			ChunkCoordinates c = pl.getBedLocation();
+			boolean forcedSpawn = pl.isSpawnForced();
+			
+			if (c != null)
+				c = EntityPlayer.verifyRespawnCoordinates(world, c, forcedSpawn);
+	
+	        if (c != null)
+	            pl.setLocationAndAngles((double)((float)c.posX + 0.5F), (double)((float)c.posY + 0.1F), (double)((float)c.posZ + 0.5F), 0.0F, 0.0F);
+			else
+			{
+				pl.sendChatToPlayer(Term.NoBedMessage.toString());
+				WorldInfo info = world.getWorldInfo();
+				pl.setLocationAndAngles(info.getSpawnX() + 0.5F, info.getSpawnY() + 0.1F, info.getSpawnZ() + 0.5F, 0, 0);
+			}
+		}
 		else
 		{
-			pl.sendChatToPlayer(Term.NoBedMessage.toString());
-			WorldInfo info = world.getWorldInfo();
-			pl.setLocationAndAngles(info.getSpawnX() + 0.5F, info.getSpawnY() + 0.1F, info.getSpawnZ() + 0.5F, 0, 0);
+			if (pl.dimension != h.dim)
+				MinecraftServer.getServer().getConfigurationManager().transferPlayerToDimension(pl, h.dim);
+			
+			world = MinecraftServer.getServer().worldServerForDimension(pl.dimension);
+			pl.setLocationAndAngles(h.x, h.y, h.z, h.look1, h.look2);
 		}
-        
+	        
         world.theChunkProviderServer.loadChunk((int)pl.posX >> 4, (int)pl.posZ >> 4);
 
         while (!world.getCollidingBoundingBoxes(pl, pl.boundingBox).isEmpty())
@@ -749,17 +769,23 @@ public class Resident
 			return false;
 	}
 	
+	private SavedHome teleportTargetHome = null;
 	private long teleportToSpawnStamp = 0;
 	public static long teleportToSpawnWaitSeconds = 1 * 60; // 1 minute
-	public void asyncStartSpawnTeleport()
+	public static long teleportToHomeWaitSeconds = 1 * 60; // 1 minute
+	public void asyncStartSpawnTeleport(SavedHome home)
 	{
-		long takesTime = Permissions.canAccess(this, "mytown.adm.bypass.teleportwait") ? 0 : teleportToSpawnWaitSeconds * 1000;
+		teleportTargetHome = home;
+		
+		long now = System.currentTimeMillis();
+		long takesTime = Permissions.canAccess(this, "mytown.adm.bypass.teleportwait") ? 0 : home != null ? teleportToHomeWaitSeconds * 1000 : teleportToSpawnWaitSeconds * 1000;
+		
 		teleportToSpawnStamp = System.currentTimeMillis() + takesTime;
 		
 		if (takesTime > 0)
 		{
-			CmdChat.sendChatToAround(onlinePlayer.dimension, onlinePlayer.posX, onlinePlayer.posY, onlinePlayer.posZ, Term.SpawnCmdTeleportNearStarted.toString(name(), (int)Math.ceil(takesTime / 1000)), onlinePlayer);
-			onlinePlayer.sendChatToPlayer(Term.SpawnCmdTeleportStarted.toString((int)Math.ceil(takesTime / 1000)));
+			CmdChat.sendChatToAround(onlinePlayer.dimension, onlinePlayer.posX, onlinePlayer.posY, onlinePlayer.posZ, (home != null ? Term.HomeCmdTeleportNearStarted : Term.SpawnCmdTeleportNearStarted).toString(name(), (int)Math.ceil(takesTime / 1000)), onlinePlayer);
+			onlinePlayer.sendChatToPlayer((home != null ? Term.HomeCmdTeleportStarted : Term.SpawnCmdTeleportStarted).toString((int)Math.ceil(takesTime / 1000)));
 		}
 	}
 	
@@ -776,10 +802,13 @@ public class Resident
 	{
 		if (!isOnline())
 			return;
-		
+
 		teleportToSpawnStamp = 0;
 
-		sendToServerSpawn();
+		if (teleportTargetHome != null)
+			respawnPlayer(teleportTargetHome);
+		else
+			sendToServerSpawn();
 		
 		onlinePlayer.sendChatToPlayer(Term.SpawnCmdTeleportEnded.toString());
 	}

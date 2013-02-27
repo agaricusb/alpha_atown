@@ -301,7 +301,7 @@ public class ProtectionEvents implements ITickHandler
 				}
 			}
 			
-			if (prot.enabled) // some are already loaded()
+			if (dynamicEnabling && prot.enabled) // some are already loaded()
 				Log.info("§f[§1Prot§f]Module %s §2loaded§f.", prot.getClass().getSimpleName());
 		}
 		

@@ -314,6 +314,8 @@ public enum Term
 	PlayerMapModeOff("§aTown map mode is now §4OFF"),
 	
 	TownBlocksClaimed("§a%s blocks claimed [%s]"),
+	TownBlocksClaimedDisclaimer("§a%s blocks requested of which %s are able to be claimed and %s already owned"),
+	TownBlocksClaimedDisclaimer2("§4First error: %s"),
 	TownBlocksUnclaimed("§a%s blocks unclaimed [%s]"),
 	TownMapHead("§6--------[[ §5MyTown§6 ]]--------"),
 	
@@ -431,6 +433,27 @@ public enum Term
 	
 	// home commands
 	HomeCmdNoHomeByName("No home by that name was found"),
+	HomeCmdDimNotSpawnDim("You cannot set the bed location in this dimension"),
+	HomeCmdOwnerNotOnline("The bed owner is not online"),
+	HomeCmdCannotDeleteBed("You cannot remove the bed spawn location"),
+	HomeCmdNoHomes("You have no homes set"),
+	HomeCmdTeleportStarted("§aStarted casting the home teleport spell. It will take %s seconds"),
+	HomeCmdTeleportNearStarted("§e%s started casting a %s second home teleport spell"),
+	HomeCmdHomeSet("§aHome set"),
+	HomeCmdHome2Set("§aHome '%s' set"),
+	HomeCmdHomeDeleted("§aHome location deleted"),
+	HomeCmdHome2Deleted("§aHome location '%s' deleted"),
+	HomeCmdCannotSetHere("You can set your home only in places where you can build"),
+	HomeCmdHomesTitle("§2Your homes: %s"),
+	HomeCmdHomesItem("§a%s§2"),
+	HomeCmdHomesUnaccessibleItem("§4%s§2"),
+	HomeCmdHomesItem2("   §a%s§2 (%s, %s, %s, %s)"),
+	HomeCmdHomesUnaccessibleItem2("   §4%s§2 (%s, %s, %s, %s)"),
+	HomeCmdDontMove("§2Don't move! Or you will lose your payment and the teleport is canceled."),
+	
+	// Purchase
+	PayByHandNotify("§2To complete this action, please pay %sx %s (%s)"),
+	PayByHandNotify2("§a(Right click the requested item)"),
 	;
 	
 	public String defaultVal;
