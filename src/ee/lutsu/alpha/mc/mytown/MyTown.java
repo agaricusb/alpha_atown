@@ -241,7 +241,9 @@ public class MyTown
     	for (Cost c : Cost.values())
     		c.item = getItemStackConfig(config, "cost.list", c.name(), c.item, c.description);
     	
-    	Cost.enabled = config.get("cost", "Enabled", Cost.enabled, "Enable the so called economy module?").getBoolean(Cost.enabled);
+    	if (!config.get("cost", "Enabled", true, "Enable the so called economy module?").getBoolean(true))
+    		Cost.disable();
+    	
     	Cost.homeSetNewAdditional = config.get("cost", "HomeCostAdditionPerHome", Cost.homeSetNewAdditional, "How much of the /sethome cost item is requested more for every home the player has when the player is creating a new home location. Ex. with 2 homes = /sethome cost + this * 2").getInt();
     }
     

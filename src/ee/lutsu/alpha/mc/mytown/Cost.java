@@ -14,7 +14,6 @@ public enum Cost
 	TownNew(new ItemStack(Item.diamond, 5), "/t new townname - usage"),
 	TownClaimBlock(new ItemStack(Item.diamond, 1), "/t claim - usage per block");
 
-	public static boolean enabled = true;
 	public static int homeSetNewAdditional = 10;
 	
 	public ItemStack item;
@@ -24,5 +23,11 @@ public enum Cost
 	{
 		item = defItem;
 		description = desc;
+	}
+	
+	public static void disable()
+	{
+		for (Cost c : values())
+			c.item = null;
 	}
 }
