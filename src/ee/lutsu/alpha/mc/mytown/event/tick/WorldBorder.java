@@ -99,7 +99,7 @@ public class WorldBorder extends TickBase
 			}
 			double prc = done * 100 / total;
 			
-			Log.info(String.format("[WorldBorder] %s of %s chunks done - %s%%", done, total, (int)prc));
+			Log.info("[WorldBorder] %s of %s chunks done - %s%%", done, total, (int)prc);
 
 			MyTown.instance.config.save();
 		}
