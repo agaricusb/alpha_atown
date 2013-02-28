@@ -27,6 +27,7 @@ public class WorldBorder extends TickBase
 	public boolean enabled = true, genenabled = false;
 	private long nextGenConfigSave = 0;
 	public boolean multithreaded = false;
+	private long lastStamp, lastDone;
 	
 	public void loadConfig()
 	{
@@ -81,6 +82,11 @@ public class WorldBorder extends TickBase
 			generators.add(ChunkGen.start(w, MyTown.instance.config.get("worldborder.generator", "dim_" + kv.getKey() + "_2_radius", 0).getInt(), radiusTo, circle, 2));
 			generators.add(ChunkGen.start(w, MyTown.instance.config.get("worldborder.generator", "dim_" + kv.getKey() + "_3_radius", 0).getInt(), radiusTo, circle, 3));
 		}
+		
+		lastStamp = System.currentTimeMillis();
+		lastDone = 0;
+		for (ChunkGen g : generators)
+			lastDone += g.blocksDone;
 	}
 	
 	public void generatorReporting(ChunkGen gen, int radiusDone)
@@ -99,8 +105,25 @@ public class WorldBorder extends TickBase
 			}
 			double prc = done * 100 / total;
 			
-			Log.info("[WorldBorder] %s of %s chunks done - %s%%", done, total, (int)prc);
+			double lTime = (double)(System.currentTimeMillis() - lastStamp) / 1000;
+			double lDone = done - lastDone;
+			double speed = lDone / lTime;
+			String sEx = null;
+			if (speed > 0)
+			{
+				double tRemaining = (total - done) / speed;
+				int tRemH = (int)Math.floor(tRemaining / 60 / 60);
+				int tRemM = (int)Math.floor(tRemaining / 60 - tRemH * 60);
+				int tRemS = (int)Math.round(tRemaining - tRemH * 60 * 60 - tRemM * 60);
+				
+				sEx = String.format(", %.2f c/s, %s remaining", speed,
+						(tRemH > 0 ? tRemH + "h " : "") + (tRemM > 0 || tRemH > 0 ? tRemM + "m " : "") + tRemS + "s");
+			}
+			
+			Log.info("[WorldBorder] %s of %s chunks done - %s%%%s", done, total, (int)prc, sEx);
 
+			lastDone = done;
+			lastStamp = System.currentTimeMillis();
 			MyTown.instance.config.save();
 		}
 		
@@ -294,6 +317,8 @@ public class WorldBorder extends TickBase
 				
 				if (provider instanceof ChunkProviderServer)
 					((ChunkProviderServer)provider).unloadChunksIfNotNearSpawn(x, z);
+				
+				provider.unload100OldestChunks();
 			}
 		}
 		

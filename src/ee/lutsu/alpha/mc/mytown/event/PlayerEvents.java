@@ -125,13 +125,13 @@ public class PlayerEvents implements IPlayerTracker
 				return;
 		}
 		
+		TownBlock targetBlock = MyTownDatasource.instance.getPermBlockAtCoord(ev.entityPlayer.dimension, x, y, z);
+		
 		if (action == Action.RIGHT_CLICK_BLOCK && (ev.entityPlayer.getHeldItem() != null && ev.entityPlayer.getHeldItem().getItem() != null && (ev.entityPlayer.getHeldItem().getItem() instanceof ItemMinecart || ItemIdRange.contains(MyTown.instance.carts, ev.entityPlayer.getHeldItem()))))
 		{
 			int en = ev.entityPlayer.worldObj.getBlockId(x , y, z);
 			if (Block.blocksList[en] instanceof BlockRail)
 			{
-				TownBlock targetBlock = MyTownDatasource.instance.getPermBlockAtCoord(ev.entityPlayer.dimension, x, y, z);
-
 				if ((targetBlock != null && targetBlock.town() != null && targetBlock.settings.allowCartInteraction) || ((targetBlock == null || targetBlock.town() == null) && MyTown.instance.getWorldWildSettings(ev.entityPlayer.dimension).allowCartInteraction))
 					return;
 			}
@@ -170,11 +170,27 @@ public class PlayerEvents implements IPlayerTracker
 	            	x--;
 	            else if (ev.face == 5)
 	            	x++;
+	            
+	            targetBlock = MyTownDatasource.instance.getPermBlockAtCoord(ev.entityPlayer.dimension, x, y, z);
 			}
 		}
 
-		if (!r.canInteract(x, y, z, perm))
+		if (!r.canInteract(targetBlock, perm))
 		{
+			//Log.info("Permission denied %s %s", perm, action);
+			// see if its a allowed block
+			if (perm == Permissions.Build && action == Action.LEFT_CLICK_BLOCK)
+			{
+				World w = ev.entityPlayer.worldObj;
+				//Log.info("Block is %s:%s", w.getBlockId(x, y, z), w.getBlockMetadata(x, y, z));
+				if (ItemIdRange.contains(MyTown.instance.leftClickAccessBlocks, w.getBlockId(x, y, z), w.getBlockMetadata(x, y, z)))
+				{
+					perm = Permissions.Access;
+					if (r.canInteract(targetBlock, perm))
+						return;
+				}
+			}
+			
 			r.onlinePlayer.stopUsingItem();
 			ev.setCanceled(true);
 			if (perm == Permissions.Access)

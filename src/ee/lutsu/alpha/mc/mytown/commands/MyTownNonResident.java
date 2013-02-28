@@ -48,7 +48,7 @@ public class MyTownNonResident
 		return list;
 	}
 	
-	public static boolean handleCommand(ICommandSender cs, String[] args) throws CommandException, NoAccessException
+	public static boolean handleCommand(ICommandSender cs, String[] args) throws Exception
 	{
 		if (!(cs instanceof EntityPlayer)) // no commands for console
 			return false;
@@ -88,7 +88,7 @@ public class MyTownNonResident
 					throw e;
 				}
 				
-				res.pay.requestPayment(Cost.TownNew.item, new PayHandler.IDone() 
+				res.pay.requestPayment("townnew", Cost.TownNew.item, new PayHandler.IDone() 
 				{
 					@Override
 					public void run(Resident res, Object[] ar2) 

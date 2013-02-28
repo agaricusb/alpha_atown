@@ -45,7 +45,7 @@ import ee.lutsu.alpha.mc.mytown.sql.Database;
 @Mod(
         modid = "MyTown",
         name = "My Town",
-        version = "1.4.7.5"
+        version = "1.4.7.7"
 )
 @NetworkMod(
         clientSideRequired = false,
@@ -62,6 +62,7 @@ public class MyTown
 	public TownSettingCollection serverSettings = new TownSettingCollection(true, false);
 	public Map<Integer, TownSettingCollection> worldWildSettings = new HashMap<Integer, TownSettingCollection>();
 	public LinkedList<ItemIdRange> carts = null;
+	public LinkedList<ItemIdRange> leftClickAccessBlocks = null;
 	
     @Mod.Instance("MyTown")
     public static MyTown instance;
@@ -211,7 +212,7 @@ public class MyTown
         
         prop = config.get("General", "MinDistanceFromAnotherTown", 50);
         prop.comment = "How many blocks(chunks) apart have the town blocks be";
-        Town.minDistanceFromOtherTown = prop.getInt(50);
+        Town.minDistanceFromOtherTown = prop.getInt(5);
         
         prop = config.get("General", "AllowTownMemberPvp", false);
         prop.comment = "First check. Can one town member hit a member of the same town? Anywhere. Also called friendlyfire";
@@ -224,11 +225,13 @@ public class MyTown
         prop = config.get("General", "AllowMemberKillNonMember", true);
         prop.comment = "Third check. Can a member of the town kill someone who doesn't belong to his town?";
         Town.allowMemberToForeignPvp = prop.getBoolean(true);
-        
-        List items = Arrays.asList(Item.itemsList);
+
         prop = config.get("General", "CartItemIds", "");
         prop.comment = "Defines the cart id's which can be placed on a rail with carts perm on. Includes all cart-types.";
         carts = ItemIdRange.parseList(Arrays.asList(prop.value.split(";")));
+        
+        prop = config.get("General", "LeftClickAccessBlocks", "1000:2", "Which blocks should be considered as access when someone is hitting them. Like TE Barrels");
+        leftClickAccessBlocks = ItemIdRange.parseList(Arrays.asList(prop.value.split(";")));
 
         Resident.teleportToSpawnWaitSeconds = config.get("General", "SpawnTeleportTimeout", Resident.teleportToSpawnWaitSeconds, "How many seconds the /spawn teleport takes").getInt();
         Resident.teleportToHomeWaitSeconds = config.get("General", "HomeTeleportTimeout", Resident.teleportToHomeWaitSeconds, "How many seconds the /home teleport takes").getInt();

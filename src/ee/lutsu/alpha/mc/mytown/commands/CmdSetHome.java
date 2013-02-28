@@ -54,6 +54,7 @@ public class CmdSetHome extends CommandBase
 			
 			ItemStack request = null;
 			SavedHome h = res.home.get(args.length == 0 ? null : args[0]);
+			String action = null;
 			if (h == null)
 			{
 				if (Cost.HomeSetNew.item != null)
@@ -68,19 +69,14 @@ public class CmdSetHome extends CommandBase
 					request = Cost.HomeReplace.item;
 			}
 			
-			if (request != null && request.stackSize > 0)
+			res.pay.requestPayment(h == null ? "homenew" : "homereplace", request, new PayHandler.IDone()
 			{
-				res.pay.requestPayment(request, new PayHandler.IDone()
+				@Override
+				public void run(Resident res, Object[] args) 
 				{
-					@Override
-					public void run(Resident player, Object[] args) 
-					{
-						setHome((Resident)args[0], (EntityPlayerMP)args[1], (String[])args[2]);
-					}
-				}, res, pl, args);
-			}
-			else
-				setHome(res, pl, args);
+					setHome(res, (EntityPlayerMP)res.onlinePlayer, (String[])args[0]);
+				}
+			}, (Object)args);
 		} 
 		catch (CommandException ex)
 		{

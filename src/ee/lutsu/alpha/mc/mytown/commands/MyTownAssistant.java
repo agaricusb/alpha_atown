@@ -194,7 +194,7 @@ public class MyTownAssistant
 					request.stackSize = request.stackSize * blocks.size();
 				}
 				
-				res.pay.requestPayment(request, new PayHandler.IDone() 
+				res.pay.requestPayment("townclaimblock", request, new PayHandler.IDone() 
 				{
 					@Override
 					public void run(Resident res, Object[] args) 

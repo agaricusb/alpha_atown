@@ -48,17 +48,15 @@ public class CmdHome extends CommandBase
 			if (h == null)
 				throw new CommandException(Term.HomeCmdNoHomeByName);
 			
-			if (Cost.HomeTeleport.item != null)
-				res.pay.requestPayment(Cost.HomeTeleport.item, new PayHandler.IDone() 
+			res.pay.requestPayment("hometeleport", Cost.HomeTeleport.item, new PayHandler.IDone() 
+			{
+				@Override
+				public void run(Resident player, Object[] args) 
 				{
-					@Override
-					public void run(Resident player, Object[] args) 
-					{
-						teleport(player, (SavedHome)args[0]);
-					}
-				}, h);
-			else
-				teleport(res, h);
+					teleport(player, (SavedHome)args[0]);
+				}
+			}, h);
+
 		} 
 		catch (CommandException ex)
 		{

@@ -1,5 +1,6 @@
 package ee.lutsu.alpha.mc.mytown.entities;
 
+import ee.lutsu.alpha.mc.mytown.Permissions;
 import ee.lutsu.alpha.mc.mytown.Term;
 import net.minecraft.item.ItemStack;
 import net.minecraftforge.event.ForgeEventFactory;
@@ -62,13 +63,13 @@ public class PayHandler
 			doneHandler.run(owner, doneHandlerArgs);
 	}
 	
-	public void requestPayment(ItemStack stack, IDone actor, Object ... args)
+	public void requestPayment(String action, ItemStack stack, IDone actor, Object ... args)
 	{
 		requestedItem = stack;
 		doneHandler = actor;
 		doneHandlerArgs = args;
 		
-		if (stack == null || stack.stackSize < 1)
+		if (stack == null || stack.stackSize < 1 || Permissions.canAccess(owner, "mytown.cost.bypass." + action))
 			purchaseComplete();
 		else
 		{

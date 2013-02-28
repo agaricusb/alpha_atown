@@ -220,17 +220,14 @@ public class MyTownEveryone
 					cost = Cost.TownSpawnTeleportOther.item;
 				}
 				
-				if (cost != null)
-					res.pay.requestPayment(cost, new PayHandler.IDone() 
+				res.pay.requestPayment(target == res.town() ? "townspawntpown" : "townspawntpother", cost, new PayHandler.IDone() 
+				{
+					@Override
+					public void run(Resident player, Object[] args) 
 					{
-						@Override
-						public void run(Resident player, Object[] args) 
-						{
-							player.sendToTownSpawn((Town)args[0]);
-						}
-					}, target);
-				else
-					res.sendToTownSpawn(target);
+						player.sendToTownSpawn((Town)args[0]);
+					}
+				}, target);
 			}
 		}
 		else
