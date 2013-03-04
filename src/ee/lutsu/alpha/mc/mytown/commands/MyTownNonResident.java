@@ -68,7 +68,7 @@ public class MyTownNonResident
 		}
 		else if (args[0].equalsIgnoreCase(Term.TownCmdNew.toString()))
 		{
-			Assert.Perm(cs, "mytown.cmd.new");
+			Assert.Perm(cs, "mytown.cmd.new.dim" + res.onlinePlayer.dimension);
 			handled = true;
 
 			if (args.length < 2 || args.length > 2)

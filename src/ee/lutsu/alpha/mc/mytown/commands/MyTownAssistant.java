@@ -127,12 +127,13 @@ public class MyTownAssistant
 		}
 		else if (args[0].equalsIgnoreCase(Term.TownCmdClaim.toString()))
 		{
-			Assert.Perm(cs, "mytown.cmd.claim");
-			handled = true;
-
 			if (res.onlinePlayer == null)
 				throw new NullPointerException("Onlineplayer is null");
+			int dim = res.onlinePlayer.dimension;
 			
+			Assert.Perm(cs, "mytown.cmd.claim.dim" + dim);
+			handled = true;
+
 			int radius_rec = 0;
 			if (args.length > 1)
 			{
@@ -144,7 +145,7 @@ public class MyTownAssistant
 			
 			int cx = res.onlinePlayer.chunkCoordX;
 			int cz = res.onlinePlayer.chunkCoordZ;
-			int dim = res.onlinePlayer.dimension;
+			
 
 			CommandException firstError = null;
 			int requestedBlocks = 0, ableToClaim = 0, alreadyOwn = 0;

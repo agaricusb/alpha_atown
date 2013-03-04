@@ -4,6 +4,9 @@ import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
+import java.util.List;
+
+import com.google.common.collect.Lists;
 
 import net.minecraft.entity.Entity;
 
@@ -22,6 +25,7 @@ public class PortalGun extends ProtBase
 	public static PortalGun instance = new PortalGun();
 	
 	Class clPortalBall = null;
+	List<String> systemOwnerNames = Lists.newArrayList("", "def", "coopA", "coopB");
 	
 	@Override
 	public void load() throws Exception
@@ -42,11 +46,14 @@ public class PortalGun extends ProtBase
 		
 		String owner = e.getDataWatcher().getWatchableObjectString(18);
 		
-		if (owner != null && !owner.equals("") && !owner.equals("def")) // not default portal
+		if (owner != null && !systemOwnerNames.contains(owner)) // not default portal
 		{
-			Resident r = ProtectionEvents.instance.lastOwner = MyTownDatasource.instance.getOrMakeResident(owner);
-		    if (!r.isOnline())
-		    	return "Owner offline";
+			if (owner.endsWith("_A") || owner.endsWith("_B"))
+				owner = owner.substring(0, owner.length() - 2);
+			
+			Resident r = ProtectionEvents.instance.lastOwner = MyTownDatasource.instance.getResident(owner);
+		    if (r == null || !r.isOnline())
+		    	return "Owner " + owner + " not found or offline";
 		    
 			for (int ii = 0; ii < 5; ii++)
 			{
