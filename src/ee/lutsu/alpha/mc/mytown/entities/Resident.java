@@ -500,7 +500,21 @@ public class Resident
 				MinecraftServer.getServer().getConfigurationManager().transferPlayerToDimension((EntityPlayerMP)this.onlinePlayer, this.prevDimension);
 
 			if (onlinePlayer.ridingEntity != null)
-				onlinePlayer.ridingEntity.moveEntity(this.prevX, this.prevY, this.prevZ);
+			{
+				// reversing boats
+				Entity e = onlinePlayer.ridingEntity;
+				
+				e.motionX *= -1;
+				e.motionY *= -1;
+				e.motionZ *= -1;
+				e.setPosition(this.prevX, this.prevY, this.prevZ);
+				
+				onlinePlayer.motionX *= -1;
+				onlinePlayer.motionY *= -1;
+				onlinePlayer.motionZ *= -1;
+				
+				//onlinePlayer.mountEntity(e); // unomunts
+			}
 			
 			((EntityPlayerMP)this.onlinePlayer).playerNetServerHandler.setPlayerLocation(this.prevX, this.prevY, this.prevZ, this.prevYaw, this.prevPitch);
 		}
