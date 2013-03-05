@@ -503,7 +503,7 @@ public class Resident
 			{
 				// reversing boats
 				Entity e = onlinePlayer.ridingEntity;
-				
+
 				e.motionX *= -1;
 				e.motionY *= -1;
 				e.motionZ *= -1;

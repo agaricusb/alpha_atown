@@ -45,7 +45,7 @@ import ee.lutsu.alpha.mc.mytown.sql.Database;
 @Mod(
         modid = "MyTown",
         name = "My Town",
-        version = "1.4.7.7"
+        version = "1.4.7.8"
 )
 @NetworkMod(
         clientSideRequired = false,

@@ -15,7 +15,6 @@ import net.minecraft.world.World;
 
 public class TownBlock
 {
-	private World linkedWorld;
 	private int world_dimension;
 	private int chunkX;
 	private int chunkZ;
@@ -26,7 +25,6 @@ public class TownBlock
 	public int x() { return chunkX; }
 	public int z() { return chunkZ; }
 	public int worldDimension() { return world_dimension; }
-	public World world() { return linkedWorld; }
 	
 	public Town town() { return town; }
 	public Resident owner() { return owner; }
@@ -55,8 +53,7 @@ public class TownBlock
 		world_dimension = pWorld;
 		chunkX = x;
 		chunkZ = z;
-		
-		linkedWorld = MinecraftServer.getServer().worldServerForDimension(pWorld);
+
 		settings.tag = this;
 		settings.saveHandler = new TownSettingCollection.ISettingsSaveHandler() 
 		{
@@ -96,15 +93,13 @@ public class TownBlock
 	{
 		return chunkX == block.chunkX && 
 			   chunkZ == block.chunkZ && 
-			   linkedWorld != null &&
-			   linkedWorld == block.linkedWorld;
+			   world_dimension == block.world_dimension;
 	}
 	
 	public boolean equals(int dim, int x, int z)
 	{
 		return chunkX == x && 
 			   chunkZ == z && 
-			   linkedWorld != null &&
 			   world_dimension == dim;
 	}
 	

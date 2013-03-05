@@ -37,7 +37,7 @@ public class IndustrialCraft extends ProtBase
     // laser
 	public int explosionRadius = 6;
 	Class clLaser = null;
-	Field fTickInAir, fOwner, fExplosive;
+	Field fTickInAir, fOwner, fExplosive, fRange, fPower, fBlockBreaks;
     
 	@Override
 	public void load() throws Exception
@@ -55,6 +55,9 @@ public class IndustrialCraft extends ProtBase
 		fOwner = clLaser.getDeclaredField("owner");
 		fTickInAir = clLaser.getDeclaredField("ticksInAir");
 		fExplosive = clLaser.getDeclaredField("explosive");
+		fRange = clLaser.getDeclaredField("range");
+		fPower = clLaser.getDeclaredField("power");
+		fBlockBreaks = clLaser.getDeclaredField("blockBreaks");
 	}
 	
 	@Override
@@ -75,19 +78,42 @@ public class IndustrialCraft extends ProtBase
 		Class c = e.getClass();
 		if (c == clLaser)
 		{
+			/*
 			if ((int)e.posX == (int)e.prevPosX && (int)e.posY == (int)e.prevPosY && (int)e.posZ == (int)e.prevPosZ) // didn't move
 				return null;
-			
+			*/
 			fTickInAir.setAccessible(true);
 			EntityPlayer owner = (EntityPlayer)fOwner.get(e); // actually living
 			Integer ticksInAir = (Integer)fTickInAir.get(e);
 			Boolean explosive = (Boolean)fExplosive.get(e);
-			
+			Float range = (Float)fRange.get(e);
+			Float power = (Float)fPower.get(e);
+			Integer blockBreaks = (Integer)fBlockBreaks.get(e);
+
 			if (owner == null)
 				return "no owner";
 
 			Resident res = ProtectionEvents.instance.lastOwner = MyTownDatasource.instance.getOrMakeResident(owner);
 			
+			
+		    if (range < 1.0F || power <= 0.0F || blockBreaks <= 0)
+	    	{
+	    		if (explosive)
+	    		{
+	    			int x = (int)e.posX, y = (int)e.posY, z = (int)e.posZ;
+	    			
+	        		if (!res.canInteract(x - explosionRadius, y - explosionRadius, y + explosionRadius, z - explosionRadius, Permissions.Build) || 
+	    				!res.canInteract(x - explosionRadius, y - explosionRadius, y + explosionRadius, z + explosionRadius, Permissions.Build) ||
+	    				!res.canInteract(x + explosionRadius, y - explosionRadius, y + explosionRadius, z - explosionRadius, Permissions.Build) ||
+	    				!res.canInteract(x + explosionRadius, y - explosionRadius, y + explosionRadius, z + explosionRadius, Permissions.Build))
+	        			return "Explosion would hit a protected town";
+	    		}
+	    		return null;
+	    	}
+			
+			ticksInAir++;
+			
+
 	        Vec3 var1 = Vec3.createVectorHelper(e.posX, e.posY, e.posZ);
 	        Vec3 var2 = Vec3.createVectorHelper(e.posX + e.motionX, e.posY + e.motionY, e.posZ + e.motionZ);
 	        MovingObjectPosition var3 = e.worldObj.rayTraceBlocks_do_do(var1, var2, false, true);
@@ -135,7 +161,8 @@ public class IndustrialCraft extends ProtBase
 
 	        if (var3 != null)
 	        {
-	        	if ((var3.entityHit != null && !res.canAttack(var3.entityHit)) || (var3.entityHit == null && !res.canInteract(var3.blockX, var3.blockY, var3.blockZ, Permissions.Build)))
+	        	if ((var3.typeOfHit == EnumMovingObjectType.ENTITY && !res.canAttack(var3.entityHit)) || 
+	        		(var3.typeOfHit == EnumMovingObjectType.TILE && !res.canInteract(var3.blockX, var3.blockY, var3.blockZ, Permissions.Build)))
 	        	{
 					return "Target in MyTown protected area";
 	        	}
@@ -158,10 +185,10 @@ public class IndustrialCraft extends ProtBase
 	        			z = (int)var3.blockZ;
 	        		}
 	        		
-	        		if (!res.canInteract(x - explosionRadius, y, z - explosionRadius, Permissions.Build) || 
-	    				!res.canInteract(x - explosionRadius, y, z + explosionRadius, Permissions.Build) ||
-	    				!res.canInteract(x + explosionRadius, y, z - explosionRadius, Permissions.Build) ||
-	    				!res.canInteract(x + explosionRadius, y, z + explosionRadius, Permissions.Build))
+	        		if (!res.canInteract(x - explosionRadius, y - explosionRadius, y + explosionRadius, z - explosionRadius, Permissions.Build) || 
+	    				!res.canInteract(x - explosionRadius, y - explosionRadius, y + explosionRadius, z + explosionRadius, Permissions.Build) ||
+	    				!res.canInteract(x + explosionRadius, y - explosionRadius, y + explosionRadius, z - explosionRadius, Permissions.Build) ||
+	    				!res.canInteract(x + explosionRadius, y - explosionRadius, y + explosionRadius, z + explosionRadius, Permissions.Build))
 	        			return "Explosion would hit a protected town";
 	        	}
 	        }
