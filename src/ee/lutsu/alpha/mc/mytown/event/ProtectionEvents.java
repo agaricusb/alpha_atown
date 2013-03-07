@@ -147,6 +147,9 @@ public class ProtectionEvents implements ITickHandler
 			for (int i = 0; i < world.loadedEntityList.size(); i++)
 			{
 				e = (Entity)world.loadedEntityList.get(i);
+				if (e == null || e.isDead)
+					continue;
+				
 				lastOwner = null;
 				kill = null;
 				
@@ -198,6 +201,9 @@ public class ProtectionEvents implements ITickHandler
 			for (int i = 0; i < world.loadedTileEntityList.size(); i++)
 			{
 				t = (TileEntity)world.loadedTileEntityList.get(i);
+				if (t == null)
+					continue;
+				
 				lastOwner = null;
 				kill = null;
 				
