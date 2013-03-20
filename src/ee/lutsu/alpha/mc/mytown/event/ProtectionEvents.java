@@ -111,7 +111,7 @@ public class ProtectionEvents implements ITickHandler
 			
 			if (kill != null)
 			{
-				String sTool = String.format("[%s] %s", item.itemID + (item.isStackable() && item.getItemDamage() > 0 ? ":" + item.getItemDamage() : ""), tool.getItemName());
+				String sTool = String.format("[%s] %s", item.itemID + (item.isStackable() && item.getItemDamage() > 0 ? ":" + item.getItemDamage() : ""), tool.getLocalizedName(null));
 				
 				EntityPlayer pl = r.onlinePlayer;
 				Log.severe(String.format("[%s]Player %s tried to bypass at dim %d, %d,%d,%d using %s - %s", lastCheck.getClass().getSimpleName(), pl.username, pl.dimension, (int)pl.posX, (int)pl.posY, (int)pl.posZ, sTool, kill));
@@ -241,7 +241,7 @@ public class ProtectionEvents implements ITickHandler
 			{
 				Block.blocksList[en.worldObj.getBlockId(en.xCoord, en.yCoord, en.zCoord)]
 						.dropBlockAsItem(en.worldObj, en.xCoord, en.yCoord, en.zCoord, en.worldObj.getBlockMetadata(en.xCoord, en.yCoord, en.zCoord), 0);
-	            en.worldObj.setBlockWithNotify(en.xCoord, en.yCoord, en.zCoord, 0);
+	            en.worldObj.setBlockAndMetadataWithNotify(en.xCoord, en.yCoord, en.zCoord, 0, 0, 3);
 			}
 		}
 		catch (Exception er)

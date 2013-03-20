@@ -41,7 +41,7 @@ public class WorldBorder extends TickBase
 		
 		for (Property p : cat.values())
 		{
-			DimConfig c = DimConfig.deserialize(p.value);
+			DimConfig c = DimConfig.deserialize(p.getString());
 			limits.put(c.dimension, c);
 		}
 
@@ -91,7 +91,7 @@ public class WorldBorder extends TickBase
 	
 	public void generatorReporting(ChunkGen gen, int radiusDone)
 	{
-		MyTown.instance.config.get("worldborder.generator", "dim_" + gen.w.provider.dimensionId + "_" + gen.sector + "_radius", 0).value = String.valueOf(radiusDone + 1);
+		MyTown.instance.config.get("worldborder.generator", "dim_" + gen.w.provider.dimensionId + "_" + gen.sector + "_radius", 0).set(radiusDone + 1);
 
 		if (System.currentTimeMillis() >= nextGenConfigSave)
 		{
@@ -142,7 +142,7 @@ public class WorldBorder extends TickBase
 				cat.clear();
 				
 				genenabled = false;
-				MyTown.instance.config.get("worldborder", "chunk-generator-enabled", false, "Generate blocks?").value = String.valueOf(false);
+				MyTown.instance.config.get("worldborder", "chunk-generator-enabled", false, "Generate blocks?").set(false);
 				MyTown.instance.config.save();
 			}
 		}
@@ -180,7 +180,7 @@ public class WorldBorder extends TickBase
 		finally
 		{
 			for (ChunkGen g : generators)
-				MyTown.instance.config.get("worldborder.generator", "dim_" + g.w.provider.dimensionId + "_" + g.sector + "_radius", 0).value = String.valueOf(g.lastSuccessfulRadius + 1);
+				MyTown.instance.config.get("worldborder.generator", "dim_" + g.w.provider.dimensionId + "_" + g.sector + "_radius", 0).set(g.lastSuccessfulRadius + 1);
 
 			MyTown.instance.config.save();
 			Log.info("[WorldBorder] Stopped chunk gen.");
@@ -318,7 +318,7 @@ public class WorldBorder extends TickBase
 				if (provider instanceof ChunkProviderServer)
 					((ChunkProviderServer)provider).unloadChunksIfNotNearSpawn(x, z);
 				
-				provider.unload100OldestChunks();
+				provider.unloadQueuedChunks();
 			}
 		}
 		

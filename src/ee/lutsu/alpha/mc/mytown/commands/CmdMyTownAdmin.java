@@ -402,7 +402,7 @@ public class CmdMyTownAdmin extends CommandBase
 			else if (var2[0].equalsIgnoreCase("togglegen"))
 			{
 				WorldBorder.instance.genenabled = !WorldBorder.instance.genenabled;
-				MyTown.instance.config.get("worldborder", "chunk-generator-enabled", WorldBorder.instance.genenabled, "Generate blocks?").value = String.valueOf(WorldBorder.instance.genenabled);
+				MyTown.instance.config.get("worldborder", "chunk-generator-enabled", WorldBorder.instance.genenabled, "Generate blocks?").set(WorldBorder.instance.genenabled);
 				MyTown.instance.config.save();
 				cs.sendChatToPlayer(String.format("§aWorld gen is now %s", WorldBorder.instance.genenabled ? "§2ENABLED" : "§4DISABLED"));
 			}

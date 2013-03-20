@@ -80,7 +80,7 @@ public class OldTownRemover extends TickBase
 		daysOld = MyTown.instance.config.get("TickHandlers.OldTownRemover", "DaysAtleastOld", 30, "Delete towns where members haven't logged in for this amount of days").getInt();
 		enabled = MyTown.instance.config.get("TickHandlers.OldTownRemover", "Enabled", false, "Feature enabled?").getBoolean(false);
 		timeout = MyTown.instance.config.get("TickHandlers.OldTownRemover", "WorkerTimeoutTicks", 20 * 60, "How often should the worker check for old towns? Default 1min - 1200 ticks").getInt();
-		safeTowns = MyTown.instance.config.get("TickHandlers.OldTownRemover", "SafeTownList", "Spawn,Server", "Town name comma seperated list which are exempt from this feature").value.split(",");
+		safeTowns = MyTown.instance.config.get("TickHandlers.OldTownRemover", "SafeTownList", "Spawn,Server", "Town name comma seperated list which are exempt from this feature").getString().split(",");
 		
 		if (timeout <= 0)
 			throw new Exception("WorkerTimeoutTicks cannot be at or below 0");

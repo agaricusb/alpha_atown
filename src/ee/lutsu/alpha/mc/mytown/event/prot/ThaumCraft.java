@@ -184,7 +184,7 @@ public class ThaumCraft extends ProtBase
 	private List<Entity> getTargets(World world, Vec3 tvec, EntityPlayer p, double range)
 	{
 		Entity pointedEntity = null;
-		Vec3 vec3d = Vec3.vec3dPool.getVecFromPool(p.posX, p.posY, p.posZ);
+		Vec3 vec3d = world.getWorldVec3Pool().getVecFromPool(p.posX, p.posY, p.posZ);
 		Vec3 vec3d2 = vec3d.addVector(tvec.xCoord * range, tvec.yCoord * range, tvec.zCoord * range);
 		float f1 = 1.0F;
 		List list = world.getEntitiesWithinAABBExcludingEntity(p, p.boundingBox.addCoord(tvec.xCoord * range, tvec.yCoord * range, tvec.zCoord * range).expand(f1, f1, f1));

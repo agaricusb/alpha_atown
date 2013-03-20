@@ -7,6 +7,7 @@ import java.util.ArrayList;
 
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.item.EntityMinecart;
+import net.minecraft.util.DamageSource;
 import net.minecraft.util.Vec3;
 
 import ee.lutsu.alpha.mc.mytown.ChatChannel;
@@ -70,8 +71,7 @@ public class TrainCraft extends ProtBase
 	
 	private void blockAction(EntityMinecart e) throws IllegalArgumentException, IllegalAccessException
 	{
-		e.setDead();
-		e.dropCartAsItem();
+		e.func_94095_a(DamageSource.generic); // drop cart as item
 		
 		Log.severe(String.format("§4Stopped a train found in %s @ dim %s, %s,%s,%s",
 				e.dimension, (int)e.posX, (int)e.posY, (int)e.posZ));

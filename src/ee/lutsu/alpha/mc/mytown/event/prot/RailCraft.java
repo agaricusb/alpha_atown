@@ -9,6 +9,7 @@ import railcraft.common.api.carts.IExplosiveCart;
 
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.item.EntityMinecart;
+import net.minecraft.util.DamageSource;
 import net.minecraft.util.MathHelper;
 import net.minecraft.util.Vec3;
 import net.minecraftforge.common.ForgeDirection;
@@ -102,8 +103,7 @@ public class RailCraft extends ProtBase
 	
 	private void blockAction(EntityMinecart e) throws IllegalArgumentException, IllegalAccessException
 	{
-		e.setDead();
-		e.dropCartAsItem();
+		e.func_94095_a(DamageSource.generic); // drop cart as item
 		
 		Log.severe(String.format("§4Stopped a railcraft bore found @ dim %s, %s,%s,%s",
 				e.dimension, (int)e.posX, (int)e.posY, (int)e.posZ));

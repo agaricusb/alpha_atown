@@ -45,7 +45,7 @@ import ee.lutsu.alpha.mc.mytown.sql.Database;
 @Mod(
         modid = "MyTown",
         name = "My Town",
-        version = "1.4.7.8"
+        version = "1.5.0.0"
 )
 @NetworkMod(
         clientSideRequired = false,
@@ -199,8 +199,8 @@ public class MyTown
         prop = config.get("General", "Translations", "");
         prop.comment = "Filename in config folder with the term translations";
         
-        if (prop.value != null && !prop.value.equals(""))
-        	TermTranslator.load(new File(CONFIG_FOLDER + prop.value), "custom", true);
+        if (prop.getString() != null && !prop.getString().equals(""))
+        	TermTranslator.load(new File(CONFIG_FOLDER + prop.getString()), "custom", true);
 
         prop = config.get("General", "NationAddsBlocks", 0);
         prop.comment = "How many town blocks the town gets for being in a nation";
@@ -228,10 +228,10 @@ public class MyTown
 
         prop = config.get("General", "CartItemIds", "");
         prop.comment = "Defines the cart id's which can be placed on a rail with carts perm on. Includes all cart-types.";
-        carts = ItemIdRange.parseList(Arrays.asList(prop.value.split(";")));
+        carts = ItemIdRange.parseList(Arrays.asList(prop.getString().split(";")));
         
         prop = config.get("General", "LeftClickAccessBlocks", "1000:2", "Which blocks should be considered as access when someone is hitting them. Like TE Barrels");
-        leftClickAccessBlocks = ItemIdRange.parseList(Arrays.asList(prop.value.split(";")));
+        leftClickAccessBlocks = ItemIdRange.parseList(Arrays.asList(prop.getString().split(";")));
 
         Resident.teleportToSpawnWaitSeconds = config.get("General", "SpawnTeleportTimeout", Resident.teleportToSpawnWaitSeconds, "How many seconds the /spawn teleport takes").getInt();
         Resident.teleportToHomeWaitSeconds = config.get("General", "HomeTeleportTimeout", Resident.teleportToHomeWaitSeconds, "How many seconds the /home teleport takes").getInt();
@@ -256,7 +256,7 @@ public class MyTown
     	if (def != null)
     		sDef = def.stackSize + "x" + def.itemID + (def.getItemDamage() != 0 ? ":" + def.getItemDamage() : "");
     	
-    	String v = config.get(cat, node, sDef, comment).value;
+    	String v = config.get(cat, node, sDef, comment).getString();
     	if (v == null || v.trim().length() < 1)
     		return null;
     	
@@ -277,31 +277,31 @@ public class MyTown
         
         prop = config.get("Database", "Type", "SQLite");
         prop.comment = "Database type to connect to";
-        MyTownDatasource.instance.currentType = Database.Type.matchType(prop.value);
+        MyTownDatasource.instance.currentType = Database.Type.matchType(prop.getString());
     	
         prop = config.get("Database", "Prefix", "");
         prop.comment = "Table name prefix to use. <pre>_towns etc..";
-        MyTownDatasource.instance.prefix = prop.value;
+        MyTownDatasource.instance.prefix = prop.getString();
     	
         prop = config.get("Database", "Username", "");
         prop.comment = "Username to use when connecting. Used by MySQL";
-        MyTownDatasource.instance.username = prop.value;
+        MyTownDatasource.instance.username = prop.getString();
     	
         prop = config.get("Database", "Password", "");
         prop.comment = "Password to use when connecting. Used by MySQL";
-        MyTownDatasource.instance.password = prop.value;
+        MyTownDatasource.instance.password = prop.getString();
     	
         prop = config.get("Database", "Host", "");
         prop.comment = "Hostname:Port of the db server. Used by MySQL";
-        MyTownDatasource.instance.host = prop.value;
+        MyTownDatasource.instance.host = prop.getString();
     	
         prop = config.get("Database", "Database", "");
         prop.comment = "The database name. Used by MySQL";
-        MyTownDatasource.instance.dbname = prop.value;
+        MyTownDatasource.instance.dbname = prop.getString();
     	
         prop = config.get("Database", "Path", CONFIG_FOLDER + "data.db");
         prop.comment = "The database file path. Used by SQLite";
-        MyTownDatasource.instance.dbpath = prop.value;
+        MyTownDatasource.instance.dbpath = prop.getString();
     }
     
     private void loadChatConfigs(Configuration config)
@@ -314,19 +314,19 @@ public class MyTown
         
         prop = config.get("Chat", "ChatFormat", Term.ChatFormat.defaultVal);
         prop.comment = "Chat format to be used";
-        Term.ChatFormat.defaultVal = prop.value;
+        Term.ChatFormat.defaultVal = prop.getString();
         
         prop = config.get("Chat", "EmoteFormat", Term.EmoteFormat.defaultVal);
         prop.comment = "Emote format to be used";
-        Term.EmoteFormat.defaultVal = prop.value;
+        Term.EmoteFormat.defaultVal = prop.getString();
         
         prop = config.get("Chat", "PrivMsgInFormat", Term.PrivMsgFormatIn.defaultVal);
         prop.comment = "Private message format to be used when receiving. Vars starting with $s mean sender";
-        Term.PrivMsgFormatIn.defaultVal = prop.value;
+        Term.PrivMsgFormatIn.defaultVal = prop.getString();
         
         prop = config.get("Chat", "PrivMsgOutFormat", Term.PrivMsgFormatOut.defaultVal);
         prop.comment = "Private message format to be used when sending. Vars starting with $s mean sender";
-        Term.PrivMsgFormatOut.defaultVal = prop.value;
+        Term.PrivMsgFormatOut.defaultVal = prop.getString();
         
         prop = config.get("Chat", "LocalDistance", 160);
         prop.comment = "How many blocks far does the local chat sound";
@@ -338,13 +338,13 @@ public class MyTown
         
         prop = config.get("Chat", "DefaultChannel", ChatChannel.defaultChannel.name);
         prop.comment = "Default chat channel for newcomers";
-        ChatChannel.defaultChannel = ChatChannel.parse(prop.value);
+        ChatChannel.defaultChannel = ChatChannel.parse(prop.getString());
         
         for (ChatChannel ch : ChatChannel.values())
         {
             prop = config.get("Chat", "Channel_" + ch.toString(), "");
             prop.comment = "<enabled>;<name>;<abbrevation>;<color>;<inlineswitch> like " + String.format("%s;%s;%s;%s", ch.enabled ? 1 : 0, ch.name, ch.abbrevation, ch.color);
-            ch.load(prop.value);
+            ch.load(prop.getString());
         }
     }
     
@@ -357,8 +357,8 @@ public class MyTown
         {
         	config.getCategory("ProtEx").clear();
         	
-            config.get("ProtEx", "Enabled", true, "Run the extra protections?").value = String.valueOf(ProtectionEvents.instance.enabled);
-            config.get("ProtEx", "DynamicEnabling", true, "Load all modules for which mods are present").value = String.valueOf(ProtectionEvents.instance.dynamicEnabling);
+            config.get("ProtEx", "Enabled", true, "Run the extra protections?").set(ProtectionEvents.instance.enabled);
+            config.get("ProtEx", "DynamicEnabling", true, "Load all modules for which mods are present").set(ProtectionEvents.instance.dynamicEnabling);
         }
         else
         {
@@ -387,33 +387,31 @@ public class MyTown
         Property prop; 
         
         prop = config.get("ServerPerms", "Server", "");
-        serverSettings.deserialize(prop.value);
+        serverSettings.deserialize(prop.getString());
         
         serverSettings.saveHandler = new ISettingsSaveHandler()
         {
 			public void save(TownSettingCollection sender, Object tag) 
 			{
-				MyTown.instance.config.get("ServerPerms", "Server", "").value = sender.serialize();
+				MyTown.instance.config.get("ServerPerms", "Server", "").set(sender.serialize());
 				MyTown.instance.config.save();
 			}
         };
         
         prop = config.get("WildPerms", "Server", "");
-        serverWildSettings.deserialize(prop.value);
+        serverWildSettings.deserialize(prop.getString());
         
         serverWildSettings.saveHandler = new ISettingsSaveHandler()
         {
 			public void save(TownSettingCollection sender, Object tag) 
 			{
-				MyTown.instance.config.get("WildPerms", "Server", "").value = sender.serialize();
+				MyTown.instance.config.get("WildPerms", "Server", "").set(sender.serialize());
 				MyTown.instance.config.save();
 			}
         };
         
-        Map<String, Property> cat = config.categories.get("WildPerms");
-        if (cat == null)
-        	return;
-        
+        ConfigCategory cat = config.getCategory("WildPerms");
+
         for (Property p : cat.values())
         {
         	if (!p.getName().startsWith("Dim_"))
@@ -421,7 +419,7 @@ public class MyTown
 
     		int dim = Integer.parseInt(p.getName().substring(4));
     		TownSettingCollection set = getWorldWildSettings(dim);
-    		set.deserialize(p.value);
+    		set.deserialize(p.getString());
         }
     }
     
@@ -441,7 +439,7 @@ public class MyTown
 			public void save(TownSettingCollection sender, Object tag) 
 			{
 				int w = (Integer)tag;
-				MyTown.instance.config.get("WildPerms", "Dim_" + String.valueOf(w), "").value = sender.serialize();
+				MyTown.instance.config.get("WildPerms", "Dim_" + String.valueOf(w), "").set(sender.serialize());
 				MyTown.instance.config.save();
 			}
         };
