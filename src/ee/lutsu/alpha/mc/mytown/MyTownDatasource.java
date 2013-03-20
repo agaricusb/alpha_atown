@@ -262,21 +262,39 @@ public class MyTownDatasource extends MyTownDB
 		return ret;
 	}
 	
-	public List<Town> getOldTowns(Date lastLoginTimeBelow)
+	public List<Resident> getOldResidents(Date lastLoginTimeBelow)
 	{
-		ArrayList<Town> towns = new ArrayList<Town>();
+		ArrayList<Resident> players = new ArrayList<Resident>();
 		synchronized (residents)
 		{
 			for (Resident res : residents)
 			{
 				if (res.town() != null && !res.isOnline() && res.lastLogin().compareTo(lastLoginTimeBelow) < 0)
 				{
+					players.add(res);
+				}
+			}
+		}
+		
+		return players;
+	}
+	
+	public List<Town> getOldTowns(long lastLoginTimeBelow, double plotDaysAddition)
+	{
+		ArrayList<Town> towns = new ArrayList<Town>();
+		synchronized (residents)
+		{
+			for (Resident res : residents)
+			{
+				Date last = new Date(lastLoginTimeBelow - (res.town() != null ? (int)(plotDaysAddition * res.town().blocks().size()) : 0));
+				if (res.town() != null && !res.isOnline() && res.lastLogin().compareTo(last) < 0)
+				{
 					if (!towns.contains(res.town()))
 					{
 						boolean allOld = true;
 						for (Resident r : res.town().residents())
 						{
-							if (r.isOnline() || r.lastLogin().compareTo(lastLoginTimeBelow) >= 0)
+							if (r.isOnline() || r.lastLogin().compareTo(last) >= 0)
 							{
 								allOld = false;
 								break;

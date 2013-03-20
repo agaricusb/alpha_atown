@@ -15,6 +15,7 @@ public class TickHandler implements ITickHandler
 	public TickBase[] handlers = new TickBase[]
 	{
 		new OldTownRemover(),
+		new OldResidentRemover(),
 		WorldBorder.instance
 	};
 	

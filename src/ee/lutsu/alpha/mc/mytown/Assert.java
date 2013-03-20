@@ -1,5 +1,6 @@
 package ee.lutsu.alpha.mc.mytown;
 
+import ee.lutsu.alpha.mc.mytown.entities.Resident;
 import net.minecraft.command.ICommandSender;
 
 public class Assert 

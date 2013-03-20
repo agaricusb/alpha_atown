@@ -35,6 +35,7 @@ import ee.lutsu.alpha.mc.mytown.commands.*;
 import ee.lutsu.alpha.mc.mytown.entities.ItemIdRange;
 import ee.lutsu.alpha.mc.mytown.entities.Nation;
 import ee.lutsu.alpha.mc.mytown.entities.Resident;
+import ee.lutsu.alpha.mc.mytown.entities.SavedHomeList;
 import ee.lutsu.alpha.mc.mytown.entities.Town;
 import ee.lutsu.alpha.mc.mytown.entities.TownSettingCollection;
 import ee.lutsu.alpha.mc.mytown.entities.TownSettingCollection.ISettingsSaveHandler;
@@ -235,6 +236,8 @@ public class MyTown
 
         Resident.teleportToSpawnWaitSeconds = config.get("General", "SpawnTeleportTimeout", Resident.teleportToSpawnWaitSeconds, "How many seconds the /spawn teleport takes").getInt();
         Resident.teleportToHomeWaitSeconds = config.get("General", "HomeTeleportTimeout", Resident.teleportToHomeWaitSeconds, "How many seconds the /home teleport takes").getInt();
+        
+        SavedHomeList.defaultIsBed = config.get("General", "DefaultHomeIsBed", SavedHomeList.defaultIsBed, "Are the /sethome and /home commands with no home name linked to the bed location?").getBoolean(SavedHomeList.defaultIsBed);
     }
     
     private void loadCostConfigs(Configuration config)

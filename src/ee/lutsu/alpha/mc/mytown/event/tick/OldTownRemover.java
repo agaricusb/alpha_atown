@@ -16,6 +16,7 @@ public class OldTownRemover extends TickBase
 	public boolean enabled = false;
 	public int timeout = 20 * 60;
 	public String[] safeTowns = new String[0];
+	public double plotDaysAddition = 0.5;
 	
 	@Override
 	public boolean enabled() { return enabled; }
@@ -23,8 +24,7 @@ public class OldTownRemover extends TickBase
 	@Override
 	public void run() throws Exception
 	{
-		Date limit = new Date(System.currentTimeMillis() - (long)daysOld * 24 * 60 * 60 * 1000); 
-		List<Town> towns = source().getOldTowns(limit);
+		List<Town> towns = source().getOldTowns(System.currentTimeMillis() - (long)daysOld * 24 * 60 * 60 * 1000, plotDaysAddition);
 
 		for (Town t : towns)
 		{
@@ -77,7 +77,8 @@ public class OldTownRemover extends TickBase
 	@Override
 	public void loadConfig() throws Exception
 	{
-		daysOld = MyTown.instance.config.get("TickHandlers.OldTownRemover", "DaysAtleastOld", 30, "Delete towns where members haven't logged in for this amount of days").getInt();
+		daysOld = MyTown.instance.config.get("TickHandlers.OldTownRemover", "DaysAtleastOld", 7, "Delete towns where members haven't logged in for this amount of days").getInt();
+		plotDaysAddition = MyTown.instance.config.get("TickHandlers.OldTownRemover", "PlotDaysAddition", plotDaysAddition, "Each plot of the town adds extra safe time for the town").getDouble(plotDaysAddition);
 		enabled = MyTown.instance.config.get("TickHandlers.OldTownRemover", "Enabled", false, "Feature enabled?").getBoolean(false);
 		timeout = MyTown.instance.config.get("TickHandlers.OldTownRemover", "WorkerTimeoutTicks", 20 * 60, "How often should the worker check for old towns? Default 1min - 1200 ticks").getInt();
 		safeTowns = MyTown.instance.config.get("TickHandlers.OldTownRemover", "SafeTownList", "Spawn,Server", "Town name comma seperated list which are exempt from this feature").getString().split(",");

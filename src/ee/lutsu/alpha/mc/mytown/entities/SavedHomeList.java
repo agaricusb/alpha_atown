@@ -10,7 +10,9 @@ import net.minecraft.util.ChunkCoordinates;
 import com.google.common.base.Joiner;
 import com.google.common.collect.Lists;
 
+import ee.lutsu.alpha.mc.mytown.Assert;
 import ee.lutsu.alpha.mc.mytown.CommandException;
+import ee.lutsu.alpha.mc.mytown.NoAccessException;
 import ee.lutsu.alpha.mc.mytown.Term;
 
 public class SavedHomeList extends ArrayList<SavedHome>
@@ -72,16 +74,23 @@ public class SavedHomeList extends ArrayList<SavedHome>
 		return name.replace('/', '_').replace('|', '_').replace(' ', '_');
 	}
 	
-	public void assertSetHome(String name, Entity pos) throws CommandException
+	public void assertSetHome(String name, Entity pos) throws CommandException, NoAccessException
 	{
+		if (!owner.isOnline())
+			throw new CommandException(Term.HomeCmdOwnerNotOnline);
+		
+		boolean newHome = getHomeName(name) == null;
+		
+		if (newHome)
+			Assert.Perm(owner.onlinePlayer, "mytown.ecmd.sethome.new_" + String.valueOf(size() + 1));
+
 		if (defaultIsBed && name == null) // bed
 		{
-			if (!owner.isOnline())
-				throw new CommandException(Term.HomeCmdOwnerNotOnline);
-			
 			if (pos.dimension != pos.worldObj.provider.getRespawnDimension((EntityPlayerMP)owner.onlinePlayer))
 				throw new CommandException(Term.HomeCmdDimNotSpawnDim);
 		}
+		else if (!newHome)
+			Assert.Perm(owner.onlinePlayer, "mytown.ecmd.sethome.replace");
 	}
 	
 	public void set(String name, Entity pos)

@@ -9,6 +9,7 @@ import ee.lutsu.alpha.mc.mytown.entities.Resident;
 import ee.lutsu.alpha.mc.mytown.entities.TownBlock;
 import ee.lutsu.alpha.mc.mytown.entities.TownSettingCollection.Permissions;
 import ee.lutsu.alpha.mc.mytown.event.ProtBase;
+import ee.lutsu.alpha.mc.mytown.event.ProtectionEvents;
 
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.item.EntityTNTPrimed;
@@ -54,7 +55,7 @@ public class ModularPowersuits extends ProtBase
 			return "Allowed for players only";
 		
         int radius = (int)Math.ceil(fEntityPlasmaBolt_size.getDouble(e) / 50.0D * 3.0D * fEntityPlasmaBolt_explosiveness.getDouble(e)) + 2; // 2 for safety
-        Resident res = Resident.getOrMake((EntityPlayer)shooter);
+        Resident res = ProtectionEvents.instance.lastOwner = Resident.getOrMake((EntityPlayer)shooter);
         
         int x1 = ((int)e.posX - radius) >> 4;
         int z1 = ((int)e.posZ - radius) >> 4;
