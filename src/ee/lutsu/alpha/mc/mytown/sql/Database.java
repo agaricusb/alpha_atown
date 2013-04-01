@@ -188,6 +188,9 @@ public abstract class Database {
 
         // Connect to the database
         connection = driver.connect("jdbc:" + currentType.toString().toLowerCase() + ":" + getDatabasePath(), properties);
+        if (connection == null)
+        	throw new NullPointerException("Connecting to database failed: unknown error - using jdbc:" + currentType.toString().toLowerCase() + ":" + getDatabasePath());
+        
         connected = true;
         return true;
     }
@@ -210,6 +213,9 @@ public abstract class Database {
      * @return the connection to the database
      */
     public Connection getConnection() {
+    	if (connection == null)
+    		throw new NullPointerException("No connection!");
+    	
         return connection;
     }
 
