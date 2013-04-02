@@ -8,12 +8,14 @@ import ee.lutsu.alpha.mc.mytown.entities.TownBlock;
 import net.minecraft.block.Block;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityLiving;
+import net.minecraft.entity.item.EntityMinecart;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.projectile.EntityThrowable;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.AxisAlignedBB;
+import net.minecraft.util.DamageSource;
 import net.minecraft.util.EnumMovingObjectType;
 import net.minecraft.util.MovingObjectPosition;
 import net.minecraft.util.Vec3;
@@ -139,5 +141,28 @@ public abstract class ProtBase
         }
         
 		return null;
+	}
+	
+	protected void dropMinecart(EntityMinecart e) 
+	{
+		try
+		{
+			e.func_94095_a(DamageSource.generic); // drop cart as item, may get changed in the future
+		}
+		catch (Exception ex)
+		{
+			int times = 10;
+			for (; times >= 0 && !e.isDead; times--)
+			{
+				try
+				{
+					e.attackEntityFrom(DamageSource.generic, 1000);
+				}
+				catch (Exception ex2) {}
+			}
+			
+			if (times == 0)
+				e.setDead(); // if nothing else works, just kill it
+		}
 	}
 }

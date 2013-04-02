@@ -241,7 +241,7 @@ public class ProtectionEvents implements ITickHandler
 			{
 				Block.blocksList[en.worldObj.getBlockId(en.xCoord, en.yCoord, en.zCoord)]
 						.dropBlockAsItem(en.worldObj, en.xCoord, en.yCoord, en.zCoord, en.worldObj.getBlockMetadata(en.xCoord, en.yCoord, en.zCoord), 0);
-	            en.worldObj.setBlockAndMetadataWithNotify(en.xCoord, en.yCoord, en.zCoord, 0, 0, 3);
+	            en.worldObj.setBlock(en.xCoord, en.yCoord, en.zCoord, 0);
 			}
 		}
 		catch (Exception er)

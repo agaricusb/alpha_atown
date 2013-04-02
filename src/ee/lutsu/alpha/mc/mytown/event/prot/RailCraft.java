@@ -103,7 +103,7 @@ public class RailCraft extends ProtBase
 	
 	private void blockAction(EntityMinecart e) throws IllegalArgumentException, IllegalAccessException
 	{
-		e.func_94095_a(DamageSource.generic); // drop cart as item
+		dropMinecart(e);
 		
 		Log.severe(String.format("§4Stopped a railcraft bore found @ dim %s, %s,%s,%s",
 				e.dimension, (int)e.posX, (int)e.posY, (int)e.posZ));
